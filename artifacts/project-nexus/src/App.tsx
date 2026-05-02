@@ -81,6 +81,7 @@ import LandingPage from "@/pages/landing";
 import AuthPage from "@/pages/auth";
 import WorkspacesPage from "@/pages/workspaces";
 import WorkspaceHubPage from "@/pages/workspace-hub";
+import JoinPage from "@/pages/join";
 
 function HomeRedirect() {
   return (
@@ -116,6 +117,19 @@ function WorkspaceHubRoute(props: { params: { id: string } }) {
       </Show>
       <Show when="signed-out">
         <Redirect to="/sign-in" />
+      </Show>
+    </>
+  );
+}
+
+function JoinRoute(props: { params: { code: string } }) {
+  return (
+    <>
+      <Show when="signed-in">
+        <JoinPage inviteCode={props.params.code} />
+      </Show>
+      <Show when="signed-out">
+        <Redirect to={`/sign-in?redirect_url=${encodeURIComponent(`/join/${props.params.code}`)}`} />
       </Show>
     </>
   );
@@ -168,6 +182,7 @@ function ClerkProviderWithRoutes() {
           </Route>
           <Route path="/workspaces" component={WorkspacesRoute} />
           <Route path="/workspaces/:id" component={WorkspaceHubRoute} />
+          <Route path="/join/:code" component={JoinRoute} />
           <Route component={NotFound} />
         </Switch>
       </QueryClientProvider>

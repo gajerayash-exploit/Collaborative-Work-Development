@@ -7,6 +7,7 @@ import {
   getListWorkspaceMembersQueryKey,
   WorkspaceRole
 } from "@workspace/api-client-react";
+import { InviteLinkSection } from "./invite-link-section";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,6 +77,12 @@ export function MembersTab({ workspaceId, role }: { workspaceId: string, role: W
         </div>
         {isAdmin && <InviteMemberDialog workspaceId={workspaceId} />}
       </div>
+
+      {isAdmin && (
+        <div className="border rounded-lg bg-card p-4 shadow-sm">
+          <InviteLinkSection workspaceId={workspaceId} />
+        </div>
+      )}
 
       <div className="border rounded-lg bg-card overflow-hidden shadow-sm">
         <div className="divide-y">

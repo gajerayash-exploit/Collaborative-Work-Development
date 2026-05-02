@@ -5,6 +5,7 @@ import workspacesRouter from "./workspaces";
 import membersRouter from "./members";
 import filesRouter from "./files";
 import messagesRouter from "./messages";
+import invitesRouter from "./invites";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use(workspacesRouter);
 router.use(membersRouter);
 router.use(filesRouter);
 router.use(messagesRouter);
+router.use(invitesRouter);
 
 export default router;
