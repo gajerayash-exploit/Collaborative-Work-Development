@@ -25,6 +25,7 @@ import type {
   GetBurndownAnalyticsParams,
   HealthStatus,
   InviteMemberBody,
+  LeaderboardResponse,
   ListMessagesParams,
   MarkReadBody,
   Message,
@@ -2212,6 +2213,94 @@ export function useGetBurndownAnalytics<
     params,
     options,
   );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get member leaderboard for a workspace
+ */
+export const getGetLeaderboardUrl = (workspaceId: string) => {
+  return `/api/workspaces/${workspaceId}/analytics/leaderboard`;
+};
+
+export const getLeaderboard = async (
+  workspaceId: string,
+  options?: RequestInit,
+): Promise<LeaderboardResponse> => {
+  return customFetch<LeaderboardResponse>(getGetLeaderboardUrl(workspaceId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetLeaderboardQueryKey = (workspaceId: string) => {
+  return [`/api/workspaces/${workspaceId}/analytics/leaderboard`] as const;
+};
+
+export const getGetLeaderboardQueryOptions = <
+  TData = Awaited<ReturnType<typeof getLeaderboard>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getLeaderboard>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetLeaderboardQueryKey(workspaceId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getLeaderboard>>> = ({
+    signal,
+  }) => getLeaderboard(workspaceId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!workspaceId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getLeaderboard>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetLeaderboardQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getLeaderboard>>
+>;
+export type GetLeaderboardQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get member leaderboard for a workspace
+ */
+
+export function useGetLeaderboard<
+  TData = Awaited<ReturnType<typeof getLeaderboard>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getLeaderboard>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetLeaderboardQueryOptions(workspaceId, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

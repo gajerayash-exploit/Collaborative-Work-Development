@@ -581,6 +581,27 @@ paths:
               schema:
                 $ref: "#/components/schemas/BurndownAnalytics"
 
+  /workspaces/{workspaceId}/analytics/leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [workspaces]
+      summary: Get member leaderboard for a workspace
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Leaderboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeaderboardResponse"
+
   /workspaces/{workspaceId}/secrets:
     get:
       operationId: listSecrets
@@ -1627,6 +1648,45 @@ components:
         - mimeType
         - uploaderName
         - createdAt
+
+    LeaderboardEntry:
+      type: object
+      properties:
+        userId:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        completed:
+          type: integer
+        inProgress:
+          type: integer
+        total:
+          type: integer
+        streak:
+          type: integer
+      required:
+        - userId
+        - name
+        - email
+        - role
+        - completed
+        - inProgress
+        - total
+        - streak
+
+    LeaderboardResponse:
+      type: object
+      properties:
+        leaderboard:
+          type: array
+          items:
+            $ref: "#/components/schemas/LeaderboardEntry"
+      required:
+        - leaderboard
 
     BurndownDayData:
       type: object

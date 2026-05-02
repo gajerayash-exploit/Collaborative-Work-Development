@@ -465,6 +465,28 @@ export const GetBurndownAnalyticsResponse = zod.object({
 });
 
 /**
+ * @summary Get member leaderboard for a workspace
+ */
+export const GetLeaderboardParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const GetLeaderboardResponse = zod.object({
+  leaderboard: zod.array(
+    zod.object({
+      userId: zod.string(),
+      name: zod.string(),
+      email: zod.string(),
+      role: zod.string(),
+      completed: zod.number(),
+      inProgress: zod.number(),
+      total: zod.number(),
+      streak: zod.number(),
+    }),
+  ),
+});
+
+/**
  * @summary List secret keys (values never returned)
  */
 export const ListSecretsParams = zod.object({

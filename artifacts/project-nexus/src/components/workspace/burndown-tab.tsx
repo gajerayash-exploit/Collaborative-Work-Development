@@ -1,8 +1,14 @@
 import { useState } from "react";
-import { useGetBurndownAnalytics, getGetBurndownAnalyticsQueryKey } from "@workspace/api-client-react";
+import {
+  useGetBurndownAnalytics,
+  getGetBurndownAnalyticsQueryKey,
+  useGetLeaderboard,
+  getGetLeaderboardQueryKey,
+} from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   AreaChart,
   Area,
@@ -23,6 +29,15 @@ const RANGE_OPTIONS = [
   { label: "30 days", days: 30 },
   { label: "60 days", days: 60 },
 ];
+
+const MEDALS = ["🥇", "🥈", "🥉"];
+const WORKSPACE_EMOJIS = ["🚀", "⚡", "🎯", "🔥", "💡", "🌟", "🎨", "🛸", "🦋", "🌊"];
+
+function nameToEmoji(name: string) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return WORKSPACE_EMOJIS[Math.abs(hash) % WORKSPACE_EMOJIS.length];
+}
 
 function ProgressRing({ pct, size = 80, stroke = 8, color = "hsl(var(--primary))" }: { pct: number; size?: number; stroke?: number; color?: string }) {
   const r = (size - stroke) / 2;
@@ -79,6 +94,143 @@ const CUSTOM_TOOLTIP = ({ active, payload, label }: any) => {
   );
 };
 
+function LeaderboardSection({ workspaceId }: { workspaceId: string }) {
+  const { data, isLoading } = useGetLeaderboard(workspaceId, {
+    query: {
+      queryKey: getGetLeaderboardQueryKey(workspaceId),
+      refetchInterval: 60_000,
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">🏆 Team Leaderboard</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="flex items-center gap-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="h-3 w-32" />
+                <Skeleton className="h-2 w-full" />
+              </div>
+              <Skeleton className="h-6 w-12" />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const entries = data?.leaderboard ?? [];
+  const topCompleted = entries[0]?.completed ?? 1;
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="text-base flex items-center gap-2">🏆 Team Leaderboard</CardTitle>
+            <CardDescription className="mt-0.5">Ranked by tasks completed · streak = consecutive active days</CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {entries.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-32 text-center">
+            <div className="text-4xl mb-2">👥</div>
+            <p className="text-sm text-muted-foreground">No members found</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {entries.map((entry, idx) => {
+              const pct = topCompleted > 0 ? Math.round((entry.completed / topCompleted) * 100) : 0;
+              const medal = MEDALS[idx] ?? null;
+              const avatar = nameToEmoji(entry.name);
+              const isTop3 = idx < 3;
+              return (
+                <div
+                  key={entry.userId}
+                  className={`relative flex items-center gap-3 rounded-xl p-3 transition-colors ${isTop3 ? "bg-muted/40 border border-border/60" : "hover:bg-muted/20"}`}
+                >
+                  {/* Rank */}
+                  <div className="w-7 text-center flex-shrink-0">
+                    {medal ? (
+                      <span className="text-xl">{medal}</span>
+                    ) : (
+                      <span className="text-sm font-bold text-muted-foreground">#{idx + 1}</span>
+                    )}
+                  </div>
+
+                  {/* Avatar */}
+                  <div className={`h-9 w-9 rounded-full flex items-center justify-center text-lg flex-shrink-0 ${
+                    idx === 0 ? "bg-amber-100 dark:bg-amber-900/30 ring-2 ring-amber-400/50" :
+                    idx === 1 ? "bg-slate-100 dark:bg-slate-800/50 ring-2 ring-slate-400/40" :
+                    idx === 2 ? "bg-orange-100 dark:bg-orange-900/30 ring-2 ring-orange-400/40" :
+                    "bg-muted"
+                  }`}>
+                    {avatar}
+                  </div>
+
+                  {/* Name + progress */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-semibold text-sm truncate">{entry.name}</span>
+                      <Badge
+                        variant="secondary"
+                        className="text-[10px] px-1.5 py-0 h-4 capitalize font-normal flex-shrink-0"
+                      >
+                        {entry.role}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-700 ${
+                            idx === 0 ? "bg-amber-500" :
+                            idx === 1 ? "bg-slate-400" :
+                            idx === 2 ? "bg-orange-500" :
+                            "bg-primary/60"
+                          }`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        {entry.inProgress > 0 && (
+                          <span className="text-blue-500 mr-1">{entry.inProgress} active</span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Stats */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {entry.streak > 0 && (
+                      <div className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg ${
+                        entry.streak >= 7 ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400" :
+                        entry.streak >= 3 ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" :
+                        "bg-muted text-muted-foreground"
+                      }`}>
+                        🔥 {entry.streak}d
+                      </div>
+                    )}
+                    <div className="text-right">
+                      <div className="text-lg font-black leading-none">{entry.completed}</div>
+                      <div className="text-[10px] text-muted-foreground">done</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export function BurndownTab({ workspaceId }: { workspaceId: string }) {
   const [days, setDays] = useState(30);
   const params = { days };
@@ -100,6 +252,7 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
           <Skeleton className="h-60 rounded-xl" />
           <Skeleton className="h-60 rounded-xl" />
         </div>
+        <Skeleton className="h-64 rounded-xl" />
       </div>
     );
   }
@@ -107,8 +260,6 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
   if (!data) return null;
 
   const { dailyData, summary, velocity, priorityBreakdown } = data;
-
-  // Only show ticks every N days to avoid crowding
   const tickInterval = days <= 14 ? 1 : days <= 30 ? 4 : 9;
 
   const priorityData = [
@@ -178,81 +329,84 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
         </Card>
       </div>
 
-      {/* Main burn-up chart */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2">📊 Burn-up Chart</CardTitle>
-          <CardDescription>Cumulative tasks created vs completed over the last {days} days</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {summary.total === 0 ? (
-            <div className="flex flex-col items-center justify-center h-56 text-center">
-              <div className="text-5xl mb-3">🌱</div>
-              <p className="font-semibold">No task data yet</p>
-              <p className="text-sm text-muted-foreground mt-1">Create tasks to start tracking progress.</p>
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height={280}>
-              <AreaChart data={dailyData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="gradCreated" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="gradCompleted" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                  interval={tickInterval}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                />
-                <Tooltip content={<CUSTOM_TOOLTIP />} />
-                <Legend
-                  wrapperStyle={{ fontSize: 12, paddingTop: 12 }}
-                  iconType="circle"
-                  iconSize={8}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="cumCreated"
-                  name="Total Created"
-                  stroke="#6366f1"
-                  strokeWidth={2}
-                  fill="url(#gradCreated)"
-                  dot={false}
-                  activeDot={{ r: 4, strokeWidth: 0 }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="cumCompleted"
-                  name="Completed"
-                  stroke="#22c55e"
-                  strokeWidth={2.5}
-                  fill="url(#gradCompleted)"
-                  dot={false}
-                  activeDot={{ r: 4, strokeWidth: 0 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
+      {/* Leaderboard + burn-up chart side by side on large screens */}
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
+        {/* Burn-up chart takes 3 cols */}
+        <Card className="xl:col-span-3">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">📊 Burn-up Chart</CardTitle>
+            <CardDescription>Cumulative tasks created vs completed over {days} days</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {summary.total === 0 ? (
+              <div className="flex flex-col items-center justify-center h-56 text-center">
+                <div className="text-5xl mb-3">🌱</div>
+                <p className="font-semibold">No task data yet</p>
+                <p className="text-sm text-muted-foreground mt-1">Create tasks to start tracking progress.</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={260}>
+                <AreaChart data={dailyData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="gradCreated" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="gradCompleted" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#22c55e" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                    interval={tickInterval}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                    tickLine={false}
+                    axisLine={false}
+                    allowDecimals={false}
+                  />
+                  <Tooltip content={<CUSTOM_TOOLTIP />} />
+                  <Legend wrapperStyle={{ fontSize: 12, paddingTop: 12 }} iconType="circle" iconSize={8} />
+                  <Area
+                    type="monotone"
+                    dataKey="cumCreated"
+                    name="Total Created"
+                    stroke="#6366f1"
+                    strokeWidth={2}
+                    fill="url(#gradCreated)"
+                    dot={false}
+                    activeDot={{ r: 4, strokeWidth: 0 }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="cumCompleted"
+                    name="Completed"
+                    stroke="#22c55e"
+                    strokeWidth={2.5}
+                    fill="url(#gradCompleted)"
+                    dot={false}
+                    activeDot={{ r: 4, strokeWidth: 0 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* Bottom row: progress rings + priority breakdown */}
+        {/* Leaderboard takes 2 cols */}
+        <div className="xl:col-span-2">
+          <LeaderboardSection workspaceId={workspaceId} />
+        </div>
+      </div>
+
+      {/* Status rings + priority breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Status rings */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">🎯 Status Breakdown</CardTitle>
@@ -267,7 +421,6 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
           </CardContent>
         </Card>
 
-        {/* Priority breakdown bar chart */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">🚦 Priority Breakdown</CardTitle>

@@ -381,6 +381,21 @@ export interface SearchResults {
   tasks: SearchTask[];
 }
 
+export interface LeaderboardEntry {
+  userId: string;
+  name: string;
+  email: string;
+  role: string;
+  completed: number;
+  inProgress: number;
+  total: number;
+  streak: number;
+}
+
+export interface LeaderboardResponse {
+  leaderboard: LeaderboardEntry[];
+}
+
 export interface BurndownDayData {
   date: string;
   created: number;
