@@ -17,9 +17,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
-  Plus, Lock, Unlock, Download, Zap, ChevronLeft, ChevronRight,
+  Plus, Lock, Download, Zap, ChevronLeft, ChevronRight,
   GitBranch, Target, Layers, Code2, RefreshCw, Trash2,
+  Pencil, X, Check, AlertTriangle,
 } from "lucide-react";
 
 const VIOLET = "#8B5CF6";
@@ -50,6 +52,7 @@ type SRSNodeData = {
   locked: boolean;
   onLock?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onEdit?: (id: string) => void;
   neoMode?: boolean;
 };
 
@@ -81,13 +84,17 @@ function SRSNodeComponent({ data, id, selected }: NodeProps) {
           {d.description && <div style={{ fontSize: 11, color: "#444", lineHeight: 1.4 }}>{d.description}</div>}
         </div>
         <div style={{ display: "flex", gap: 4, padding: "4px 8px 8px", justifyContent: "flex-end" }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); d.onEdit?.(id); }}
+            style={{ border: "2px solid #000", background: "#8B5CF6", color: "#fff", cursor: "pointer", padding: "2px 8px", fontSize: 10, fontWeight: 700 }}
+          >EDIT</button>
           {!d.locked && (
-            <button onClick={() => d.onLock?.(id)} style={{ border: "2px solid #000", background: "transparent", cursor: "pointer", padding: "2px 6px", fontSize: 10, fontWeight: 700 }}>LOCK</button>
+            <button onClick={(e) => { e.stopPropagation(); d.onLock?.(id); }} style={{ border: "2px solid #000", background: "transparent", cursor: "pointer", padding: "2px 6px", fontSize: 10, fontWeight: 700 }}>LOCK</button>
           )}
           {d.locked && (
-            <button onClick={() => d.onLock?.(id)} style={{ border: "2px solid #000", background: "#000", color: "#fff", cursor: "pointer", padding: "2px 6px", fontSize: 10, fontWeight: 700 }}>UNLOCK</button>
+            <button onClick={(e) => { e.stopPropagation(); d.onLock?.(id); }} style={{ border: "2px solid #000", background: "#000", color: "#fff", cursor: "pointer", padding: "2px 6px", fontSize: 10, fontWeight: 700 }}>UNLOCK</button>
           )}
-          <button onClick={() => d.onDelete?.(id)} style={{ border: "2px solid #ef4444", background: "transparent", cursor: "pointer", padding: "2px 6px", fontSize: 10, fontWeight: 700, color: "#ef4444" }}>DEL</button>
+          <button onClick={(e) => { e.stopPropagation(); d.onDelete?.(id); }} style={{ border: "2px solid #ef4444", background: "transparent", cursor: "pointer", padding: "2px 6px", fontSize: 10, fontWeight: 700, color: "#ef4444" }}>DEL</button>
         </div>
         <Handle type="source" position={Position.Bottom} style={{ background: "#000", border: "2px solid #000" }} />
       </div>
@@ -145,13 +152,19 @@ function SRSNodeComponent({ data, id, selected }: NodeProps) {
       {/* Actions */}
       <div style={{ display: "flex", gap: 4, padding: "4px 10px 8px", justifyContent: "flex-end" }}>
         <button
-          onClick={() => d.onLock?.(id)}
+          onClick={(e) => { e.stopPropagation(); d.onEdit?.(id); }}
+          style={{ background: `${VIOLET}22`, border: `1px solid ${VIOLET}55`, borderRadius: 4, cursor: "pointer", padding: "2px 7px", fontSize: 9, color: VIOLET, display: "flex", alignItems: "center", gap: 3 }}
+        >
+          <Pencil size={8} /> Edit
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); d.onLock?.(id); }}
           style={{ background: "transparent", border: `1px solid ${VIOLET_DIM}`, borderRadius: 4, cursor: "pointer", padding: "2px 7px", fontSize: 9, color: "rgba(255,255,255,0.5)" }}
         >
           {d.locked ? "Unlock" : "Lock"}
         </button>
         <button
-          onClick={() => d.onDelete?.(id)}
+          onClick={(e) => { e.stopPropagation(); d.onDelete?.(id); }}
           style={{ background: "transparent", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 4, cursor: "pointer", padding: "2px 7px", fontSize: 9, color: "rgba(239,68,68,0.7)" }}
         >
           Del
@@ -340,6 +353,30 @@ function SRSInner({ workspaceId, role }: { workspaceId: string; role: string }) 
   const [mounted, setMounted] = useState(false);
   const { fitView } = useReactFlow();
 
+  type EditDraft = { title: string; description: string; category: string; priority: string; locked: boolean };
+  const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<EditDraft | null>(null);
+
+  const openEdit = useCallback((id: string) => {
+    const node = nodes.find(n => n.id === id);
+    if (!node) return;
+    const d = node.data as SRSNodeData;
+    setEditDraft({ title: d.title, description: d.description, category: d.category, priority: d.priority, locked: d.locked });
+    setEditingNodeId(id);
+  }, [nodes]);
+
+  const commitEdit = useCallback(() => {
+    if (!editingNodeId || !editDraft) return;
+    setNodes(ns => ns.map(n => n.id === editingNodeId ? { ...n, data: { ...n.data, ...editDraft } } : n));
+    setEditingNodeId(null);
+    setEditDraft(null);
+  }, [editingNodeId, editDraft, setNodes]);
+
+  const cancelEdit = useCallback(() => {
+    setEditingNodeId(null);
+    setEditDraft(null);
+  }, []);
+
   const isAdmin = role === "admin";
 
   useEffect(() => {
@@ -367,7 +404,7 @@ function SRSInner({ workspaceId, role }: { workspaceId: string; role: string }) 
 
   const enrichedNodes = nodes.map(n => ({
     ...n,
-    data: { ...n.data, onLock: toggleLock, onDelete: deleteNode, neoMode: neo },
+    data: { ...n.data, onLock: toggleLock, onDelete: deleteNode, onEdit: openEdit, neoMode: neo },
     draggable: !(n.data as SRSNodeData).locked,
   }));
 
@@ -574,6 +611,204 @@ function SRSInner({ workspaceId, role }: { workspaceId: string; role: string }) 
         {sidebarOpen ? <ChevronLeft size={13} /> : <ChevronRight size={13} />}
       </button>
 
+      {/* ───── Node Editor Panel ───── */}
+      <AnimatePresence>
+        {editingNodeId && editDraft && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="editor-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={cancelEdit}
+              style={{ position: "absolute", inset: 0, zIndex: 30, background: "rgba(0,0,0,0.25)" }}
+            />
+            {/* Panel */}
+            <motion.div
+              key="editor-panel"
+              initial={{ x: 320, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 320, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 340, damping: 30 }}
+              style={{
+                position: "absolute", right: 0, top: 0, bottom: 0, width: 300, zIndex: 31,
+                background: neo ? "#f5f5f5" : "rgba(10,7,18,0.97)",
+                borderLeft: neo ? "3px solid #000" : `1px solid ${VIOLET_DIM}`,
+                display: "flex", flexDirection: "column",
+                backdropFilter: "blur(16px)",
+                boxShadow: neo ? "-6px 0 0 #000" : `-8px 0 32px rgba(0,0,0,0.5)`,
+              }}
+            >
+              {/* Header */}
+              <div style={{
+                padding: "14px 16px 12px",
+                borderBottom: neo ? "2px solid #000" : `1px solid ${VIOLET_DIM}`,
+                display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0,
+              }}>
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: neo ? "#000" : VIOLET, textTransform: "uppercase", letterSpacing: 1.5 }}>
+                    Edit Requirement
+                  </div>
+                  <div style={{ fontSize: 9, color: neo ? "#666" : "rgba(255,255,255,0.3)", marginTop: 2, fontFamily: "monospace" }}>
+                    id: {editingNodeId}
+                  </div>
+                </div>
+                <button onClick={cancelEdit} style={{ background: "transparent", border: "none", cursor: "pointer", color: neo ? "#000" : "rgba(255,255,255,0.4)", padding: 4 }}>
+                  <X size={15} />
+                </button>
+              </div>
+
+              {/* Fields */}
+              <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 0" }}>
+                {/* Locked warning */}
+                {editDraft.locked && !isAdmin && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 10px", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.3)", borderRadius: 6, marginBottom: 14 }}>
+                    <AlertTriangle size={12} style={{ color: "#f59e0b", flexShrink: 0 }} />
+                    <span style={{ fontSize: 10, color: "#f59e0b" }}>Node is locked — view only</span>
+                  </div>
+                )}
+
+                {/* Title */}
+                <div style={{ marginBottom: 14 }}>
+                  <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: neo ? "#000" : "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+                    Title
+                  </label>
+                  <Input
+                    value={editDraft.title}
+                    onChange={e => setEditDraft(d => d ? { ...d, title: e.target.value } : d)}
+                    disabled={editDraft.locked && !isAdmin}
+                    style={{
+                      background: neo ? "#fff" : "rgba(139,92,246,0.06)",
+                      border: neo ? "2px solid #000" : `1px solid ${VIOLET_DIM}`,
+                      color: neo ? "#000" : "#fff",
+                      borderRadius: neo ? 2 : 6, fontSize: 12,
+                    }}
+                  />
+                </div>
+
+                {/* Description */}
+                <div style={{ marginBottom: 14 }}>
+                  <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: neo ? "#000" : "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+                    Description
+                  </label>
+                  <Textarea
+                    value={editDraft.description}
+                    onChange={e => setEditDraft(d => d ? { ...d, description: e.target.value } : d)}
+                    disabled={editDraft.locked && !isAdmin}
+                    rows={4}
+                    style={{
+                      fontFamily: "inherit", fontSize: 11, resize: "none",
+                      background: neo ? "#fff" : "rgba(139,92,246,0.06)",
+                      border: neo ? "2px solid #000" : `1px solid ${VIOLET_DIM}`,
+                      color: neo ? "#000" : "rgba(255,255,255,0.8)",
+                      borderRadius: neo ? 2 : 6,
+                    }}
+                  />
+                </div>
+
+                {/* Category */}
+                <div style={{ marginBottom: 14 }}>
+                  <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: neo ? "#000" : "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
+                    Category
+                  </label>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                    {Object.entries(CATEGORY_COLORS).map(([cat, color]) => {
+                      const active = editDraft.category === cat;
+                      return (
+                        <button
+                          key={cat}
+                          disabled={editDraft.locked && !isAdmin}
+                          onClick={() => setEditDraft(d => d ? { ...d, category: cat } : d)}
+                          style={{
+                            padding: "4px 10px", fontSize: 10, fontWeight: 600, cursor: "pointer",
+                            textTransform: "capitalize", letterSpacing: 0.5,
+                            background: active ? (neo ? "#000" : color) : (neo ? "#fff" : "transparent"),
+                            color: active ? "#fff" : (neo ? "#333" : "rgba(255,255,255,0.5)"),
+                            border: neo ? `2px solid ${active ? "#000" : "#ccc"}` : `1px solid ${active ? color : VIOLET_DIM}`,
+                            borderRadius: neo ? 2 : 20,
+                            boxShadow: active && !neo ? `0 0 8px ${color}66` : "none",
+                            transition: "all 0.12s",
+                          }}
+                        >
+                          {cat}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Priority */}
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: neo ? "#000" : "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
+                    Priority
+                  </label>
+                  <div style={{ display: "flex", gap: 5 }}>
+                    {(["critical", "high", "medium", "low"] as const).map(p => {
+                      const active = editDraft.priority === p;
+                      const color = PRIORITY_COLORS[p];
+                      return (
+                        <button
+                          key={p}
+                          disabled={editDraft.locked && !isAdmin}
+                          onClick={() => setEditDraft(d => d ? { ...d, priority: p } : d)}
+                          style={{
+                            flex: 1, padding: "5px 0", fontSize: 9, fontWeight: 700, cursor: "pointer",
+                            textTransform: "capitalize",
+                            background: active ? (neo ? "#000" : color) : (neo ? "#fff" : "transparent"),
+                            color: active ? "#fff" : (neo ? "#555" : "rgba(255,255,255,0.4)"),
+                            border: neo ? `2px solid ${active ? "#000" : "#ccc"}` : `1px solid ${active ? color : VIOLET_DIM}`,
+                            borderRadius: neo ? 2 : 6,
+                            boxShadow: active && !neo ? `0 0 8px ${color}55` : "none",
+                            transition: "all 0.12s",
+                          }}
+                        >
+                          {p}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer actions */}
+              <div style={{
+                padding: "12px 16px",
+                borderTop: neo ? "2px solid #000" : `1px solid ${VIOLET_DIM}`,
+                display: "flex", gap: 8, flexShrink: 0,
+              }}>
+                <button
+                  onClick={commitEdit}
+                  disabled={!!(editDraft.locked && !isAdmin)}
+                  style={{
+                    flex: 1, padding: "8px 0",
+                    background: neo ? "#000" : VIOLET,
+                    color: "#fff", border: "none", borderRadius: neo ? 2 : 7,
+                    fontWeight: 700, fontSize: 11, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                    opacity: editDraft.locked && !isAdmin ? 0.4 : 1,
+                    boxShadow: neo ? "none" : `0 0 12px ${VIOLET}66`,
+                  }}
+                >
+                  <Check size={12} /> Save Changes
+                </button>
+                <button
+                  onClick={cancelEdit}
+                  style={{
+                    padding: "8px 14px",
+                    background: "transparent", border: neo ? "2px solid #000" : `1px solid ${VIOLET_DIM}`,
+                    color: neo ? "#000" : "rgba(255,255,255,0.5)",
+                    borderRadius: neo ? 2 : 7, fontWeight: 600, fontSize: 11, cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* ───── Canvas ───── */}
       <div style={{ flex: 1, position: "relative" }}>
         <ReactFlow
@@ -582,6 +817,7 @@ function SRSInner({ workspaceId, role }: { workspaceId: string; role: string }) 
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onNodeDoubleClick={(_, node) => openEdit(node.id)}
           nodeTypes={NODE_TYPES}
           edgeTypes={EDGE_TYPES}
           fitView
