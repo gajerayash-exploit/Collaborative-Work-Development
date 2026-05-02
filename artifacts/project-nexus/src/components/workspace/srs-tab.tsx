@@ -179,8 +179,14 @@ function SRSNodeComponent({ data, id, selected }: NodeProps) {
   );
 }
 
-function PulseEdge({ id, sourceX, sourceY, targetX, targetY, selected }: EdgeProps) {
-  const [edgePath] = getBezierPath({ sourceX, sourceY, targetX, targetY });
+function PulseEdge({ id, sourceX, sourceY, targetX, targetY, selected, data }: EdgeProps) {
+  const label = (data as { label?: string } | undefined)?.label ?? "";
+  const neoMode = (data as { neoMode?: boolean } | undefined)?.neoMode ?? false;
+  const [edgePath, labelX, labelY] = getBezierPath({ sourceX, sourceY, targetX, targetY });
+
+  const pillW = Math.max(label.length * 6 + 20, 60);
+  const pillH = 18;
+
   return (
     <>
       <BaseEdge id={id} path={edgePath} style={{ stroke: VIOLET_DIM, strokeWidth: 1.5 }} />
@@ -195,6 +201,54 @@ function PulseEdge({ id, sourceX, sourceY, targetX, targetY, selected }: EdgePro
           filter: selected ? `drop-shadow(0 0 6px ${VIOLET})` : undefined,
         }}
       />
+      {/* Label pill */}
+      {label ? (
+        <foreignObject
+          x={labelX - pillW / 2}
+          y={labelY - pillH / 2}
+          width={pillW}
+          height={pillH}
+          style={{ overflow: "visible" }}
+        >
+          <div
+            style={{
+              background: neoMode ? "#000" : VIOLET,
+              color: "#fff",
+              fontSize: 9,
+              fontWeight: 700,
+              padding: "2px 8px",
+              borderRadius: neoMode ? 2 : 10,
+              textAlign: "center",
+              whiteSpace: "nowrap",
+              letterSpacing: 0.5,
+              border: neoMode ? "2px solid #000" : `1px solid ${VIOLET}`,
+              boxShadow: neoMode ? "none" : `0 0 8px ${VIOLET}66`,
+              lineHeight: "14px",
+            }}
+          >
+            {label}
+          </div>
+        </foreignObject>
+      ) : selected ? (
+        /* Hint when selected but no label */
+        <foreignObject x={labelX - 56} y={labelY - 9} width={112} height={18} style={{ overflow: "visible" }}>
+          <div style={{
+            background: "rgba(139,92,246,0.12)",
+            border: `1px dashed ${VIOLET_DIM}`,
+            color: "rgba(139,92,246,0.5)",
+            fontSize: 8,
+            fontWeight: 600,
+            padding: "1px 8px",
+            borderRadius: 8,
+            textAlign: "center",
+            whiteSpace: "nowrap",
+            letterSpacing: 0.5,
+            lineHeight: "15px",
+          }}>
+            double-click to label
+          </div>
+        </foreignObject>
+      ) : null}
     </>
   );
 }
@@ -377,6 +431,25 @@ function SRSInner({ workspaceId, role }: { workspaceId: string; role: string }) 
     setEditDraft(null);
   }, []);
 
+  const [editingEdge, setEditingEdge] = useState<{ id: string; currentLabel: string } | null>(null);
+  const [edgeLabelDraft, setEdgeLabelDraft] = useState("");
+
+  const openEdgeEdit = useCallback((_: React.MouseEvent, edge: Edge) => {
+    const current = (edge.data as { label?: string } | undefined)?.label ?? "";
+    setEditingEdge({ id: edge.id, currentLabel: current });
+    setEdgeLabelDraft(current);
+  }, []);
+
+  const commitEdgeLabel = useCallback((clear = false) => {
+    if (!editingEdge) return;
+    setEdges(es => es.map(e => e.id === editingEdge.id
+      ? { ...e, data: { ...(e.data as object), label: clear ? "" : edgeLabelDraft.trim() } }
+      : e
+    ));
+    setEditingEdge(null);
+    setEdgeLabelDraft("");
+  }, [editingEdge, edgeLabelDraft, setEdges]);
+
   const isAdmin = role === "admin";
 
   useEffect(() => {
@@ -409,8 +482,13 @@ function SRSInner({ workspaceId, role }: { workspaceId: string; role: string }) 
   }));
 
   const onConnect = useCallback((c: Connection) => {
-    setEdges(es => addEdge({ ...c, type: "pulseEdge", id: `e-${Date.now()}` }, es));
-  }, [setEdges]);
+    setEdges(es => addEdge({ ...c, type: "pulseEdge", id: `e-${Date.now()}`, data: { label: "", neoMode: neo } }, es));
+  }, [setEdges, neo]);
+
+  const enrichedEdges = edges.map(e => ({
+    ...e,
+    data: { ...(e.data as object | undefined ?? {}), neoMode: neo },
+  }));
 
   const addNode = () => {
     const id = newId();
@@ -610,6 +688,149 @@ function SRSInner({ workspaceId, role }: { workspaceId: string; role: string }) 
       >
         {sidebarOpen ? <ChevronLeft size={13} /> : <ChevronRight size={13} />}
       </button>
+
+      {/* ───── Edge Label Editor ───── */}
+      <AnimatePresence>
+        {editingEdge && (
+          <motion.div
+            key="edge-label-editor"
+            initial={{ opacity: 0, scale: 0.9, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 8 }}
+            transition={{ type: "spring", stiffness: 400, damping: 28 }}
+            style={{
+              position: "absolute",
+              top: "50%", left: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 50,
+              width: 300,
+              background: neo ? "#f5f5f5" : "rgba(10,7,18,0.98)",
+              border: neo ? "3px solid #000" : `1px solid ${VIOLET_DIM}`,
+              borderRadius: neo ? 4 : 12,
+              boxShadow: neo ? "6px 6px 0 #000" : `0 0 40px rgba(139,92,246,0.25), 0 20px 60px rgba(0,0,0,0.6)`,
+              backdropFilter: "blur(20px)",
+              overflow: "hidden",
+            }}
+          >
+            {/* Header */}
+            <div style={{
+              padding: "11px 14px 10px",
+              borderBottom: neo ? "2px solid #000" : `1px solid ${VIOLET_DIM}`,
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              background: neo ? "#000" : `linear-gradient(135deg, ${VIOLET}18, transparent)`,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: VIOLET, boxShadow: neo ? "none" : `0 0 6px ${VIOLET}` }} />
+                <span style={{ fontSize: 10, fontWeight: 700, color: neo ? "#fff" : VIOLET, textTransform: "uppercase", letterSpacing: 1.5 }}>
+                  Edge Relationship
+                </span>
+              </div>
+              <button
+                onClick={() => setEditingEdge(null)}
+                style={{ background: "transparent", border: "none", cursor: "pointer", color: neo ? "#fff" : "rgba(255,255,255,0.4)", padding: 2 }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            {/* Input */}
+            <div style={{ padding: "14px 14px 10px" }}>
+              <label style={{ display: "block", fontSize: 9, fontWeight: 700, color: neo ? "#000" : "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 7 }}>
+                Relationship label
+              </label>
+              <Input
+                autoFocus
+                value={edgeLabelDraft}
+                onChange={e => setEdgeLabelDraft(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === "Enter") commitEdgeLabel(false);
+                  if (e.key === "Escape") setEditingEdge(null);
+                }}
+                placeholder='e.g. "depends on", "triggers", "writes to"'
+                style={{
+                  fontFamily: "inherit", fontSize: 12,
+                  background: neo ? "#fff" : "rgba(139,92,246,0.06)",
+                  border: neo ? "2px solid #000" : `1px solid ${VIOLET_DIM}`,
+                  color: neo ? "#000" : "#fff",
+                  borderRadius: neo ? 2 : 7,
+                }}
+              />
+              <div style={{ fontSize: 9, color: neo ? "#777" : "rgba(255,255,255,0.25)", marginTop: 6 }}>
+                Press Enter to save · Escape to cancel
+              </div>
+
+              {/* Presets */}
+              <div style={{ marginTop: 12, marginBottom: 2 }}>
+                <div style={{ fontSize: 9, fontWeight: 700, color: neo ? "#000" : "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+                  Quick presets
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                  {["depends on", "triggers", "writes to", "reads from", "authenticates", "validates", "extends"].map(preset => (
+                    <button
+                      key={preset}
+                      onClick={() => setEdgeLabelDraft(preset)}
+                      style={{
+                        padding: "3px 9px", fontSize: 9, fontWeight: 600, cursor: "pointer",
+                        background: edgeLabelDraft === preset ? (neo ? "#000" : VIOLET) : (neo ? "#fff" : "transparent"),
+                        color: edgeLabelDraft === preset ? "#fff" : (neo ? "#333" : "rgba(255,255,255,0.45)"),
+                        border: neo ? `2px solid ${edgeLabelDraft === preset ? "#000" : "#ccc"}` : `1px solid ${edgeLabelDraft === preset ? VIOLET : VIOLET_DIM}`,
+                        borderRadius: neo ? 2 : 20,
+                        transition: "all 0.1s",
+                        boxShadow: edgeLabelDraft === preset && !neo ? `0 0 6px ${VIOLET}55` : "none",
+                      }}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div style={{ padding: "0 14px 14px", display: "flex", gap: 7 }}>
+              <button
+                onClick={() => commitEdgeLabel(false)}
+                style={{
+                  flex: 1, padding: "7px 0",
+                  background: neo ? "#000" : VIOLET,
+                  color: "#fff", border: "none", borderRadius: neo ? 2 : 7,
+                  fontWeight: 700, fontSize: 11, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+                  boxShadow: neo ? "none" : `0 0 10px ${VIOLET}55`,
+                }}
+              >
+                <Check size={11} /> Set Label
+              </button>
+              {editingEdge.currentLabel && (
+                <button
+                  onClick={() => commitEdgeLabel(true)}
+                  style={{
+                    padding: "7px 12px", fontWeight: 600, fontSize: 11, cursor: "pointer",
+                    background: "transparent",
+                    color: neo ? "#ef4444" : "rgba(239,68,68,0.7)",
+                    border: neo ? "2px solid #ef4444" : "1px solid rgba(239,68,68,0.3)",
+                    borderRadius: neo ? 2 : 7,
+                  }}
+                >
+                  Clear
+                </button>
+              )}
+              <button
+                onClick={() => setEditingEdge(null)}
+                style={{
+                  padding: "7px 12px", fontWeight: 600, fontSize: 11, cursor: "pointer",
+                  background: "transparent",
+                  color: neo ? "#000" : "rgba(255,255,255,0.4)",
+                  border: neo ? "2px solid #000" : `1px solid ${VIOLET_DIM}`,
+                  borderRadius: neo ? 2 : 7,
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ───── Node Editor Panel ───── */}
       <AnimatePresence>
@@ -813,11 +1034,12 @@ function SRSInner({ workspaceId, role }: { workspaceId: string; role: string }) 
       <div style={{ flex: 1, position: "relative" }}>
         <ReactFlow
           nodes={enrichedNodes}
-          edges={edges}
+          edges={enrichedEdges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodeDoubleClick={(_, node) => openEdit(node.id)}
+          onEdgeDoubleClick={openEdgeEdit}
           nodeTypes={NODE_TYPES}
           edgeTypes={EDGE_TYPES}
           fitView
