@@ -11,6 +11,7 @@ import tasksRouter from "./tasks";
 import searchRouter from "./search";
 import reactionsRouter from "./reactions";
 import pinnedRouter from "./pinned";
+import repliesRouter from "./replies";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(tasksRouter);
 router.use(searchRouter);
 router.use(reactionsRouter);
 router.use(pinnedRouter);
+router.use(repliesRouter);
 
 export default router;

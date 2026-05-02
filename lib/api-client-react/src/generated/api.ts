@@ -25,6 +25,7 @@ import type {
   ListMessagesParams,
   Message,
   PinnedMessage,
+  Reply,
   SearchResults,
   SearchWorkspaceParams,
   SendMessageBody,
@@ -1642,6 +1643,194 @@ export const useSendMessage = <
   TContext
 > => {
   return useMutation(getSendMessageMutationOptions(options));
+};
+
+/**
+ * @summary List replies to a message
+ */
+export const getListRepliesUrl = (workspaceId: string, messageId: string) => {
+  return `/api/workspaces/${workspaceId}/messages/${messageId}/replies`;
+};
+
+export const listReplies = async (
+  workspaceId: string,
+  messageId: string,
+  options?: RequestInit,
+): Promise<Reply[]> => {
+  return customFetch<Reply[]>(getListRepliesUrl(workspaceId, messageId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListRepliesQueryKey = (
+  workspaceId: string,
+  messageId: string,
+) => {
+  return [
+    `/api/workspaces/${workspaceId}/messages/${messageId}/replies`,
+  ] as const;
+};
+
+export const getListRepliesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listReplies>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  messageId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listReplies>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListRepliesQueryKey(workspaceId, messageId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listReplies>>> = ({
+    signal,
+  }) => listReplies(workspaceId, messageId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!(workspaceId && messageId),
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listReplies>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListRepliesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listReplies>>
+>;
+export type ListRepliesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List replies to a message
+ */
+
+export function useListReplies<
+  TData = Awaited<ReturnType<typeof listReplies>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  messageId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listReplies>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListRepliesQueryOptions(
+    workspaceId,
+    messageId,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Send a reply to a message
+ */
+export const getSendReplyUrl = (workspaceId: string, messageId: string) => {
+  return `/api/workspaces/${workspaceId}/messages/${messageId}/replies`;
+};
+
+export const sendReply = async (
+  workspaceId: string,
+  messageId: string,
+  sendMessageBody: SendMessageBody,
+  options?: RequestInit,
+): Promise<Reply> => {
+  return customFetch<Reply>(getSendReplyUrl(workspaceId, messageId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(sendMessageBody),
+  });
+};
+
+export const getSendReplyMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendReply>>,
+    TError,
+    { workspaceId: string; messageId: string; data: BodyType<SendMessageBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof sendReply>>,
+  TError,
+  { workspaceId: string; messageId: string; data: BodyType<SendMessageBody> },
+  TContext
+> => {
+  const mutationKey = ["sendReply"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof sendReply>>,
+    { workspaceId: string; messageId: string; data: BodyType<SendMessageBody> }
+  > = (props) => {
+    const { workspaceId, messageId, data } = props ?? {};
+
+    return sendReply(workspaceId, messageId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SendReplyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof sendReply>>
+>;
+export type SendReplyMutationBody = BodyType<SendMessageBody>;
+export type SendReplyMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Send a reply to a message
+ */
+export const useSendReply = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendReply>>,
+    TError,
+    { workspaceId: string; messageId: string; data: BodyType<SendMessageBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof sendReply>>,
+  TError,
+  { workspaceId: string; messageId: string; data: BodyType<SendMessageBody> },
+  TContext
+> => {
+  return useMutation(getSendReplyMutationOptions(options));
 };
 
 /**

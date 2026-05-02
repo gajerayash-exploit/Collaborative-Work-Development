@@ -7,6 +7,7 @@ export const messagesTable = pgTable("messages", {
   workspaceId: text("workspace_id").notNull(),
   content: text("content").notNull(),
   senderId: text("sender_id").notNull(),
+  parentMessageId: text("parent_message_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

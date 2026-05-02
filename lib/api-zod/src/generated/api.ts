@@ -335,6 +335,7 @@ export const ListMessagesResponseItem = zod.object({
     }),
   ),
   isPinned: zod.boolean(),
+  replyCount: zod.number(),
 });
 export const ListMessagesResponse = zod.array(ListMessagesResponseItem);
 
@@ -346,6 +347,45 @@ export const SendMessageParams = zod.object({
 });
 
 export const SendMessageBody = zod.object({
+  content: zod.string(),
+});
+
+/**
+ * @summary List replies to a message
+ */
+export const ListRepliesParams = zod.object({
+  workspaceId: zod.coerce.string(),
+  messageId: zod.coerce.string(),
+});
+
+export const ListRepliesResponseItem = zod.object({
+  id: zod.string(),
+  workspaceId: zod.string(),
+  parentMessageId: zod.string(),
+  content: zod.string(),
+  senderId: zod.string(),
+  senderName: zod.string(),
+  senderAvatarUrl: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  reactions: zod.array(
+    zod.object({
+      emoji: zod.string(),
+      count: zod.number(),
+      userIds: zod.array(zod.string()),
+    }),
+  ),
+});
+export const ListRepliesResponse = zod.array(ListRepliesResponseItem);
+
+/**
+ * @summary Send a reply to a message
+ */
+export const SendReplyParams = zod.object({
+  workspaceId: zod.coerce.string(),
+  messageId: zod.coerce.string(),
+});
+
+export const SendReplyBody = zod.object({
   content: zod.string(),
 });
 

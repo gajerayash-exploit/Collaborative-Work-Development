@@ -219,6 +219,19 @@ export interface Message {
   createdAt: string;
   reactions: MessageReaction[];
   isPinned: boolean;
+  replyCount: number;
+}
+
+export interface Reply {
+  id: string;
+  workspaceId: string;
+  parentMessageId: string;
+  content: string;
+  senderId: string;
+  senderName: string;
+  senderAvatarUrl?: string | null;
+  createdAt: string;
+  reactions: MessageReaction[];
 }
 
 export interface SendMessageBody {
