@@ -8,8 +8,11 @@ import {
   useUnpinMessage,
   useListWorkspaceMembers,
   useMarkMessagesRead,
+  useGetTypingUsers,
+  useSendTypingIndicator,
   getListMessagesQueryKey,
   getListPinnedMessagesQueryKey,
+  getGetTypingUsersQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGetUserProfile } from "@workspace/api-client-react";
@@ -171,6 +174,10 @@ export function ChatTab({ workspaceId, role }: { workspaceId: string; role: stri
   const pinMessage = usePinMessage();
   const unpinMessage = useUnpinMessage();
   const markRead = useMarkMessagesRead();
+  const sendTyping = useSendTypingIndicator();
+  const { data: typingUsers = [] } = useGetTypingUsers(workspaceId, {
+    query: { queryKey: getGetTypingUsersQueryKey(workspaceId), refetchInterval: 2000 },
+  });
 
   const invalidateMessages = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: getListMessagesQueryKey(workspaceId) });
@@ -181,8 +188,19 @@ export function ChatTab({ workspaceId, role }: { workspaceId: string; role: stri
     invalidateMessages();
   }, [queryClient, workspaceId, invalidateMessages]);
 
+  // Debounced typing signal — fires once per keystroke burst, stops after 4s idle
+  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleContentChange = (val: string) => {
+    setContent(val);
+    if (!val.trim()) return;
+    sendTyping.mutate({ workspaceId });
+    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+    typingTimerRef.current = setTimeout(() => { typingTimerRef.current = null; }, 4000);
+  };
+
   const handleSend = () => {
     if (!content.trim()) return;
+    if (typingTimerRef.current) { clearTimeout(typingTimerRef.current); typingTimerRef.current = null; }
     sendMessage.mutate(
       { workspaceId, data: { content: content.trim() } },
       { onSuccess: () => { setContent(""); invalidateMessages(); } }
@@ -391,11 +409,28 @@ export function ChatTab({ workspaceId, role }: { workspaceId: string; role: stri
           )}
         </ScrollArea>
 
-        <div className="p-3 border-t bg-card flex-shrink-0">
-          <div className="flex gap-2 items-center">
+        <div className="border-t bg-card flex-shrink-0">
+          {/* Typing indicator */}
+          {typingUsers.length > 0 && (
+            <div className="px-4 pt-2 pb-0 flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="flex gap-0.5 items-end h-3">
+                <span className="w-1 h-1 rounded-full bg-muted-foreground animate-bounce [animation-delay:0ms]" />
+                <span className="w-1 h-1 rounded-full bg-muted-foreground animate-bounce [animation-delay:150ms]" />
+                <span className="w-1 h-1 rounded-full bg-muted-foreground animate-bounce [animation-delay:300ms]" />
+              </span>
+              <span>
+                {typingUsers.length === 1
+                  ? `${typingUsers[0].name} is typing…`
+                  : typingUsers.length === 2
+                  ? `${typingUsers[0].name} and ${typingUsers[1].name} are typing…`
+                  : `${typingUsers[0].name} and ${typingUsers.length - 1} others are typing…`}
+              </span>
+            </div>
+          )}
+          <div className="p-3 flex gap-2 items-center">
             <MentionInput
               value={content}
-              onChange={setContent}
+              onChange={handleContentChange}
               onSubmit={handleSend}
               members={members}
               disabled={sendMessage.isPending}

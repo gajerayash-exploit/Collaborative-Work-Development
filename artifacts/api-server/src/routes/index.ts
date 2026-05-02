@@ -13,6 +13,7 @@ import reactionsRouter from "./reactions";
 import pinnedRouter from "./pinned";
 import repliesRouter from "./replies";
 import readsRouter from "./reads";
+import typingRouter from "./typing";
 
 const router: IRouter = Router();
 
@@ -30,5 +31,6 @@ router.use(reactionsRouter);
 router.use(pinnedRouter);
 router.use(repliesRouter);
 router.use(readsRouter);
+router.use(typingRouter);
 
 export default router;

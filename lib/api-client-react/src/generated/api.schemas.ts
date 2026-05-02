@@ -235,6 +235,12 @@ export interface Reply {
   reactions: MessageReaction[];
 }
 
+export interface TypingUser {
+  userId: string;
+  name: string;
+  avatarUrl: string | null;
+}
+
 export interface MarkReadBody {
   messageIds: string[];
 }

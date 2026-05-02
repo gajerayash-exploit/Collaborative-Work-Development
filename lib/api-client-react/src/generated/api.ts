@@ -34,6 +34,7 @@ import type {
   Task,
   ToggleReaction200,
   ToggleReactionBody,
+  TypingUser,
   UnpinMessage200,
   UpdateMemberRoleBody,
   UpdateTaskBody,
@@ -1732,6 +1733,178 @@ export const useMarkMessagesRead = <
 > => {
   return useMutation(getMarkMessagesReadMutationOptions(options));
 };
+
+/**
+ * @summary Signal that the current user is typing
+ */
+export const getSendTypingIndicatorUrl = (workspaceId: string) => {
+  return `/api/workspaces/${workspaceId}/typing`;
+};
+
+export const sendTypingIndicator = async (
+  workspaceId: string,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getSendTypingIndicatorUrl(workspaceId), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getSendTypingIndicatorMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendTypingIndicator>>,
+    TError,
+    { workspaceId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof sendTypingIndicator>>,
+  TError,
+  { workspaceId: string },
+  TContext
+> => {
+  const mutationKey = ["sendTypingIndicator"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof sendTypingIndicator>>,
+    { workspaceId: string }
+  > = (props) => {
+    const { workspaceId } = props ?? {};
+
+    return sendTypingIndicator(workspaceId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SendTypingIndicatorMutationResult = NonNullable<
+  Awaited<ReturnType<typeof sendTypingIndicator>>
+>;
+
+export type SendTypingIndicatorMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Signal that the current user is typing
+ */
+export const useSendTypingIndicator = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendTypingIndicator>>,
+    TError,
+    { workspaceId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof sendTypingIndicator>>,
+  TError,
+  { workspaceId: string },
+  TContext
+> => {
+  return useMutation(getSendTypingIndicatorMutationOptions(options));
+};
+
+/**
+ * @summary Get users currently typing in a workspace
+ */
+export const getGetTypingUsersUrl = (workspaceId: string) => {
+  return `/api/workspaces/${workspaceId}/typing`;
+};
+
+export const getTypingUsers = async (
+  workspaceId: string,
+  options?: RequestInit,
+): Promise<TypingUser[]> => {
+  return customFetch<TypingUser[]>(getGetTypingUsersUrl(workspaceId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetTypingUsersQueryKey = (workspaceId: string) => {
+  return [`/api/workspaces/${workspaceId}/typing`] as const;
+};
+
+export const getGetTypingUsersQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTypingUsers>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getTypingUsers>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetTypingUsersQueryKey(workspaceId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getTypingUsers>>> = ({
+    signal,
+  }) => getTypingUsers(workspaceId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!workspaceId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getTypingUsers>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetTypingUsersQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTypingUsers>>
+>;
+export type GetTypingUsersQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get users currently typing in a workspace
+ */
+
+export function useGetTypingUsers<
+  TData = Awaited<ReturnType<typeof getTypingUsers>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getTypingUsers>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetTypingUsersQueryOptions(workspaceId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary List replies to a message

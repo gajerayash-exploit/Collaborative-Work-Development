@@ -367,6 +367,27 @@ export const MarkMessagesReadResponse = zod.object({
 });
 
 /**
+ * @summary Signal that the current user is typing
+ */
+export const SendTypingIndicatorParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+/**
+ * @summary Get users currently typing in a workspace
+ */
+export const GetTypingUsersParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const GetTypingUsersResponseItem = zod.object({
+  userId: zod.string(),
+  name: zod.string(),
+  avatarUrl: zod.string().nullable(),
+});
+export const GetTypingUsersResponse = zod.array(GetTypingUsersResponseItem);
+
+/**
  * @summary List replies to a message
  */
 export const ListRepliesParams = zod.object({
