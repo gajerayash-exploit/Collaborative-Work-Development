@@ -220,6 +220,7 @@ export interface Message {
   reactions: MessageReaction[];
   isPinned: boolean;
   replyCount: number;
+  readByCount: number;
 }
 
 export interface Reply {
@@ -232,6 +233,10 @@ export interface Reply {
   senderAvatarUrl?: string | null;
   createdAt: string;
   reactions: MessageReaction[];
+}
+
+export interface MarkReadBody {
+  messageIds: string[];
 }
 
 export interface SendMessageBody {

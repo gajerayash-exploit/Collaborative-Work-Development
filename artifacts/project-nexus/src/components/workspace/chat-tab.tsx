@@ -7,6 +7,7 @@ import {
   usePinMessage,
   useUnpinMessage,
   useListWorkspaceMembers,
+  useMarkMessagesRead,
   getListMessagesQueryKey,
   getListPinnedMessagesQueryKey,
 } from "@workspace/api-client-react";
@@ -18,6 +19,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Send, Loader2, MessageSquare, Pin, PinOff,
   ChevronDown, ChevronUp, X, MessageCircle,
+  Check, CheckCheck,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { MentionInput } from "./mention-input";
@@ -168,6 +170,7 @@ export function ChatTab({ workspaceId, role }: { workspaceId: string; role: stri
   const toggleReaction = useToggleReaction();
   const pinMessage = usePinMessage();
   const unpinMessage = useUnpinMessage();
+  const markRead = useMarkMessagesRead();
 
   const invalidateMessages = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: getListMessagesQueryKey(workspaceId) });
@@ -216,6 +219,14 @@ export function ChatTab({ workspaceId, role }: { workspaceId: string; role: stri
       if (el) el.scrollTop = el.scrollHeight;
     }
   }, [messages, threadMessage]);
+
+  // Auto-mark visible messages as read whenever the list changes
+  useEffect(() => {
+    if (!messages || messages.length === 0 || !currentUserId) return;
+    const ids = messages.map(m => m.id);
+    markRead.mutate({ workspaceId, data: { messageIds: ids } });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages?.length, currentUserId, workspaceId]);
 
   return (
     <div className="flex h-[calc(100vh-14rem)] bg-card border rounded-xl overflow-hidden shadow-sm">
@@ -339,6 +350,20 @@ export function ChatTab({ workspaceId, role }: { workspaceId: string; role: stri
                           <MentionText content={msg.content} currentUserId={currentUserId} isMe={isMe} />
                         </div>
                       </div>
+
+                      {/* Read receipt tick — only on my messages */}
+                      {isMe && (
+                        <div
+                          className="flex items-center gap-0.5 mt-0.5 pr-1"
+                          aria-label={msg.readByCount > 0 ? `Seen by ${msg.readByCount} ${msg.readByCount === 1 ? "person" : "people"}` : "Sent"}
+                        >
+                          {msg.readByCount > 0 ? (
+                            <CheckCheck className="h-3.5 w-3.5 text-zinc-700 dark:text-zinc-300" strokeWidth={2.5} />
+                          ) : (
+                            <Check className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" strokeWidth={2.5} />
+                          )}
+                        </div>
+                      )}
 
                       {/* Reply count badge */}
                       {msg.replyCount > 0 && (

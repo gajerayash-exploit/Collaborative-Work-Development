@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, messagesTable, usersTable, workspaceMembersTable, messageReactionsTable, pinnedMessagesTable } from "@workspace/db";
+import { db, messagesTable, usersTable, workspaceMembersTable, messageReactionsTable, pinnedMessagesTable, messageReadsTable } from "@workspace/db";
 import { eq, and, desc, inArray, isNull, sql } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
 import { notifyWorkspaceMembers, notifySpecificUsers, extractMentionedUserIds } from "../lib/notify";
@@ -43,7 +43,7 @@ router.get("/workspaces/:workspaceId/messages", requireAuth, async (req: any, re
     }
 
     const messageIds = reversed.map(m => m.id);
-    const [allReactions, allPinned, replyCounts] = await Promise.all([
+    const [allReactions, allPinned, replyCounts, readCounts] = await Promise.all([
       db.select().from(messageReactionsTable).where(inArray(messageReactionsTable.messageId, messageIds)),
       db.select({ messageId: pinnedMessagesTable.messageId }).from(pinnedMessagesTable)
         .where(eq(pinnedMessagesTable.workspaceId, workspaceId)),
@@ -54,6 +54,13 @@ router.get("/workspaces/:workspaceId/messages", requireAuth, async (req: any, re
         .from(messagesTable)
         .where(and(inArray(messagesTable.parentMessageId, messageIds)))
         .groupBy(messagesTable.parentMessageId),
+      db.select({
+        messageId: messageReadsTable.messageId,
+        count: sql<number>`cast(count(*) as int)`,
+      })
+        .from(messageReadsTable)
+        .where(inArray(messageReadsTable.messageId, messageIds))
+        .groupBy(messageReadsTable.messageId),
     ]);
 
     const reactionsByMessage: Record<string, Record<string, string[]>> = {};
@@ -67,11 +74,16 @@ router.get("/workspaces/:workspaceId/messages", requireAuth, async (req: any, re
     for (const r of replyCounts) {
       if (r.parentMessageId) replyCountMap[r.parentMessageId] = r.count;
     }
+    const readCountMap: Record<string, number> = {};
+    for (const r of readCounts) {
+      readCountMap[r.messageId] = r.count;
+    }
 
     res.json(reversed.map(m => ({
       ...m,
       isPinned: pinnedSet.has(m.id),
       replyCount: replyCountMap[m.id] ?? 0,
+      readByCount: readCountMap[m.id] ?? 0,
       reactions: Object.entries(reactionsByMessage[m.id] ?? {}).map(([emoji, userIds]) => ({
         emoji,
         count: userIds.length,
@@ -113,6 +125,7 @@ router.post("/workspaces/:workspaceId/messages", requireAuth, async (req: any, r
       reactions: [],
       isPinned: false,
       replyCount: 0,
+      readByCount: 0,
     });
 
     const trimmed = content.trim();

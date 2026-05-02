@@ -336,6 +336,7 @@ export const ListMessagesResponseItem = zod.object({
   ),
   isPinned: zod.boolean(),
   replyCount: zod.number(),
+  readByCount: zod.number(),
 });
 export const ListMessagesResponse = zod.array(ListMessagesResponseItem);
 
@@ -348,6 +349,21 @@ export const SendMessageParams = zod.object({
 
 export const SendMessageBody = zod.object({
   content: zod.string(),
+});
+
+/**
+ * @summary Mark multiple messages as read
+ */
+export const MarkMessagesReadParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const MarkMessagesReadBody = zod.object({
+  messageIds: zod.array(zod.string()),
+});
+
+export const MarkMessagesReadResponse = zod.object({
+  success: zod.boolean(),
 });
 
 /**

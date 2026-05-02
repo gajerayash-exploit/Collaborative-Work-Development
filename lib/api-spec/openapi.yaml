@@ -431,6 +431,33 @@ paths:
               schema:
                 $ref: "#/components/schemas/Message"
 
+  /workspaces/{workspaceId}/messages/mark-read:
+    post:
+      operationId: markMessagesRead
+      tags: [messages]
+      summary: Mark multiple messages as read
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MarkReadBody"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
   /workspaces/{workspaceId}/messages/{messageId}/replies:
     get:
       operationId: listReplies
@@ -1153,6 +1180,8 @@ components:
           type: boolean
         replyCount:
           type: integer
+        readByCount:
+          type: integer
       required:
         - id
         - workspaceId
@@ -1163,6 +1192,7 @@ components:
         - reactions
         - isPinned
         - replyCount
+        - readByCount
 
     Reply:
       type: object
@@ -1198,6 +1228,16 @@ components:
         - senderName
         - createdAt
         - reactions
+
+    MarkReadBody:
+      type: object
+      properties:
+        messageIds:
+          type: array
+          items:
+            type: string
+      required:
+        - messageIds
 
     SendMessageBody:
       type: object

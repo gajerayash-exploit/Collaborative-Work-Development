@@ -23,6 +23,7 @@ import type {
   HealthStatus,
   InviteMemberBody,
   ListMessagesParams,
+  MarkReadBody,
   Message,
   PinnedMessage,
   Reply,
@@ -1643,6 +1644,93 @@ export const useSendMessage = <
   TContext
 > => {
   return useMutation(getSendMessageMutationOptions(options));
+};
+
+/**
+ * @summary Mark multiple messages as read
+ */
+export const getMarkMessagesReadUrl = (workspaceId: string) => {
+  return `/api/workspaces/${workspaceId}/messages/mark-read`;
+};
+
+export const markMessagesRead = async (
+  workspaceId: string,
+  markReadBody: MarkReadBody,
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(getMarkMessagesReadUrl(workspaceId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(markReadBody),
+  });
+};
+
+export const getMarkMessagesReadMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof markMessagesRead>>,
+    TError,
+    { workspaceId: string; data: BodyType<MarkReadBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof markMessagesRead>>,
+  TError,
+  { workspaceId: string; data: BodyType<MarkReadBody> },
+  TContext
+> => {
+  const mutationKey = ["markMessagesRead"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof markMessagesRead>>,
+    { workspaceId: string; data: BodyType<MarkReadBody> }
+  > = (props) => {
+    const { workspaceId, data } = props ?? {};
+
+    return markMessagesRead(workspaceId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type MarkMessagesReadMutationResult = NonNullable<
+  Awaited<ReturnType<typeof markMessagesRead>>
+>;
+export type MarkMessagesReadMutationBody = BodyType<MarkReadBody>;
+export type MarkMessagesReadMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Mark multiple messages as read
+ */
+export const useMarkMessagesRead = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof markMessagesRead>>,
+    TError,
+    { workspaceId: string; data: BodyType<MarkReadBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof markMessagesRead>>,
+  TError,
+  { workspaceId: string; data: BodyType<MarkReadBody> },
+  TContext
+> => {
+  return useMutation(getMarkMessagesReadMutationOptions(options));
 };
 
 /**

@@ -7,3 +7,4 @@ export * from "./notifications";
 export * from "./tasks";
 export * from "./message_reactions";
 export * from "./pinned_messages";
+export * from "./message-reads";
