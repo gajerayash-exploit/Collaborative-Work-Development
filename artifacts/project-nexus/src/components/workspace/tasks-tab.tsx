@@ -41,19 +41,32 @@ import {
   Pencil,
   List,
   LayoutDashboard,
+  ClipboardList,
+  Circle,
+  Clock,
+  CheckCircle2,
+  ArrowUp,
+  Minus,
+  ArrowDown,
+  Calendar,
+  User,
+  Save,
 } from "lucide-react";
 import { useListWorkspaceMembers } from "@workspace/api-client-react";
+import { type LucideIcon } from "lucide-react";
 
-const STATUS_CONFIG = {
-  todo: { label: "To Do", emoji: "⭕", color: "text-slate-500", bg: "bg-slate-100 dark:bg-slate-800" },
-  in_progress: { label: "In Progress", emoji: "🔄", color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30" },
-  done: { label: "Done", emoji: "✅", color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30" },
+const CHARCOAL = "text-[#2b2b2b] dark:text-[#d4d4d4]";
+
+const STATUS_CONFIG: Record<string, { label: string; icon: LucideIcon; color: string; bg: string }> = {
+  todo:        { label: "To Do",       icon: Circle,       color: "text-slate-500", bg: "bg-slate-100 dark:bg-slate-800" },
+  in_progress: { label: "In Progress", icon: Clock,        color: "text-blue-500",  bg: "bg-blue-100 dark:bg-blue-900/30" },
+  done:        { label: "Done",        icon: CheckCircle2, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30" },
 };
 
-const PRIORITY_CONFIG = {
-  high: { label: "High", emoji: "🔴", badge: "destructive" as const },
-  medium: { label: "Medium", emoji: "🟡", badge: "secondary" as const },
-  low: { label: "Low", emoji: "🟢", badge: "outline" as const },
+const PRIORITY_CONFIG: Record<string, { label: string; icon: LucideIcon; badge: "destructive" | "secondary" | "outline" }> = {
+  high:   { label: "High",   icon: ArrowUp,   badge: "destructive" },
+  medium: { label: "Medium", icon: Minus,     badge: "secondary" },
+  low:    { label: "Low",    icon: ArrowDown, badge: "outline" },
 };
 
 function initials(name: string) {
@@ -73,13 +86,15 @@ function TaskCard({
   onDelete: (id: string) => void;
   canEdit: boolean;
 }) {
-  const status = STATUS_CONFIG[task.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.todo;
-  const priority = PRIORITY_CONFIG[task.priority as keyof typeof PRIORITY_CONFIG] ?? PRIORITY_CONFIG.medium;
+  const status = STATUS_CONFIG[task.status] ?? STATUS_CONFIG.todo;
+  const priority = PRIORITY_CONFIG[task.priority] ?? PRIORITY_CONFIG.medium;
+  const StatusIcon = status.icon;
+  const PriorityIcon = priority.icon;
 
   return (
     <div className="group flex items-start gap-3 p-4 rounded-xl bg-card border hover:border-primary/30 hover:shadow-sm transition-all duration-200">
       <button
-        className="mt-0.5 flex-shrink-0 text-xl hover:scale-110 transition-transform"
+        className={`mt-0.5 flex-shrink-0 hover:scale-110 transition-transform ${status.color}`}
         onClick={() => {
           if (!canEdit) return;
           const next = task.status === "todo" ? "in_progress" : task.status === "in_progress" ? "done" : "todo";
@@ -88,7 +103,7 @@ function TaskCard({
         disabled={!canEdit}
         title={`Status: ${status.label} — click to advance`}
       >
-        {status.emoji}
+        <StatusIcon className="h-5 w-5" />
       </button>
 
       <div className="flex-1 min-w-0">
@@ -96,10 +111,12 @@ function TaskCard({
           <span className={`text-sm font-semibold ${task.status === "done" ? "line-through text-muted-foreground" : ""}`}>
             {task.title}
           </span>
-          <span className="text-sm">{priority.emoji}</span>
-          <Badge variant={priority.badge} className="text-xs px-1.5 py-0">
-            {priority.label}
-          </Badge>
+          <div className="flex items-center gap-1">
+            <PriorityIcon className={`h-3.5 w-3.5 ${CHARCOAL}`} />
+            <Badge variant={priority.badge} className="text-xs px-1.5 py-0">
+              {priority.label}
+            </Badge>
+          </div>
         </div>
         {task.description && (
           <p className="text-xs text-muted-foreground mb-2 leading-relaxed">{task.description}</p>
@@ -116,7 +133,8 @@ function TaskCard({
           )}
           {task.dueDate && (
             <span className="text-xs text-muted-foreground flex items-center gap-1">
-              📅 {new Date(task.dueDate).toLocaleDateString()}
+              <Calendar className={`h-3 w-3 ${CHARCOAL}`} />
+              {new Date(task.dueDate).toLocaleDateString()}
             </span>
           )}
           <span className="text-xs text-muted-foreground">
@@ -186,7 +204,10 @@ function TaskFormDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {editTask ? "✏️ Edit Task" : "✨ Create Task"}
+            {editTask?.id
+              ? <><Pencil className={`h-4 w-4 ${CHARCOAL}`} /> Edit Task</>
+              : <><Plus className={`h-4 w-4 ${CHARCOAL}`} /> Create Task</>
+            }
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
@@ -204,9 +225,9 @@ function TaskFormDialog({
               <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todo">⭕ To Do</SelectItem>
-                  <SelectItem value="in_progress">🔄 In Progress</SelectItem>
-                  <SelectItem value="done">✅ Done</SelectItem>
+                  <SelectItem value="todo">To Do</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="done">Done</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -215,9 +236,9 @@ function TaskFormDialog({
               <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="high">🔴 High</SelectItem>
-                  <SelectItem value="medium">🟡 Medium</SelectItem>
-                  <SelectItem value="low">🟢 Low</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -227,7 +248,7 @@ function TaskFormDialog({
             <Select value={assigneeId} onValueChange={setAssigneeId}>
               <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">👤 Unassigned</SelectItem>
+                <SelectItem value="none">Unassigned</SelectItem>
                 {members.map((m: any) => (
                   <SelectItem key={m.userId} value={m.userId}>{m.user?.name ?? m.userId}</SelectItem>
                 ))}
@@ -235,14 +256,19 @@ function TaskFormDialog({
             </Select>
           </div>
           <div>
-            <label className="text-sm font-medium mb-1.5 block">📅 Due Date</label>
+            <label className="text-sm font-medium mb-1.5 block flex items-center gap-1.5">
+              <Calendar className={`h-3.5 w-3.5 ${CHARCOAL}`} /> Due Date
+            </label>
             <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button onClick={handleSubmit} disabled={!title.trim()} className="gap-1.5">
-            {editTask ? "💾 Save Changes" : "✨ Create Task"}
+            {editTask?.id
+              ? <><Save className="h-3.5 w-3.5" /> Save Changes</>
+              : <><Plus className="h-3.5 w-3.5" /> Create Task</>
+            }
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -308,22 +334,25 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
     );
   }
 
-  const FILTER_TABS = [
-    { key: "all", label: "All", emoji: "📋" },
-    { key: "todo", label: "To Do", emoji: "⭕" },
-    { key: "in_progress", label: "In Progress", emoji: "🔄" },
-    { key: "done", label: "Done", emoji: "✅" },
-  ] as const;
+  const FILTER_TABS: { key: "all" | "todo" | "in_progress" | "done"; label: string; icon: LucideIcon }[] = [
+    { key: "all",         label: "All",         icon: ClipboardList },
+    { key: "todo",        label: "To Do",       icon: Circle },
+    { key: "in_progress", label: "In Progress", icon: Clock },
+    { key: "done",        label: "Done",        icon: CheckCircle2 },
+  ];
 
   return (
     <div className="space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h2 className="text-xl font-bold flex items-center gap-2">📋 Tasks</h2>
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <ClipboardList className={`h-5 w-5 ${CHARCOAL}`} />
+            Tasks
+          </h2>
           <p className="text-sm text-muted-foreground">
             {counts.all} total · {counts.done} done
-            {counts.in_progress > 0 && ` · ${counts.in_progress} in progress 🔄`}
+            {counts.in_progress > 0 && ` · ${counts.in_progress} in progress`}
           </p>
         </div>
 
@@ -384,30 +413,33 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
         <>
           {/* Filter Tabs */}
           <div className="flex gap-2 flex-wrap">
-            {FILTER_TABS.map(f => (
-              <Button
-                key={f.key}
-                variant={filter === f.key ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilter(f.key)}
-                className="gap-1.5"
-              >
-                <span>{f.emoji}</span>
-                {f.label}
-                <Badge variant="secondary" className="text-xs px-1.5 py-0 min-w-[1.25rem] text-center">
-                  {counts[f.key]}
-                </Badge>
-              </Button>
-            ))}
+            {FILTER_TABS.map(f => {
+              const Icon = f.icon;
+              return (
+                <Button
+                  key={f.key}
+                  variant={filter === f.key ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFilter(f.key)}
+                  className="gap-1.5"
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {f.label}
+                  <Badge variant="secondary" className="text-xs px-1.5 py-0 min-w-[1.25rem] text-center">
+                    {counts[f.key]}
+                  </Badge>
+                </Button>
+              );
+            })}
           </div>
 
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <div className="text-5xl mb-4">
-                {filter === "all" ? "🗂️" : STATUS_CONFIG[filter as keyof typeof STATUS_CONFIG]?.emoji}
+                {filter === "all" ? "🗂️" : "🗂️"}
               </div>
               <h3 className="font-semibold text-lg mb-1">
-                {filter === "all" ? "No tasks yet" : `No ${STATUS_CONFIG[filter as keyof typeof STATUS_CONFIG]?.label} tasks`}
+                {filter === "all" ? "No tasks yet" : `No ${STATUS_CONFIG[filter]?.label} tasks`}
               </h3>
               <p className="text-muted-foreground text-sm max-w-xs">
                 {filter === "all" && canEdit ? "Create your first task to get started." : "Nothing here yet."}
