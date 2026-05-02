@@ -400,163 +400,290 @@ export async function exportSRSPdf(
   doc.addPage();
   bgFill(doc);
   dotGrid(doc);
-  circleAccent(doc, 175, 180, 80, VIOLET, 0.06);
+  circleAccent(doc, 185, 260, 70, VIOLET, 0.05);
+  circleAccent(doc, 185, 260, 45, VIOLET, 0.04);
   pageHeader(doc, "Executive Summary", docTitle);
 
-  let cy = 24;
+  let cy = 20;
 
-  // Section title
+  // ── Section heading ─────────────────────────────────────────────────────────
+  // Section number chip
+  sf(doc, VIOLET);
+  doc.roundedRect(ML, cy, 10, 10, 2, 2, "F");
   st(doc, WHITE);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
-  doc.text("Executive Summary", ML, cy + 6);
-  rule(doc, ML, cy + 10, PW - MR, VIOLET, 0.4);
-  cy += 18;
+  doc.setFontSize(8);
+  doc.text("02", ML + 5, cy + 6.8, { align: "center" });
 
-  // ── Summary KPI row ────────────────────────────────────────────────────────
-  const kpis = [
-    { label: "Total Requirements",  value: String(total),                sub: "nodes defined" },
-    { label: "Edges / Deps",        value: String(edges.length),         sub: "connections" },
-    { label: "Coverage",            value: `${total > 0 ? Math.round((1 - isolatedCount / total) * 100) : 0}%`, sub: "nodes connected" },
-    { label: "Locked",              value: String(lockedCount),          sub: "immutable reqs" },
-    { label: "Categories",          value: String(activeCats.length),    sub: "in use" },
+  st(doc, WHITE);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(17);
+  doc.text("Executive Summary", ML + 14, cy + 7.2);
+
+  st(doc, MUTED);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.text("High-level overview of requirements, priorities, categories and document metadata.", ML + 14, cy + 12.5);
+
+  cy += 17;
+  rule(doc, ML, cy, PW - MR, VIOLET, 0.4);
+  cy += 7;
+
+  // ── KPI CARDS — 4 across full width ────────────────────────────────────────
+  const coveragePct = total > 0 ? Math.round((1 - isolatedCount / total) * 100) : 0;
+  const kpis4 = [
+    { label: "Total Requirements", value: String(total),        sub: "Nodes on canvas",      color: VIOLET                   as RGB },
+    { label: "Dependencies",       value: String(edges.length), sub: "Directed edges",        color: [59, 130, 246]           as RGB },
+    { label: "Graph Coverage",     value: `${coveragePct}%`,    sub: "Connected nodes",       color: [34, 197, 94]            as RGB },
+    { label: "Critical Priority",  value: String(priCounts.critical ?? 0), sub: "Must-have items", color: [239, 68, 68]      as RGB },
   ];
-  const kw = CW / kpis.length - 2.5;
-  kpis.forEach((k, i) => {
-    const kx = ML + i * (kw + 3);
+  const kCardW = (CW - 9) / 4; // 4 cards, 3 gaps of 3mm
+  const kCardH = 28;
+  kpis4.forEach((k, i) => {
+    const kx = ML + i * (kCardW + 3);
+    // Card body
     sf(doc, BG2);
-    doc.roundedRect(kx, cy, kw, 20, 2, 2, "F");
-    sf(doc, VIOLET);
-    doc.roundedRect(kx, cy, kw, 3, 2, 2, "F");
-    doc.rect(kx, cy + 1.5, kw, 1.5, "F");
+    doc.roundedRect(kx, cy, kCardW, kCardH, 2.5, 2.5, "F");
+    // Left accent bar
+    sf(doc, k.color);
+    doc.roundedRect(kx, cy, 3, kCardH, 2, 2, "F");
+    doc.rect(kx + 1.5, cy, 1.5, kCardH, "F");
+    // Value (big number)
     st(doc, WHITE);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.text(k.value, kx + kw / 2, cy + 13.5, { align: "center" });
+    doc.setFontSize(20);
+    doc.text(k.value, kx + kCardW / 2 + 1.5, cy + 17, { align: "center" });
+    // Label
+    st(doc, WHITE);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.5);
+    const lw = doc.splitTextToSize(k.label, kCardW - 8);
+    doc.text(lw[0], kx + 5, cy + 5.5);
+    // Sub-label
     st(doc, MUTED);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(5.5);
-    doc.text(k.sub.toUpperCase(), kx + kw / 2, cy + 17.5, { align: "center" });
-    st(doc, MUTED2);
-    doc.setFontSize(5);
-    const labelLines = doc.splitTextToSize(k.label, kw - 2);
-    doc.text(labelLines[0], kx + kw / 2, cy + 21, { align: "center" });
+    doc.text(k.sub.toUpperCase(), kx + 5, cy + kCardH - 4);
+    // Color dot
+    sf(doc, k.color);
+    doc.circle(kx + kCardW - 5, cy + 5, 2, "F");
   });
-  cy += 26;
+  cy += kCardH + 7;
 
-  // ── Priority analysis section ──────────────────────────────────────────────
-  st(doc, MUTED);
+  // ── TWO-COLUMN PANEL ROW ────────────────────────────────────────────────────
+  const colGap  = 5;
+  const colW    = (CW - colGap) / 2; // ≈ 88.5mm each
+  const leftX   = ML;
+  const rightX  = ML + colW + colGap;
+
+  // Estimate panel heights
+  const priRows  = (["critical","high","medium","low"] as const).filter(p => (priCounts[p] ?? 0) > 0);
+  const panelH   = 14 + 10 + priRows.length * 14; // header + stacked bar + rows
+
+  // ── LEFT PANEL: Priority Breakdown ─────────────────────────────────────────
+  sf(doc, BG2);
+  doc.roundedRect(leftX, cy, colW, panelH, 2.5, 2.5, "F");
+  // Panel header band
+  sf(doc, BG3);
+  doc.roundedRect(leftX, cy, colW, 11, 2.5, 2.5, "F");
+  doc.rect(leftX, cy + 5, colW, 6, "F");
+  sf(doc, VIOLET);
+  doc.roundedRect(leftX, cy, 3, 11, 1.5, 1.5, "F");
+  doc.rect(leftX + 1.5, cy, 1.5, 11, "F");
+  st(doc, VIOLET);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7);
-  doc.text("PRIORITY ANALYSIS", ML, cy);
-  rule(doc, ML, cy + 2.5, PW - MR, BORDER, 0.2);
-  cy += 8;
+  doc.text("PRIORITY BREAKDOWN", leftX + 6, cy + 7.3);
+
+  let py = cy + 14;
 
   if (total > 0) {
+    // Stacked distribution bar
     const pSegs = (["critical","high","medium","low"] as const).map(p => ({
       value: priCounts[p] ?? 0, color: PRI[p], label: p,
     }));
-    // Stacked bar
-    stackedBar(doc, ML, cy, CW, 8, pSegs, total);
-    cy += 10;
+    stackedBar(doc, leftX + 4, py, colW - 8, 6, pSegs, total);
+    py += 9;
 
-    // Per-priority rows with bar
-    pSegs.forEach(s => {
-      if (!s.value) return;
-      const pct = s.value / total;
-      const lbl = PRI_LABELS[s.label];
-      sf(doc, s.color);
-      doc.roundedRect(ML, cy + 1, 2.5, 5, 0.5, 0.5, "F");
+    // Rows per priority
+    priRows.forEach(p => {
+      const count = priCounts[p] ?? 0;
+      const pct   = count / total;
+      const rgb   = PRI[p];
+
+      // Row background (alternating)
+      const isEven = priRows.indexOf(p) % 2 === 0;
+      if (isEven) { sf(doc, [20, 10, 38] as RGB); doc.rect(leftX + 4, py - 1, colW - 8, 13, "F"); }
+
+      // Priority color circle
+      sf(doc, rgb);
+      doc.circle(leftX + 9, py + 4.5, 2.5, "F");
+
+      // Name + count
       st(doc, WHITE);
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(7.5);
-      doc.text(lbl, ML + 5, cy + 5.2);
+      doc.setFontSize(8);
+      doc.text(PRI_LABELS[p], leftX + 14, py + 5.5);
+
       st(doc, MUTED);
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7);
-      doc.text(`${s.value} requirement${s.value !== 1 ? "s" : ""}`, ML + 32, cy + 5.2);
-      doc.text(`${Math.round(pct * 100)}%`, PW - MR, cy + 5.2, { align: "right" });
-      progressBar(doc, ML + 68, cy + 2, CW - 70, 4, pct, s.color);
-      cy += 9;
+      doc.text(`${count}`, leftX + colW - 5, py + 5.5, { align: "right" });
+
+      // Progress bar
+      progressBar(doc, leftX + 4, py + 7.5, colW - 8, 3, pct, rgb);
+
+      // Percentage text right-aligned above bar
+      st(doc, rgb);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6);
+      doc.text(`${Math.round(pct * 100)}%`, leftX + colW - 5, py + 7, { align: "right" });
+
+      py += 14;
     });
   }
 
-  cy += 6;
-
-  // ── Category analysis section ──────────────────────────────────────────────
-  st(doc, MUTED);
+  // ── RIGHT PANEL: Category Breakdown ─────────────────────────────────────────
+  sf(doc, BG2);
+  doc.roundedRect(rightX, cy, colW, panelH, 2.5, 2.5, "F");
+  // Panel header band
+  sf(doc, BG3);
+  doc.roundedRect(rightX, cy, colW, 11, 2.5, 2.5, "F");
+  doc.rect(rightX, cy + 5, colW, 6, "F");
+  sf(doc, VIOLET_MID);
+  doc.roundedRect(rightX, cy, 3, 11, 1.5, 1.5, "F");
+  doc.rect(rightX + 1.5, cy, 1.5, 11, "F");
+  st(doc, VIOLET);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7);
-  doc.text("CATEGORY ANALYSIS", ML, cy);
-  rule(doc, ML, cy + 2.5, PW - MR, BORDER, 0.2);
-  cy += 8;
+  doc.text("CATEGORY BREAKDOWN", rightX + 6, cy + 7.3);
 
-  activeCats.forEach(([cat, count]) => {
+  // Column sub-headers inside the panel
+  let qy = cy + 14;
+  st(doc, MUTED2);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(5.5);
+  doc.text("CATEGORY", rightX + 12, qy);
+  doc.text("COUNT", rightX + colW - 22, qy);
+  doc.text("SHARE", rightX + colW - 5, qy, { align: "right" });
+  qy += 4;
+  rule(doc, rightX + 4, qy, rightX + colW - 4, BORDER, 0.15);
+  qy += 4;
+
+  activeCats.forEach(([cat, count], idx) => {
     const pct = total > 0 ? count / total : 0;
     const rgb = CAT[cat] ?? VIOLET;
     const lbl = CAT_LABELS[cat] ?? cat;
 
-    // category color square
-    sf(doc, rgb);
-    doc.roundedRect(ML, cy + 1, 2.5, 5, 0.5, 0.5, "F");
+    if (idx % 2 === 0) { sf(doc, [20, 10, 38] as RGB); doc.rect(rightX + 4, qy - 1.5, colW - 8, 10, "F"); }
 
+    // Color square
+    sf(doc, rgb);
+    doc.roundedRect(rightX + 5, qy + 1.5, 3.5, 3.5, 0.7, 0.7, "F");
+
+    // Category name
     st(doc, WHITE);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(7.5);
-    doc.text(lbl, ML + 5, cy + 5.2);
+    doc.text(lbl, rightX + 12, qy + 5);
 
-    // per-priority mini breakdown for this category
-    const catNodes = srsNodes.filter(n => n.category === cat);
-    let legX = ML + 34;
-    (["critical","high","medium","low"] as const).forEach(p => {
-      const pc = catNodes.filter(n => n.priority === p).length;
-      if (!pc) return;
-      sf(doc, PRI[p]);
-      doc.roundedRect(legX, cy + 2.5, 2, 2, 0.3, 0.3, "F");
-      st(doc, MUTED2);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(5.5);
-      doc.text(String(pc), legX + 3, cy + 5);
-      legX += 10;
-    });
+    // Count
+    st(doc, WHITE);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    doc.text(String(count), rightX + colW - 22, qy + 5);
 
+    // Share percentage
+    st(doc, rgb);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    doc.text(`${Math.round(pct * 100)}%`, rightX + colW - 5, qy + 5, { align: "right" });
+
+    // Thin progress bar
+    progressBar(doc, rightX + 5, qy + 6.5, colW - 10, 2.5, pct, rgb);
+
+    qy += 10;
+  });
+
+  cy += panelH + 7;
+
+  // ── DOCUMENT INFORMATION — properly bordered table ──────────────────────────
+  // Section label
+  sf(doc, BG3);
+  doc.roundedRect(ML, cy, CW, 9, 2, 2, "F");
+  sf(doc, VIOLET_MID);
+  doc.roundedRect(ML, cy, 3, 9, 1.5, 1.5, "F");
+  doc.rect(ML + 1.5, cy, 1.5, 9, "F");
+  st(doc, VIOLET);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7);
+  doc.text("DOCUMENT INFORMATION", ML + 6, cy + 6);
+  cy += 12;
+
+  const docInfo: [string, string][] = [
+    ["Document Title",      docTitle],
+    ["Workspace ID",        workspaceId],
+    ["Document Version",    version],
+    ["Classification",      "Confidential — Internal Use Only"],
+    ["Generation Date",     dateLong],
+    ["Requirement Count",   String(total)],
+    ["Dependency Edges",    String(edges.length)],
+    ["Locked Requirements", String(lockedCount)],
+  ];
+
+  const keyColW = 52;
+  const valColW = CW - keyColW;
+  const rowH    = 8;
+
+  // Table outer border
+  sf(doc, BG2);
+  doc.roundedRect(ML, cy, CW, docInfo.length * rowH, 2, 2, "F");
+  sd(doc, BORDER);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(ML, cy, CW, docInfo.length * rowH, 2, 2, "S");
+
+  // Vertical divider between key and value columns
+  doc.setLineWidth(0.2);
+  sd(doc, BORDER);
+  doc.line(ML + keyColW, cy, ML + keyColW, cy + docInfo.length * rowH);
+
+  docInfo.forEach(([k, v], idx) => {
+    const ry = cy + idx * rowH;
+
+    // Alternating row tint
+    if (idx % 2 === 0) {
+      sf(doc, [18, 9, 35] as RGB);
+      if (idx === 0) {
+        doc.roundedRect(ML, ry, CW, rowH, 2, 2, "F");
+        doc.rect(ML, ry + 2, CW, rowH - 2, "F");
+      } else if (idx === docInfo.length - 1) {
+        doc.rect(ML, ry, CW, rowH - 2, "F");
+        doc.roundedRect(ML, ry + rowH - 4, CW, 4, 2, 2, "F");
+      } else {
+        doc.rect(ML, ry, CW, rowH, "F");
+      }
+    }
+
+    // Horizontal row separator
+    if (idx > 0) {
+      rule(doc, ML, ry, ML + CW, BORDER, 0.15);
+    }
+
+    // Key
     st(doc, MUTED);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7);
-    doc.text(`${count}  ·  ${Math.round(pct * 100)}%`, PW - MR, cy + 5.2, { align: "right" });
-    progressBar(doc, ML + 68, cy + 2, CW - 70, 4, pct, rgb);
-    cy += 9;
-  });
+    doc.text(k, ML + 4, ry + 5.2);
 
-  cy += 6;
-
-  // ── Document information table ─────────────────────────────────────────────
-  st(doc, MUTED);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(7);
-  doc.text("DOCUMENT INFORMATION", ML, cy);
-  rule(doc, ML, cy + 2.5, PW - MR, BORDER, 0.2);
-  cy += 7;
-
-  const docInfo = [
-    ["Document Title",    docTitle],
-    ["Workspace ID",      workspaceId],
-    ["Version",           version],
-    ["Classification",    "Confidential — Internal Use Only"],
-    ["Generation Date",   dateLong],
-    ["Total Pages",       "Calculated at render"],
-  ];
-  docInfo.forEach(([k, v], idx) => {
-    if (idx % 2 === 0) { sf(doc, BG2); doc.rect(ML, cy - 3.5, CW, 7, "F"); }
-    st(doc, MUTED2);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7);
-    doc.text(k, ML + 3, cy + 0.5);
+    // Value
     st(doc, WHITE);
     doc.setFont("helvetica", "bold");
-    doc.text(v, ML + 3 + 52, cy + 0.5);
-    cy += 7;
+    doc.setFontSize(7);
+    const vTrunc = v.length > 52 ? v.slice(0, 50) + "…" : v;
+    doc.text(vTrunc, ML + keyColW + 4, ry + 5.2);
   });
+
+  cy += docInfo.length * rowH + 4;
 
   pageFooter(doc, 2, 99, docTitle, dateShort);
 
