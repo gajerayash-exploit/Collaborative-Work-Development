@@ -29,6 +29,7 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
   const initialTab = new URLSearchParams(search).get("tab") ?? "overview";
   const [activeTab, setActiveTab] = useState(initialTab);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [srsIssueCount, setSrsIssueCount] = useState(0);
 
   useEffect(() => {
     const tab = new URLSearchParams(search).get("tab");
@@ -149,6 +150,11 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
                 <TabsTrigger value="srs" className={TAB_CLASS}>
                   <Network className="h-4 w-4 md:mr-1.5 shrink-0" />
                   <span className="hidden sm:inline text-sm">SRS</span>
+                  {srsIssueCount > 0 && (
+                    <Badge variant="destructive" className="ml-1.5 h-4 min-w-4 px-1 text-[9px] font-black leading-none">
+                      {srsIssueCount > 9 ? "9+" : srsIssueCount}
+                    </Badge>
+                  )}
                 </TabsTrigger>
                 {isAdmin && (
                   <TabsTrigger value="settings" className={`${TAB_CLASS} ml-auto`}>
@@ -164,7 +170,7 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
         {/* Content Area */}
         {activeTab === "srs" ? (
           <div className="flex-1 overflow-hidden">
-            <SRSTab workspaceId={id} role={workspace.role} />
+            <SRSTab workspaceId={id} role={workspace.role} onAuditCount={setSrsIssueCount} />
           </div>
         ) : (
           <div className="flex-1 overflow-auto bg-muted/10">

@@ -21,7 +21,8 @@ import { Input } from "@/components/ui/input";
 import {
   Plus, Lock, Download, Zap, ChevronLeft, ChevronRight,
   GitBranch, Target, Layers, Code2, RefreshCw, Trash2,
-  Pencil, X, Check, AlertTriangle,
+  Pencil, X, Check, AlertTriangle, ShieldAlert, CircleDot,
+  Link2Off, GitMerge, ArrowRight,
 } from "lucide-react";
 
 const VIOLET = "#8B5CF6";
@@ -54,12 +55,60 @@ type SRSNodeData = {
   onDelete?: (id: string) => void;
   onEdit?: (id: string) => void;
   neoMode?: boolean;
+  highlighted?: boolean;
+  auditKind?: "orphan" | "missing-critical-link" | "cycle" | null;
 };
+
+type AuditIssue = {
+  kind: "orphan" | "missing-critical-link" | "cycle";
+  nodeIds: string[];
+  message: string;
+};
+
+function computeAudit(nodes: Node[], edges: Edge[]): AuditIssue[] {
+  const issues: AuditIssue[] = [];
+
+  const connected = new Set<string>();
+  edges.forEach(e => { connected.add(e.source); connected.add(e.target); });
+  nodes.filter(n => !connected.has(n.id)).forEach(n =>
+    issues.push({ kind: "orphan", nodeIds: [n.id], message: `"${(n.data as SRSNodeData).title}" has no connections` })
+  );
+
+  const hasOutgoing = new Set(edges.map(e => e.source));
+  nodes.filter(n => (n.data as SRSNodeData).priority === "critical" && !hasOutgoing.has(n.id)).forEach(n =>
+    issues.push({ kind: "missing-critical-link", nodeIds: [n.id], message: `"${(n.data as SRSNodeData).title}" is critical but has no outgoing links` })
+  );
+
+  const adj = new Map<string, string[]>();
+  nodes.forEach(n => adj.set(n.id, []));
+  edges.forEach(e => { adj.get(e.source)?.push(e.target); });
+  const visited = new Set<string>();
+  const inStack = new Set<string>();
+  const cycleSet = new Set<string>();
+  function dfs(id: string) {
+    visited.add(id); inStack.add(id);
+    for (const nb of (adj.get(id) ?? [])) {
+      if (!visited.has(nb)) dfs(nb);
+      if (inStack.has(nb)) { cycleSet.add(id); cycleSet.add(nb); }
+    }
+    inStack.delete(id);
+  }
+  nodes.forEach(n => { if (!visited.has(n.id)) dfs(n.id); });
+  if (cycleSet.size > 0) {
+    const ids = [...cycleSet];
+    issues.push({ kind: "cycle", nodeIds: ids, message: `Circular dependency between ${ids.length} node${ids.length > 1 ? "s" : ""}` });
+  }
+
+  return issues;
+}
 
 function SRSNodeComponent({ data, id, selected }: NodeProps) {
   const d = data as SRSNodeData;
   const neo = d.neoMode;
   const catColor = CATEGORY_COLORS[d.category] ?? VIOLET;
+
+  const AUDIT_COLORS = { orphan: "#ef4444", "missing-critical-link": "#f59e0b", cycle: "#a855f7" };
+  const auditColor = d.auditKind ? AUDIT_COLORS[d.auditKind] : null;
 
   if (neo) {
     return (
@@ -68,8 +117,10 @@ function SRSNodeComponent({ data, id, selected }: NodeProps) {
         style={{
           width: 220,
           background: "#fff",
-          border: `3px solid #000`,
-          boxShadow: selected ? "8px 8px 0 #000" : "4px 4px 0 #000",
+          border: auditColor ? `3px solid ${auditColor}` : `3px solid #000`,
+          boxShadow: auditColor
+            ? `4px 4px 0 ${auditColor}`
+            : selected ? "8px 8px 0 #000" : "4px 4px 0 #000",
           fontFamily: "monospace",
           transition: "box-shadow 0.15s",
         }}
@@ -110,11 +161,15 @@ function SRSNodeComponent({ data, id, selected }: NodeProps) {
         width: 230,
         background: "rgba(255,255,255,0.05)",
         backdropFilter: "blur(12px)",
-        border: selected ? `1.5px solid ${catColor}` : `1px solid ${VIOLET_DIM}`,
+        border: auditColor
+          ? `1.5px solid ${auditColor}`
+          : selected ? `1.5px solid ${catColor}` : `1px solid ${VIOLET_DIM}`,
         borderRadius: 12,
-        boxShadow: selected
-          ? `0 0 20px ${catColor}66, 0 0 40px ${catColor}33`
-          : `0 0 8px rgba(139,92,246,0.1)`,
+        boxShadow: auditColor
+          ? `0 0 18px ${auditColor}88, 0 0 36px ${auditColor}33`
+          : selected
+            ? `0 0 20px ${catColor}66, 0 0 40px ${catColor}33`
+            : `0 0 8px rgba(139,92,246,0.1)`,
         transition: "box-shadow 0.2s, border 0.2s",
         overflow: "hidden",
       }}
@@ -382,7 +437,7 @@ function newId() { return `n${++nodeCounter}`; }
 
 const CATEGORIES = ["functional", "database", "auth", "api", "constraint", "ui"] as const;
 
-function SRSInner({ workspaceId, role }: { workspaceId: string; role: string }) {
+function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; role: string; onAuditCount?: (n: number) => void }) {
   const storageKey = `srs-${workspaceId}`;
 
   const loadNodes = (): Node[] => {
@@ -401,11 +456,26 @@ function SRSInner({ workspaceId, role }: { workspaceId: string; role: string }) 
   const [nodes, setNodes, onNodesChange] = useNodesState(loadNodes());
   const [edges, setEdges, onEdgesChange] = useEdgesState(loadEdges());
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [mode, setMode] = useState<"galaxy" | "radar" | "sunburst">("galaxy");
+  const [mode, setMode] = useState<"galaxy" | "radar" | "sunburst" | "audit">("galaxy");
   const [neo, setNeo] = useState(false);
   const [mermaid, setMermaid] = useState("graph TD;\nLogin-->Auth;\nAuth-->DB;\nDB-->API;\nAPI-->UI;");
   const [mounted, setMounted] = useState(false);
   const { fitView } = useReactFlow();
+
+  const [auditIssues, setAuditIssues] = useState<AuditIssue[]>([]);
+  const [auditHighlight, setAuditHighlight] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const issues = computeAudit(nodes, edges);
+    setAuditIssues(issues);
+    onAuditCount?.(issues.length);
+  }, [nodes, edges, onAuditCount]);
+
+  const focusAuditNode = useCallback((nodeId: string) => {
+    setAuditHighlight(new Set([nodeId]));
+    fitView({ nodes: [{ id: nodeId }], duration: 500, padding: 0.35 });
+    setTimeout(() => setAuditHighlight(new Set()), 2500);
+  }, [fitView]);
 
   type EditDraft = { title: string; description: string; category: string; priority: string; locked: boolean };
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
@@ -475,9 +545,17 @@ function SRSInner({ workspaceId, role }: { workspaceId: string; role: string }) 
     setEdges(es => es.filter(e => e.source !== id && e.target !== id));
   }, [isAdmin, setNodes, setEdges]);
 
+  const auditKindMap = new Map<string, AuditIssue["kind"]>();
+  auditIssues.forEach(issue => { issue.nodeIds.forEach(nid => auditKindMap.set(nid, issue.kind)); });
+
   const enrichedNodes = nodes.map(n => ({
     ...n,
-    data: { ...n.data, onLock: toggleLock, onDelete: deleteNode, onEdit: openEdit, neoMode: neo },
+    data: {
+      ...n.data,
+      onLock: toggleLock, onDelete: deleteNode, onEdit: openEdit, neoMode: neo,
+      highlighted: auditHighlight.has(n.id),
+      auditKind: auditKindMap.get(n.id) ?? null,
+    },
     draggable: !(n.data as SRSNodeData).locked,
   }));
 
@@ -558,22 +636,36 @@ function SRSInner({ workspaceId, role }: { workspaceId: string; role: string }) 
               </div>
               {/* Mode tabs */}
               <div style={{ display: "flex", gap: 4 }}>
-                {([["galaxy", GitBranch], ["radar", Target], ["sunburst", Layers]] as const).map(([m, Icon]) => (
-                  <button
-                    key={m}
-                    onClick={() => setMode(m as typeof mode)}
-                    title={m.charAt(0).toUpperCase() + m.slice(1)}
-                    style={{
-                      flex: 1, padding: "5px 0", border: neo ? "2px solid #000" : `1px solid ${VIOLET_DIM}`,
-                      background: mode === m ? (neo ? "#000" : VIOLET) : "transparent",
-                      color: mode === m ? "#fff" : (neo ? "#000" : "rgba(255,255,255,0.5)"),
-                      borderRadius: neo ? 0 : 6, cursor: "pointer", display: "flex", justifyContent: "center",
-                      transition: "all 0.15s",
-                    }}
-                  >
-                    <Icon size={13} />
-                  </button>
-                ))}
+                {([["galaxy", GitBranch], ["radar", Target], ["sunburst", Layers], ["audit", ShieldAlert]] as const).map(([m, Icon]) => {
+                  const isAudit = m === "audit";
+                  const badgeCount = isAudit ? auditIssues.length : 0;
+                  return (
+                    <button
+                      key={m}
+                      onClick={() => setMode(m as typeof mode)}
+                      title={m.charAt(0).toUpperCase() + m.slice(1)}
+                      style={{
+                        flex: 1, padding: "5px 0", border: neo ? "2px solid #000" : `1px solid ${VIOLET_DIM}`,
+                        background: mode === m ? (neo ? "#000" : isAudit && badgeCount > 0 ? "#ef4444" : VIOLET) : "transparent",
+                        color: mode === m ? "#fff" : (neo ? "#000" : "rgba(255,255,255,0.5)"),
+                        borderRadius: neo ? 0 : 6, cursor: "pointer", display: "flex", justifyContent: "center", alignItems: "center", gap: 3,
+                        transition: "all 0.15s", position: "relative",
+                      }}
+                    >
+                      <Icon size={13} />
+                      {badgeCount > 0 && (
+                        <span style={{
+                          position: "absolute", top: -5, right: -3, width: 14, height: 14,
+                          background: "#ef4444", color: "#fff", borderRadius: "50%",
+                          fontSize: 8, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center",
+                          border: neo ? "2px solid #f5f5f5" : `2px solid rgba(5,2,8,0.97)`,
+                        }}>
+                          {badgeCount > 9 ? "9+" : badgeCount}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -670,6 +762,96 @@ function SRSInner({ workspaceId, role }: { workspaceId: string; role: string }) 
                   </div>
                 </div>
               )}
+
+              {mode === "audit" && (() => {
+                const byKind = {
+                  orphan: auditIssues.filter(i => i.kind === "orphan"),
+                  "missing-critical-link": auditIssues.filter(i => i.kind === "missing-critical-link"),
+                  cycle: auditIssues.filter(i => i.kind === "cycle"),
+                };
+                const kindMeta: Record<string, { label: string; color: string; Icon: React.ElementType; desc: string }> = {
+                  orphan: { label: "Orphaned Nodes", color: "#ef4444", Icon: Link2Off, desc: "No connections" },
+                  "missing-critical-link": { label: "Incomplete Critical", color: "#f59e0b", Icon: AlertTriangle, desc: "Critical, no outgoing links" },
+                  cycle: { label: "Circular Dependencies", color: "#a855f7", Icon: GitMerge, desc: "Cycle detected" },
+                };
+                return (
+                  <div>
+                    {/* Header */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: neo ? "#000" : "#ef4444", textTransform: "uppercase", letterSpacing: 1 }}>
+                        Graph Audit
+                      </div>
+                      <div style={{
+                        fontSize: 9, fontWeight: 900, padding: "2px 8px", borderRadius: 10,
+                        background: auditIssues.length > 0 ? "#ef4444" : "#22c55e", color: "#fff",
+                      }}>
+                        {auditIssues.length > 0 ? `${auditIssues.length} issue${auditIssues.length > 1 ? "s" : ""}` : "All clear"}
+                      </div>
+                    </div>
+
+                    {auditIssues.length === 0 && (
+                      <div style={{ textAlign: "center", padding: "24px 0" }}>
+                        <div style={{ fontSize: 24, marginBottom: 8 }}>✓</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: "#22c55e" }}>No issues found</div>
+                        <div style={{ fontSize: 9, color: neo ? "#666" : "rgba(255,255,255,0.3)", marginTop: 4 }}>
+                          Graph structure looks healthy
+                        </div>
+                      </div>
+                    )}
+
+                    {(["orphan", "missing-critical-link", "cycle"] as const).map(kind => {
+                      const group = byKind[kind];
+                      if (group.length === 0) return null;
+                      const meta = kindMeta[kind];
+                      const MetaIcon = meta.Icon;
+                      return (
+                        <div key={kind} style={{ marginBottom: 14 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 7 }}>
+                            <MetaIcon size={11} style={{ color: meta.color }} />
+                            <span style={{ fontSize: 10, fontWeight: 700, color: meta.color }}>{meta.label}</span>
+                            <span style={{ marginLeft: "auto", fontSize: 8, background: `${meta.color}22`, color: meta.color, padding: "1px 6px", borderRadius: 8, fontWeight: 700 }}>
+                              {group.length}
+                            </span>
+                          </div>
+                          {group.flatMap(issue => issue.nodeIds).map(nodeId => {
+                            const node = nodes.find(n => n.id === nodeId);
+                            const title = (node?.data as SRSNodeData | undefined)?.title ?? nodeId;
+                            return (
+                              <button
+                                key={nodeId}
+                                onClick={() => focusAuditNode(nodeId)}
+                                style={{
+                                  width: "100%", textAlign: "left", marginBottom: 4, padding: "7px 9px",
+                                  background: neo ? "#fff" : `${meta.color}0d`,
+                                  border: neo ? `2px solid ${meta.color}` : `1px solid ${meta.color}44`,
+                                  borderRadius: neo ? 2 : 6, cursor: "pointer",
+                                  display: "flex", alignItems: "center", gap: 6,
+                                  transition: "background 0.1s",
+                                }}
+                              >
+                                <span style={{ width: 5, height: 5, borderRadius: "50%", background: meta.color, flexShrink: 0 }} />
+                                <span style={{ fontSize: 10, fontWeight: 600, color: neo ? "#000" : "rgba(255,255,255,0.8)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                  {title}
+                                </span>
+                                <ArrowRight size={9} style={{ color: meta.color, flexShrink: 0 }} />
+                              </button>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
+
+                    <div style={{ marginTop: 10, padding: "8px 10px", background: neo ? "#eee" : "rgba(139,92,246,0.06)", borderRadius: 6, border: neo ? "1px solid #ccc" : `1px solid ${VIOLET_DIM}` }}>
+                      <div style={{ fontSize: 9, color: neo ? "#555" : "rgba(255,255,255,0.35)", lineHeight: 1.7 }}>
+                        <span style={{ color: "#ef4444", fontWeight: 700 }}>●</span> Orphan — no edges<br />
+                        <span style={{ color: "#f59e0b", fontWeight: 700 }}>●</span> Critical — no outgoing links<br />
+                        <span style={{ color: "#a855f7", fontWeight: 700 }}>●</span> Cycle — circular dependency<br />
+                        Click any item to zoom to the node.
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </motion.div>
         )}
@@ -1138,6 +1320,14 @@ function SRSInner({ workspaceId, role }: { workspaceId: string; role: string }) 
               borderRadius: neo ? 2 : 6,
             }}>
               {neo ? "◼ Neo-Brutalist" : "◉ Dependency Galaxy"} · {nodes.length} nodes
+              {auditIssues.length > 0 && (
+                <span style={{
+                  marginLeft: 8, padding: "1px 7px", borderRadius: 8,
+                  background: "#ef4444", color: "#fff", fontSize: 9, fontWeight: 900,
+                }}>
+                  ⚠ {auditIssues.length} audit issue{auditIssues.length > 1 ? "s" : ""}
+                </span>
+              )}
             </div>
           </Panel>
         </ReactFlow>
@@ -1146,10 +1336,10 @@ function SRSInner({ workspaceId, role }: { workspaceId: string; role: string }) 
   );
 }
 
-export function SRSTab({ workspaceId, role }: { workspaceId: string; role: string }) {
+export function SRSTab({ workspaceId, role, onAuditCount }: { workspaceId: string; role: string; onAuditCount?: (n: number) => void }) {
   return (
     <ReactFlowProvider>
-      <SRSInner workspaceId={workspaceId} role={role} />
+      <SRSInner workspaceId={workspaceId} role={role} onAuditCount={onAuditCount} />
     </ReactFlowProvider>
   );
 }
