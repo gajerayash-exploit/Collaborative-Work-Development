@@ -1,7 +1,8 @@
 import { useState, ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useListWorkspaces } from "@workspace/api-client-react";
-import { LogOut, ChevronDown, User, Check, UserCircle, LayoutGrid, Menu, X } from "lucide-react";
+import { LogOut, ChevronDown, User, Check, UserCircle, LayoutGrid, Menu, X, Sun, Moon } from "lucide-react";
+import { useTheme } from "@/components/theme-provider";
 import { NotificationBell } from "./notification-bell";
 import { useClerk, useUser } from "@clerk/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,6 +18,21 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+
+function ThemeToggleButton() {
+  const { theme, toggle } = useTheme();
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+      onClick={toggle}
+      title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+    >
+      {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </Button>
+  );
+}
 
 const WORKSPACE_EMOJIS = ["🚀", "⚡", "🎯", "🛠️", "💡", "🔥", "🌊", "🎨", "🦊", "🏗️", "🌐", "🧪"];
 function getWorkspaceEmoji(name: string) {
@@ -128,8 +144,11 @@ function SidebarContent({ activeWorkspaceId, onClose }: { activeWorkspaceId?: st
       {/* User Profile */}
       <div className="p-3 border-t border-sidebar-border space-y-2">
         <div className="flex items-center justify-between px-1">
-          <span className="text-xs text-muted-foreground font-medium">🔔 Notifications</span>
-          <NotificationBell />
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground font-medium">🔔 Notifications</span>
+            <NotificationBell />
+          </div>
+          <ThemeToggleButton />
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -201,6 +220,7 @@ export function AppLayout({ children, activeWorkspaceId }: AppLayoutProps) {
             </span>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
+            <ThemeToggleButton />
             <NotificationBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
