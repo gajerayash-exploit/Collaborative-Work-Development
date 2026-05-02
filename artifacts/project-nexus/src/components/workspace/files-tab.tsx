@@ -164,7 +164,7 @@ export function FilesTab({ workspaceId, role }: { workspaceId: string, role: Wor
               <TableHead className="w-[40%] font-semibold">📎 Name</TableHead>
               <TableHead className="font-semibold">Size</TableHead>
               <TableHead className="font-semibold">Uploaded by</TableHead>
-              <TableHead className="font-semibold">📅 Date</TableHead>
+              <TableHead className="font-semibold">Date</TableHead>
               <TableHead className="text-right font-semibold">Actions</TableHead>
             </TableRow>
           </TableHeader>
