@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import {
   ReactFlow, Background, Controls, MiniMap,
   addEdge, useNodesState, useEdgesState,
@@ -656,6 +656,77 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
       localStorage.setItem(storageKey + "-edges", JSON.stringify(edges));
     } catch {}
   }, [nodes, edges]);
+
+  const senderId = useMemo(() => `s-${Math.random().toString(36).slice(2, 9)}`, []);
+  const isApplyingRemote = useRef(false);
+  const [colabCount, setColabCount] = useState(0);
+  const [colabPulse, setColabPulse] = useState(false);
+
+  useEffect(() => {
+    if (!workspaceId) return;
+    const url = `/api/srs/stream?workspaceId=${encodeURIComponent(workspaceId)}&senderId=${encodeURIComponent(senderId)}`;
+    const es = new EventSource(url);
+
+    es.onmessage = (ev) => {
+      try {
+        const msg = JSON.parse(ev.data) as {
+          type: string;
+          nodes?: Node[];
+          edges?: Edge[];
+          senderId?: string;
+          count?: number;
+        };
+
+        if (msg.type === "graph-update" || msg.type === "initial-state") {
+          if (msg.senderId === senderId) return;
+          if (!msg.nodes || !msg.edges) return;
+          isApplyingRemote.current = true;
+          setNodes(msg.nodes as Node[]);
+          setEdges(msg.edges as Edge[]);
+          setColabPulse(true);
+          setTimeout(() => {
+            isApplyingRemote.current = false;
+            setColabPulse(false);
+          }, 1200);
+        }
+      } catch {}
+    };
+
+    es.onerror = () => {};
+
+    const presenceInterval = setInterval(async () => {
+      try {
+        const r = await fetch(`/api/srs/presence/${encodeURIComponent(workspaceId)}`);
+        if (r.ok) {
+          const d = await r.json() as { count: number };
+          setColabCount(d.count);
+        }
+      } catch {}
+    }, 10000);
+
+    return () => {
+      es.close();
+      clearInterval(presenceInterval);
+    };
+  }, [workspaceId, senderId, setNodes, setEdges]);
+
+  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (isApplyingRemote.current) return;
+    if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+    syncTimeoutRef.current = setTimeout(async () => {
+      try {
+        const cleanNodes = nodes.map(n => ({ ...n, data: { ...n.data, onLock: undefined, onDelete: undefined, neoMode: undefined } }));
+        await fetch("/api/srs/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ workspaceId, nodes: cleanNodes, edges, senderId }),
+        });
+      } catch {}
+    }, 1000);
+    return () => { if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current); };
+  }, [nodes, edges, workspaceId, senderId]);
 
   const toggleLock = useCallback((id: string) => {
     if (!isAdmin) return;
@@ -1641,6 +1712,38 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
           {/* Toolbar */}
           <Panel position="top-right">
             <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              {/* Live presence indicator */}
+              <motion.div
+                animate={colabPulse ? { scale: [1, 1.12, 1], opacity: [1, 0.7, 1] } : {}}
+                transition={{ duration: 0.6 }}
+                title={colabCount > 1 ? `${colabCount} people viewing this graph` : "You are viewing this graph"}
+                style={{
+                  display: "flex", alignItems: "center", gap: 5,
+                  padding: "5px 10px", borderRadius: neo ? 2 : 20,
+                  background: colabPulse
+                    ? (neo ? "#000" : "rgba(34,197,94,0.18)")
+                    : (neo ? "#f5f5f5" : "rgba(255,255,255,0.04)"),
+                  border: colabPulse
+                    ? (neo ? "2px solid #16a34a" : "1px solid rgba(34,197,94,0.5)")
+                    : (neo ? "1px solid #ccc" : "1px solid rgba(255,255,255,0.08)"),
+                  transition: "all 0.4s",
+                }}
+              >
+                <span style={{
+                  width: 6, height: 6, borderRadius: "50%",
+                  background: colabPulse ? "#22c55e" : (colabCount > 1 ? "#22c55e" : "#6366f1"),
+                  boxShadow: colabPulse ? "0 0 6px #22c55e" : (colabCount > 1 ? "0 0 4px #22c55e" : "none"),
+                  flexShrink: 0, transition: "all 0.4s",
+                }} />
+                <span style={{
+                  fontSize: 9, fontWeight: 700,
+                  color: colabPulse ? (neo ? "#16a34a" : "#22c55e") : (neo ? "#555" : "rgba(255,255,255,0.4)"),
+                  whiteSpace: "nowrap", transition: "all 0.4s",
+                }}>
+                  {colabPulse ? "Syncing…" : colabCount > 1 ? `${colabCount} live` : "Live"}
+                </span>
+              </motion.div>
+
               {isAdmin && (
                 <>
                   <button

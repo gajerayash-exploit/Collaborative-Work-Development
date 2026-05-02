@@ -19,6 +19,7 @@ import analyticsRouter from "./analytics";
 import activityRouter from "./activity";
 import srsSuggestRouter from "./srs-suggest";
 import srsGenerateNodeRouter from "./srs-generate-node";
+import srsStreamRouter from "./srs-stream";
 
 const router: IRouter = Router();
 
@@ -42,5 +43,6 @@ router.use(analyticsRouter);
 router.use(activityRouter);
 router.use(srsSuggestRouter);
 router.use(srsGenerateNodeRouter);
+router.use(srsStreamRouter);
 
 export default router;
