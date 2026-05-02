@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatDistanceToNow, format } from "date-fns";
+import { Users, FileText, MessageSquare, Flame } from "lucide-react";
+import { type ReactNode } from "react";
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return "0 B";
@@ -42,18 +44,20 @@ function roleLabel(role: string) {
 }
 
 function StatCard({
-  title, value, sub, gradient,
+  title, value, sub, gradient, icon,
 }: {
   title: string;
   value: string | number;
   sub?: string;
   gradient: string;
+  icon: ReactNode;
 }) {
   return (
     <Card className="relative overflow-hidden group hover:shadow-md transition-all duration-200">
       <div className={`absolute inset-0 opacity-40 ${gradient}`} />
-      <CardHeader className="pb-1.5 space-y-0 relative z-10 p-3 sm:p-6 sm:pb-2">
+      <CardHeader className="flex flex-row items-center justify-between pb-1.5 space-y-0 relative z-10 p-3 sm:p-6 sm:pb-2">
         <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <div className="text-muted-foreground/50">{icon}</div>
       </CardHeader>
       <CardContent className="relative z-10 p-3 pt-0 sm:p-6 sm:pt-0">
         <div className="text-2xl sm:text-3xl font-black tracking-tight">{value}</div>
@@ -105,24 +109,28 @@ export function OverviewTab({ workspaceId }: { workspaceId: string }) {
           value={stats.memberCount}
           sub={stats.memberCount === 1 ? "1 person" : `${stats.memberCount} people`}
           gradient="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/20"
+          icon={<Users className="h-4 w-4 sm:h-5 sm:w-5" />}
         />
         <StatCard
           title="Files"
           value={stats.fileCount}
           sub="uploaded"
           gradient="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20"
+          icon={<FileText className="h-4 w-4 sm:h-5 sm:w-5" />}
         />
         <StatCard
           title="Messages"
           value={stats.messageCount}
           sub="sent total"
           gradient="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/20"
+          icon={<MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />}
         />
         <StatCard
           title="Days Active"
           value={daysActive}
           sub={`Since ${format(new Date(stats.workspaceCreatedAt), "MMM d, yyyy")}`}
           gradient="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/20"
+          icon={<Flame className="h-4 w-4 sm:h-5 sm:w-5" />}
         />
       </div>
 
