@@ -90,14 +90,54 @@ export interface ActivityItem {
   type: ActivityItemType;
   description: string;
   userName: string;
+  avatarUrl?: string | null;
   createdAt: string;
+}
+
+export interface RecentFile {
+  id: string;
+  name: string;
+  size: number;
+  mimeType: string;
+  uploaderName: string;
+  createdAt: string;
+}
+
+export interface RecentMessage {
+  id: string;
+  content: string;
+  senderName: string;
+  senderAvatarUrl?: string | null;
+  createdAt: string;
+}
+
+export type RecentMemberRole =
+  (typeof RecentMemberRole)[keyof typeof RecentMemberRole];
+
+export const RecentMemberRole = {
+  admin: "admin",
+  editor: "editor",
+  viewer: "viewer",
+} as const;
+
+export interface RecentMember {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl?: string | null;
+  role: RecentMemberRole;
+  joinedAt: string;
 }
 
 export interface WorkspaceStats {
   memberCount: number;
   fileCount: number;
   messageCount: number;
+  workspaceCreatedAt: string;
   recentActivity: ActivityItem[];
+  recentFiles: RecentFile[];
+  recentMessages: RecentMessage[];
+  recentMembers: RecentMember[];
 }
 
 export type WorkspaceMemberRole =

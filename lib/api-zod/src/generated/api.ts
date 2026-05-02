@@ -130,6 +130,7 @@ export const GetWorkspaceStatsResponse = zod.object({
   memberCount: zod.number(),
   fileCount: zod.number(),
   messageCount: zod.number(),
+  workspaceCreatedAt: zod.coerce.date(),
   recentActivity: zod.array(
     zod.object({
       type: zod.enum([
@@ -140,7 +141,37 @@ export const GetWorkspaceStatsResponse = zod.object({
       ]),
       description: zod.string(),
       userName: zod.string(),
+      avatarUrl: zod.string().nullish(),
       createdAt: zod.coerce.date(),
+    }),
+  ),
+  recentFiles: zod.array(
+    zod.object({
+      id: zod.string(),
+      name: zod.string(),
+      size: zod.number(),
+      mimeType: zod.string(),
+      uploaderName: zod.string(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+  recentMessages: zod.array(
+    zod.object({
+      id: zod.string(),
+      content: zod.string(),
+      senderName: zod.string(),
+      senderAvatarUrl: zod.string().nullish(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+  recentMembers: zod.array(
+    zod.object({
+      id: zod.string(),
+      name: zod.string(),
+      email: zod.string(),
+      avatarUrl: zod.string().nullish(),
+      role: zod.enum(["admin", "editor", "viewer"]),
+      joinedAt: zod.coerce.date(),
     }),
   ),
 });

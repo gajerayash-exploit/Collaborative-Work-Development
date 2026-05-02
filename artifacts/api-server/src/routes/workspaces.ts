@@ -172,51 +172,106 @@ router.get("/workspaces/:workspaceId/stats", requireAuth, async (req: any, res):
       db.select({ count: count() }).from(messagesTable).where(eq(messagesTable.workspaceId, workspaceId)),
     ]);
 
-    const recentMessages = await db.select({
-      id: messagesTable.id,
-      content: messagesTable.content,
-      senderId: messagesTable.senderId,
-      createdAt: messagesTable.createdAt,
-      senderName: usersTable.name,
-    })
-      .from(messagesTable)
-      .innerJoin(usersTable, eq(messagesTable.senderId, usersTable.id))
-      .where(eq(messagesTable.workspaceId, workspaceId))
-      .orderBy(desc(messagesTable.createdAt))
-      .limit(3);
+    const workspace = await db.select().from(workspacesTable).where(eq(workspacesTable.id, workspaceId)).limit(1);
 
-    const recentFiles = await db.select({
-      name: workspaceFilesTable.name,
-      uploadedBy: workspaceFilesTable.uploadedBy,
-      createdAt: workspaceFilesTable.createdAt,
-      uploaderName: usersTable.name,
-    })
-      .from(workspaceFilesTable)
-      .innerJoin(usersTable, eq(workspaceFilesTable.uploadedBy, usersTable.id))
-      .where(eq(workspaceFilesTable.workspaceId, workspaceId))
-      .orderBy(desc(workspaceFilesTable.createdAt))
-      .limit(2);
+    const [recentMessagesRaw, recentFilesRaw, allMembers] = await Promise.all([
+      db.select({
+        id: messagesTable.id,
+        content: messagesTable.content,
+        senderId: messagesTable.senderId,
+        createdAt: messagesTable.createdAt,
+        senderName: usersTable.name,
+        senderAvatarUrl: usersTable.avatarUrl,
+      })
+        .from(messagesTable)
+        .innerJoin(usersTable, eq(messagesTable.senderId, usersTable.id))
+        .where(eq(messagesTable.workspaceId, workspaceId))
+        .orderBy(desc(messagesTable.createdAt))
+        .limit(10),
+
+      db.select({
+        id: workspaceFilesTable.id,
+        name: workspaceFilesTable.name,
+        size: workspaceFilesTable.size,
+        mimeType: workspaceFilesTable.mimeType,
+        uploadedBy: workspaceFilesTable.uploadedBy,
+        createdAt: workspaceFilesTable.createdAt,
+        uploaderName: usersTable.name,
+        uploaderAvatarUrl: usersTable.avatarUrl,
+      })
+        .from(workspaceFilesTable)
+        .innerJoin(usersTable, eq(workspaceFilesTable.uploadedBy, usersTable.id))
+        .where(eq(workspaceFilesTable.workspaceId, workspaceId))
+        .orderBy(desc(workspaceFilesTable.createdAt))
+        .limit(5),
+
+      db.select({
+        id: usersTable.id,
+        name: usersTable.name,
+        email: usersTable.email,
+        avatarUrl: usersTable.avatarUrl,
+        role: workspaceMembersTable.role,
+        joinedAt: workspaceMembersTable.joinedAt,
+      })
+        .from(workspaceMembersTable)
+        .innerJoin(usersTable, eq(workspaceMembersTable.userId, usersTable.id))
+        .where(eq(workspaceMembersTable.workspaceId, workspaceId))
+        .orderBy(desc(workspaceMembersTable.joinedAt)),
+    ]);
 
     const recentActivity = [
-      ...recentMessages.map(m => ({
+      ...recentMessagesRaw.map(m => ({
         type: "message" as const,
-        description: `Sent a message: "${m.content.slice(0, 50)}${m.content.length > 50 ? "..." : ""}"`,
+        description: `sent a message: "${m.content.slice(0, 60)}${m.content.length > 60 ? "…" : ""}"`,
         userName: m.senderName,
+        avatarUrl: m.senderAvatarUrl,
         createdAt: m.createdAt,
       })),
-      ...recentFiles.map(f => ({
+      ...recentFilesRaw.map(f => ({
         type: "file_upload" as const,
-        description: `Uploaded file: ${f.name}`,
+        description: `uploaded ${f.name}`,
         userName: f.uploaderName,
+        avatarUrl: f.uploaderAvatarUrl,
         createdAt: f.createdAt,
       })),
-    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
+      ...allMembers.map(m => ({
+        type: "member_joined" as const,
+        description: `joined the workspace as ${m.role}`,
+        userName: m.name,
+        avatarUrl: m.avatarUrl,
+        createdAt: m.joinedAt,
+      })),
+    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 20);
 
     res.json({
       memberCount: memberCount.count,
       fileCount: fileCount.count,
       messageCount: messageCount.count,
+      workspaceCreatedAt: workspace[0]?.createdAt ?? new Date(),
       recentActivity,
+      recentFiles: recentFilesRaw.map(f => ({
+        id: f.id,
+        name: f.name,
+        size: f.size,
+        mimeType: f.mimeType,
+        uploaderName: f.uploaderName,
+        createdAt: f.createdAt,
+      })),
+      recentMessages: recentMessagesRaw.slice(0, 5).map(m => ({
+        id: m.id,
+        content: m.content,
+        senderName: m.senderName,
+        senderAvatarUrl: m.senderAvatarUrl,
+        createdAt: m.createdAt,
+      })),
+      recentMembers: allMembers.slice(0, 6).map(m => ({
+        id: m.id,
+        name: m.name,
+        email: m.email,
+        avatarUrl: m.avatarUrl,
+        role: m.role,
+        joinedAt: m.joinedAt,
+      })),
     });
   } catch (err) {
     req.log.error({ err }, "Failed to get workspace stats");

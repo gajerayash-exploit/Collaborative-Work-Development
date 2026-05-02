@@ -576,15 +576,34 @@ components:
           type: integer
         messageCount:
           type: integer
+        workspaceCreatedAt:
+          type: string
+          format: date-time
         recentActivity:
           type: array
           items:
             $ref: "#/components/schemas/ActivityItem"
+        recentFiles:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecentFile"
+        recentMessages:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecentMessage"
+        recentMembers:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecentMember"
       required:
         - memberCount
         - fileCount
         - messageCount
+        - workspaceCreatedAt
         - recentActivity
+        - recentFiles
+        - recentMessages
+        - recentMembers
 
     ActivityItem:
       type: object
@@ -596,6 +615,9 @@ components:
           type: string
         userName:
           type: string
+        avatarUrl:
+          type: string
+          nullable: true
         createdAt:
           type: string
           format: date-time
@@ -604,6 +626,76 @@ components:
         - description
         - userName
         - createdAt
+
+    RecentFile:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        size:
+          type: integer
+        mimeType:
+          type: string
+        uploaderName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - size
+        - mimeType
+        - uploaderName
+        - createdAt
+
+    RecentMessage:
+      type: object
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+        senderName:
+          type: string
+        senderAvatarUrl:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - content
+        - senderName
+        - createdAt
+
+    RecentMember:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        avatarUrl:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum: [admin, editor, viewer]
+        joinedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - email
+        - role
+        - joinedAt
 
     WorkspaceMember:
       type: object
