@@ -383,7 +383,6 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
           <CardContent>
             {summary.total === 0 ? (
               <div className="flex flex-col items-center justify-center h-56 text-center">
-                <div className="text-5xl mb-3">🌱</div>
                 <p className="font-semibold">No task data yet</p>
                 <p className="text-sm text-muted-foreground mt-1">Create tasks to start tracking progress.</p>
               </div>
