@@ -206,7 +206,6 @@ export default function LandingPage() {
                 key={f.title}
                 className={`relative group rounded-2xl border ${f.border} bg-gradient-to-br ${f.gradient} p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 bg-card overflow-hidden`}
               >
-                <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/5 -translate-y-8 translate-x-8 pointer-events-none" />
                 <div className="text-4xl mb-4">{f.emoji}</div>
                 <h3 className="text-base font-bold mb-2">{f.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
@@ -217,9 +216,8 @@ export default function LandingPage() {
 
         {/* CTA */}
         <section className="py-24 px-6">
-          <div className="max-w-3xl mx-auto text-center rounded-3xl border bg-gradient-to-br from-primary/5 via-background to-purple-500/5 p-16 relative overflow-hidden">
-            <div className="absolute inset-0 bg-grid-white/5 pointer-events-none" />
-            <div className="relative z-10">
+          <div className="max-w-3xl mx-auto text-center rounded-3xl border bg-muted/30 p-16">
+            <div>
               <div className="text-5xl mb-6">🎯</div>
               <h2 className="text-4xl font-extrabold tracking-tight mb-4">
                 Ready to build something great?

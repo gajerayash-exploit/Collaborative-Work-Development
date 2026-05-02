@@ -74,13 +74,7 @@ export default function ProfilePage() {
               {/* Profile Card */}
               <div className="bg-card border rounded-2xl overflow-hidden shadow-sm">
                 {/* Cover gradient */}
-                <div className="h-24 bg-gradient-to-r from-primary/30 via-blue-500/20 to-purple-500/20 relative">
-                  <div className="absolute inset-0 opacity-30"
-                    style={{
-                      backgroundImage: "radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.2) 0%, transparent 50%)"
-                    }}
-                  />
-                </div>
+                <div className="h-24 bg-gradient-to-r from-primary/20 via-blue-500/10 to-purple-500/10" />
 
                 <div className="px-6 pb-6">
                   {/* Avatar */}

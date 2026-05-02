@@ -174,9 +174,8 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-auto bg-muted/10 relative">
-          <div className="absolute inset-0 bg-grid-slate-900/[0.04] bg-[bottom_1px_center] dark:bg-grid-slate-400/[0.05] pointer-events-none" />
-          <div className="p-6 h-full max-w-6xl mx-auto relative z-10">
+        <div className="flex-1 overflow-auto bg-muted/10">
+          <div className="p-6 h-full max-w-6xl mx-auto">
             {activeTab === "overview" && <OverviewTab workspaceId={id} />}
             {activeTab === "chat" && <ChatTab workspaceId={id} role={workspace.role} />}
             {activeTab === "files" && <FilesTab workspaceId={id} role={workspace.role} />}
