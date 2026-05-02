@@ -119,11 +119,6 @@ export function MembersTab({ workspaceId, role }: { workspaceId: string, role: W
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold">{member.user.name}</span>
-                        {member.role !== "admin" && (
-                          <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${rc.class}`}>
-                            {rc.emoji} {rc.label}
-                          </span>
-                        )}
                       </div>
                       <span className="text-xs text-muted-foreground">
                         {member.user.email} · Joined {formatDistanceToNow(new Date(member.joinedAt), { addSuffix: true })}
