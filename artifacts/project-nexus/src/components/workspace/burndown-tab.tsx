@@ -10,6 +10,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  ClipboardList, CheckCircle2, Zap, Clock, TrendingUp, BarChart2,
+  Target, Layers, CalendarDays, Users,
+} from "lucide-react";
+import {
   AreaChart,
   Area,
   XAxis,
@@ -263,9 +267,9 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
   const tickInterval = days <= 14 ? 1 : days <= 30 ? 4 : 9;
 
   const priorityData = [
-    { name: "🔴 High", value: priorityBreakdown.high, color: "#ef4444" },
-    { name: "🟡 Medium", value: priorityBreakdown.medium, color: "#f59e0b" },
-    { name: "🟢 Low", value: priorityBreakdown.low, color: "#22c55e" },
+    { name: "High", value: priorityBreakdown.high, color: "#ef4444" },
+    { name: "Medium", value: priorityBreakdown.medium, color: "#f59e0b" },
+    { name: "Low", value: priorityBreakdown.low, color: "#22c55e" },
   ];
 
   return (
@@ -273,7 +277,10 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold flex items-center gap-2">📈 Analytics</h2>
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-[#2b2b2b] dark:text-[#d4d4d4]" />
+            Analytics
+          </h2>
           <p className="text-sm text-muted-foreground mt-0.5">
             Task velocity and burn-down trends for this workspace
           </p>
@@ -298,7 +305,7 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
         <Card className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/20 dark:to-purple-950/10" />
           <CardContent className="pt-5 pb-4 relative z-10">
-            <div className="text-3xl mb-1">📋</div>
+            <ClipboardList className="h-6 w-6 mb-2 text-[#2b2b2b] dark:text-[#d4d4d4]" />
             <div className="text-3xl font-black">{summary.total}</div>
             <p className="text-xs text-muted-foreground mt-0.5 font-medium">Total Tasks</p>
           </CardContent>
@@ -306,7 +313,7 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
         <Card className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/10" />
           <CardContent className="pt-5 pb-4 relative z-10">
-            <div className="text-3xl mb-1">✅</div>
+            <CheckCircle2 className="h-6 w-6 mb-2 text-[#2b2b2b] dark:text-[#d4d4d4]" />
             <div className="text-3xl font-black">{summary.completionRate}%</div>
             <p className="text-xs text-muted-foreground mt-0.5 font-medium">Completion Rate</p>
           </CardContent>
@@ -314,7 +321,7 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
         <Card className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/10" />
           <CardContent className="pt-5 pb-4 relative z-10">
-            <div className="text-3xl mb-1">⚡</div>
+            <Zap className="h-6 w-6 mb-2 text-[#2b2b2b] dark:text-[#d4d4d4]" />
             <div className="text-3xl font-black">{velocity}</div>
             <p className="text-xs text-muted-foreground mt-0.5 font-medium">Tasks / day (7d)</p>
           </CardContent>
@@ -322,7 +329,7 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
         <Card className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/10" />
           <CardContent className="pt-5 pb-4 relative z-10">
-            <div className="text-3xl mb-1">🔄</div>
+            <Clock className="h-6 w-6 mb-2 text-[#2b2b2b] dark:text-[#d4d4d4]" />
             <div className="text-3xl font-black">{summary.inProgress}</div>
             <p className="text-xs text-muted-foreground mt-0.5 font-medium">In Progress</p>
           </CardContent>
@@ -334,13 +341,15 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
         {/* Burn-up chart takes 3 cols */}
         <Card className="xl:col-span-3">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">📊 Burn-up Chart</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+            <BarChart2 className="h-4 w-4 text-[#2b2b2b] dark:text-[#d4d4d4]" /> Burn-up Chart
+          </CardTitle>
             <CardDescription>Cumulative tasks created vs completed over {days} days</CardDescription>
           </CardHeader>
           <CardContent>
             {summary.total === 0 ? (
               <div className="flex flex-col items-center justify-center h-56 text-center">
-                <div className="text-5xl mb-3">🌱</div>
+                <BarChart2 className="h-10 w-10 mb-3 text-[#2b2b2b] dark:text-[#d4d4d4] opacity-40" />
                 <p className="font-semibold">No task data yet</p>
                 <p className="text-sm text-muted-foreground mt-1">Create tasks to start tracking progress.</p>
               </div>
@@ -409,7 +418,9 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">🎯 Status Breakdown</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+            <Target className="h-4 w-4 text-[#2b2b2b] dark:text-[#d4d4d4]" /> Status Breakdown
+          </CardTitle>
             <CardDescription>How tasks are distributed across columns</CardDescription>
           </CardHeader>
           <CardContent>
@@ -423,13 +434,15 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">🚦 Priority Breakdown</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+            <Layers className="h-4 w-4 text-[#2b2b2b] dark:text-[#d4d4d4]" /> Priority Breakdown
+          </CardTitle>
             <CardDescription>Task distribution by priority level</CardDescription>
           </CardHeader>
           <CardContent>
             {summary.total === 0 ? (
               <div className="flex flex-col items-center justify-center h-40 text-center">
-                <div className="text-4xl mb-2">📭</div>
+                <Layers className="h-8 w-8 mb-2 text-[#2b2b2b] dark:text-[#d4d4d4] opacity-40" />
                 <p className="text-sm text-muted-foreground">No tasks yet</p>
               </div>
             ) : (
@@ -464,13 +477,14 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
       {/* Daily activity bar chart */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2">📅 Daily Activity</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2">
+            <CalendarDays className="h-4 w-4 text-[#2b2b2b] dark:text-[#d4d4d4]" /> Daily Activity
+          </CardTitle>
           <CardDescription>Tasks created and completed each day</CardDescription>
         </CardHeader>
         <CardContent>
           {summary.total === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 text-center">
-              <div className="text-4xl mb-2">🏝️</div>
               <p className="text-sm text-muted-foreground">No activity in this period</p>
             </div>
           ) : (
