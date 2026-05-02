@@ -11,7 +11,7 @@ router.get("/workspaces/:workspaceId/search", requireAuth, async (req: any, res)
     const { workspaceId } = req.params;
     const { q } = req.query as { q?: string };
 
-    if (!q?.trim()) { res.json({ messages: [], files: [], tasks: [] }); return; }
+    if (!q?.trim()) { res.json({ messages: [], files: [], tasks: [], members: [] }); return; }
 
     const user = await db.select().from(usersTable).where(eq(usersTable.clerkId, clerkUserId)).limit(1);
     if (!user[0]) { res.status(404).json({ error: "User not found" }); return; }
@@ -23,7 +23,7 @@ router.get("/workspaces/:workspaceId/search", requireAuth, async (req: any, res)
 
     const term = `%${q.trim()}%`;
 
-    const [messages, files, tasks] = await Promise.all([
+    const [messages, files, tasks, members] = await Promise.all([
       db.select({
         id: messagesTable.id,
         content: messagesTable.content,
@@ -33,7 +33,7 @@ router.get("/workspaces/:workspaceId/search", requireAuth, async (req: any, res)
         .from(messagesTable)
         .innerJoin(usersTable, eq(messagesTable.senderId, usersTable.id))
         .where(and(eq(messagesTable.workspaceId, workspaceId), ilike(messagesTable.content, term)))
-        .limit(10),
+        .limit(8),
 
       db.select({
         id: workspaceFilesTable.id,
@@ -45,7 +45,7 @@ router.get("/workspaces/:workspaceId/search", requireAuth, async (req: any, res)
         .from(workspaceFilesTable)
         .innerJoin(usersTable, eq(workspaceFilesTable.uploadedBy, usersTable.id))
         .where(and(eq(workspaceFilesTable.workspaceId, workspaceId), ilike(workspaceFilesTable.name, term)))
-        .limit(10),
+        .limit(8),
 
       db.select({
         id: tasksTable.id,
@@ -59,10 +59,25 @@ router.get("/workspaces/:workspaceId/search", requireAuth, async (req: any, res)
           eq(tasksTable.workspaceId, workspaceId),
           or(ilike(tasksTable.title, term), ilike(tasksTable.description, term))
         ))
-        .limit(10),
+        .limit(8),
+
+      db.select({
+        id: usersTable.id,
+        name: usersTable.name,
+        email: usersTable.email,
+        avatarUrl: usersTable.avatarUrl,
+        role: workspaceMembersTable.role,
+      })
+        .from(workspaceMembersTable)
+        .innerJoin(usersTable, eq(workspaceMembersTable.userId, usersTable.id))
+        .where(and(
+          eq(workspaceMembersTable.workspaceId, workspaceId),
+          or(ilike(usersTable.name, term), ilike(usersTable.email, term))
+        ))
+        .limit(6),
     ]);
 
-    res.json({ messages, files, tasks });
+    res.json({ messages, files, tasks, members });
   } catch (err) {
     req.log.error({ err }, "Failed to search workspace");
     res.status(500).json({ error: "Internal server error" });

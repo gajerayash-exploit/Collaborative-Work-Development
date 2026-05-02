@@ -1632,10 +1632,15 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/SearchTask"
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchMember"
       required:
         - messages
         - files
         - tasks
+        - members
 
     SearchMessage:
       type: object
@@ -1886,3 +1891,23 @@ components:
         - status
         - priority
         - createdAt
+
+    SearchMember:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        avatarUrl:
+          type: string
+          nullable: true
+        role:
+          type: string
+      required:
+        - id
+        - name
+        - email
+        - role

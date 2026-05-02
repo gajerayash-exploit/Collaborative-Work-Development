@@ -375,10 +375,19 @@ export interface SearchTask {
   createdAt: string;
 }
 
+export interface SearchMember {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl?: string | null;
+  role: string;
+}
+
 export interface SearchResults {
   messages: SearchMessage[];
   files: SearchFile[];
   tasks: SearchTask[];
+  members: SearchMember[];
 }
 
 export interface ActivityFeedEvent {

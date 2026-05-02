@@ -809,4 +809,13 @@ export const SearchWorkspaceResponse = zod.object({
       createdAt: zod.coerce.date(),
     }),
   ),
+  members: zod.array(
+    zod.object({
+      id: zod.string(),
+      name: zod.string(),
+      email: zod.string(),
+      avatarUrl: zod.string().nullish(),
+      role: zod.string(),
+    }),
+  ),
 });
