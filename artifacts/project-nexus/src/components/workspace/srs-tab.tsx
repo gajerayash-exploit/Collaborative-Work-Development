@@ -23,8 +23,9 @@ import {
   GitBranch, Target, Layers, Code2, RefreshCw, Trash2,
   Pencil, X, Check, AlertTriangle, ShieldAlert, CircleDot,
   Link2Off, GitMerge, ArrowRight, Sparkles, CheckCircle2,
-  Wand2, SendHorizonal,
+  Wand2, SendHorizonal, FileText,
 } from "lucide-react";
+import { exportSRSPdf } from "@/lib/srs-pdf";
 
 const VIOLET = "#8B5CF6";
 const VIOLET_DIM = "rgba(139,92,246,0.3)";
@@ -798,6 +799,18 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  const [pdfExporting, setPdfExporting] = useState(false);
+
+  const exportPdf = useCallback(async () => {
+    if (pdfExporting) return;
+    setPdfExporting(true);
+    try {
+      await exportSRSPdf(nodes, edges, workspaceId);
+    } finally {
+      setPdfExporting(false);
+    }
+  }, [pdfExporting, nodes, edges, workspaceId]);
 
   const bgStyle = neo
     ? { background: "#fff" }
@@ -1811,8 +1824,31 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
                 <RefreshCw size={13} />
               </button>
               <button
+                onClick={exportPdf}
+                disabled={pdfExporting || nodes.length === 0}
+                title="Export SRS as PDF document"
+                style={{
+                  background: pdfExporting
+                    ? (neo ? "#ccc" : "rgba(239,68,68,0.3)")
+                    : (neo ? "#000" : "rgba(239,68,68,0.15)"),
+                  color: neo ? (pdfExporting ? "#999" : "#fff") : "#f87171",
+                  border: neo ? "2px solid #000" : "1px solid rgba(239,68,68,0.35)",
+                  borderRadius: neo ? 2 : 7, padding: "6px 11px",
+                  cursor: pdfExporting || nodes.length === 0 ? "default" : "pointer",
+                  display: "flex", alignItems: "center", gap: 5,
+                  fontWeight: 700, fontSize: 11,
+                  opacity: nodes.length === 0 ? 0.4 : 1,
+                  transition: "all 0.15s",
+                }}
+              >
+                {pdfExporting
+                  ? <><RefreshCw size={12} className="srs-spin" /> Exporting…</>
+                  : <><FileText size={12} /> PDF</>
+                }
+              </button>
+              <button
                 onClick={exportCanvas}
-                title="Export canvas as PNG"
+                title="Export graph as JSON"
                 style={{
                   background: "transparent", color: neo ? "#000" : "rgba(255,255,255,0.5)",
                   border: neo ? "2px solid #000" : `1px solid ${VIOLET_DIM}`,

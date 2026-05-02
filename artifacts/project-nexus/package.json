@@ -81,6 +81,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@xyflow/react": "^12.10.2",
+    "jspdf": "^4.2.1",
     "mermaid": "^11.14.0"
   }
 }
