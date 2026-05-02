@@ -1,5 +1,5 @@
 import { db, notificationsTable, workspaceMembersTable, usersTable } from "@workspace/db";
-import { eq, and, ne } from "drizzle-orm";
+import { eq, and, ne, inArray } from "drizzle-orm";
 
 interface NotifyWorkspaceParams {
   workspaceId: string;
@@ -44,6 +44,33 @@ interface NotifyAdminsParams {
   type: string;
   title: string;
   body: string;
+}
+
+export async function notifySpecificUsers({
+  userIds,
+  workspaceId,
+  type,
+  title,
+  body,
+}: {
+  userIds: string[];
+  workspaceId: string;
+  type: string;
+  title: string;
+  body: string;
+}): Promise<void> {
+  if (userIds.length === 0) return;
+  await db.insert(notificationsTable).values(
+    userIds.map((userId) => ({ userId, workspaceId, type, title, body }))
+  );
+}
+
+// Parses @[Name|userId] patterns from message content and returns unique userIds
+export function extractMentionedUserIds(content: string): string[] {
+  const matches = content.matchAll(/@\[([^\]|]+)\|([^\]]+)\]/g);
+  const ids = new Set<string>();
+  for (const m of matches) ids.add(m[2]);
+  return [...ids];
 }
 
 export async function notifyWorkspaceAdmins({

@@ -6,17 +6,19 @@ import {
   useListPinnedMessages,
   usePinMessage,
   useUnpinMessage,
+  useListWorkspaceMembers,
   getListMessagesQueryKey,
   getListPinnedMessagesQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGetUserProfile } from "@workspace/api-client-react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Loader2, MessageSquare, Pin, PinOff, ChevronDown, ChevronUp, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { MentionInput } from "./mention-input";
+import { MentionText } from "./mention-text";
 
 const QUICK_EMOJIS = ["👍", "❤️", "😂", "🎉", "😮", "👀"];
 
@@ -89,7 +91,6 @@ function PinnedBanner({
 
   return (
     <div className="border-b bg-amber-50/60 dark:bg-amber-950/20">
-      {/* Collapsed header */}
       <button
         className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-amber-100/50 dark:hover:bg-amber-900/20 transition-colors"
         onClick={() => setExpanded(e => !e)}
@@ -99,7 +100,7 @@ function PinnedBanner({
           {pinned.length} pinned {pinned.length === 1 ? "message" : "messages"}
         </span>
         <span className="text-xs text-muted-foreground truncate flex-1 ml-1">
-          {!expanded && `"${latest.content}"`}
+          {!expanded && `"${latest.content.replace(/@\[([^\]|]+)\|[^\]]+\]/g, "@$1")}"`}
         </span>
         {expanded ? (
           <ChevronUp className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
@@ -108,23 +109,19 @@ function PinnedBanner({
         )}
       </button>
 
-      {/* Expanded list */}
       {expanded && (
         <div className="px-4 pb-3 space-y-2 max-h-48 overflow-y-auto">
           {pinned.map((p) => (
-            <div
-              key={p.id}
-              className="flex items-start gap-2 p-2 rounded-lg bg-background/60 border text-sm group"
-            >
+            <div key={p.id} className="flex items-start gap-2 p-2 rounded-lg bg-background/60 border text-sm group">
               <Avatar className="h-6 w-6 flex-shrink-0 mt-0.5">
                 <AvatarImage src={p.senderAvatarUrl ?? undefined} />
-                <AvatarFallback className="text-[10px]">
-                  {p.senderName.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
+                <AvatarFallback className="text-[10px]">{p.senderName.substring(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <span className="font-medium text-xs text-muted-foreground">{p.senderName}</span>
-                <p className="text-sm leading-snug mt-0.5 break-words">{p.content}</p>
+                <p className="text-sm leading-snug mt-0.5 break-words">
+                  <MentionText content={p.content} />
+                </p>
                 <p className="text-[10px] text-muted-foreground mt-1">
                   Pinned by {p.pinnedByName} · {formatDistanceToNow(new Date(p.pinnedAt), { addSuffix: true })}
                 </p>
@@ -153,15 +150,13 @@ export function ChatTab({ workspaceId, role }: { workspaceId: string; role: stri
   const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { data: profile } = useGetUserProfile();
+  const { data: members = [] } = useListWorkspaceMembers(workspaceId);
 
   const currentUserId = profile?.id ?? "";
   const canPin = role !== "viewer";
 
   const { data: messages, isLoading } = useListMessages(workspaceId, undefined, {
-    query: {
-      queryKey: getListMessagesQueryKey(workspaceId),
-      refetchInterval: 5000,
-    },
+    query: { queryKey: getListMessagesQueryKey(workspaceId), refetchInterval: 5000 },
   });
 
   const sendMessage = useSendMessage();
@@ -178,20 +173,16 @@ export function ChatTab({ workspaceId, role }: { workspaceId: string; role: stri
     invalidateMessages();
   }, [queryClient, workspaceId, invalidateMessages]);
 
-  const handleSend = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSend = () => {
     if (!content.trim()) return;
     sendMessage.mutate(
-      { workspaceId, data: { content } },
+      { workspaceId, data: { content: content.trim() } },
       { onSuccess: () => { setContent(""); invalidateMessages(); } }
     );
   };
 
   const handleReaction = (messageId: string, emoji: string) => {
-    toggleReaction.mutate(
-      { workspaceId, messageId, data: { emoji } },
-      { onSuccess: invalidateMessages }
-    );
+    toggleReaction.mutate({ workspaceId, messageId, data: { emoji } }, { onSuccess: invalidateMessages });
     setPickerMsgId(null);
   };
 
@@ -223,7 +214,6 @@ export function ChatTab({ workspaceId, role }: { workspaceId: string; role: stri
 
   return (
     <div className="flex flex-col h-[calc(100vh-14rem)] bg-card border rounded-xl overflow-hidden shadow-sm">
-      {/* Pinned messages banner */}
       <PinnedBanner workspaceId={workspaceId} canPin={canPin} onUnpin={handleUnpin} />
 
       <ScrollArea ref={scrollRef} className="flex-1 p-4">
@@ -235,7 +225,7 @@ export function ChatTab({ workspaceId, role }: { workspaceId: string; role: stri
           <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
             <MessageSquare className="h-10 w-10 mb-4 opacity-20" />
             <p>No messages yet.</p>
-            <p className="text-sm">Be the first to say hello!</p>
+            <p className="text-sm">Be the first to say hello! Type <kbd className="text-xs border rounded px-1">@</kbd> to mention someone.</p>
           </div>
         ) : (
           <div className="space-y-1 pb-2">
@@ -247,21 +237,22 @@ export function ChatTab({ workspaceId, role }: { workspaceId: string; role: stri
                 prevMsg.senderId === msg.senderId &&
                 new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() < 5 * 60 * 1000;
 
+              // Check if current user is mentioned
+              const mentionsMePattern = new RegExp(`@\\[[^\\]|]+\\|${currentUserId}\\]`);
+              const mentionsMe = currentUserId && mentionsMePattern.test(msg.content);
+
               return (
                 <div
                   key={msg.id}
-                  className={`group flex gap-3 ${isMe ? "flex-row-reverse" : ""} ${isGrouped ? "mt-0.5" : "mt-4"}`}
+                  className={`group flex gap-3 ${isMe ? "flex-row-reverse" : ""} ${isGrouped ? "mt-0.5" : "mt-4"} ${mentionsMe ? "px-2 -mx-2 rounded-lg bg-amber-50/50 dark:bg-amber-950/10" : ""}`}
                   onMouseEnter={() => setHoveredMsgId(msg.id)}
                   onMouseLeave={() => setHoveredMsgId(null)}
                 >
-                  {/* Avatar */}
                   <div className="w-8 flex-shrink-0 flex items-end">
                     {!isGrouped && (
                       <Avatar className="h-8 w-8 border">
                         <AvatarImage src={msg.senderAvatarUrl ?? undefined} />
-                        <AvatarFallback className="text-xs">
-                          {msg.senderName.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
+                        <AvatarFallback className="text-xs">{msg.senderName.substring(0, 2).toUpperCase()}</AvatarFallback>
                       </Avatar>
                     )}
                   </div>
@@ -273,14 +264,11 @@ export function ChatTab({ workspaceId, role }: { workspaceId: string; role: stri
                         <span className="text-[10px] text-muted-foreground">
                           {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
                         </span>
-                        {msg.isPinned && (
-                          <Pin className="h-3 w-3 text-amber-500" />
-                        )}
+                        {msg.isPinned && <Pin className="h-3 w-3 text-amber-500" />}
                       </div>
                     )}
 
                     <div className="relative">
-                      {/* Action buttons on hover */}
                       {(hoveredMsgId === msg.id || pickerMsgId === msg.id) && (
                         <div
                           data-emoji-picker
@@ -326,7 +314,7 @@ export function ChatTab({ workspaceId, role }: { workspaceId: string; role: stri
                             : "bg-muted text-foreground rounded-tl-sm"
                         }`}
                       >
-                        {msg.content}
+                        <MentionText content={msg.content} currentUserId={currentUserId} isMe={isMe} />
                       </div>
                     </div>
 
@@ -344,28 +332,24 @@ export function ChatTab({ workspaceId, role }: { workspaceId: string; role: stri
       </ScrollArea>
 
       <div className="p-3 border-t bg-card">
-        <form onSubmit={handleSend} className="flex gap-2 relative">
-          <Input
+        <div className="flex gap-2 relative items-center">
+          <MentionInput
             value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Type a message..."
-            className="pr-12 rounded-full border-muted-foreground/20 focus-visible:ring-1 focus-visible:ring-primary/50"
+            onChange={setContent}
+            onSubmit={handleSend}
+            members={members}
             disabled={sendMessage.isPending}
-            autoComplete="off"
+            placeholder="Type a message… use @ to mention"
           />
           <Button
-            type="submit"
+            onClick={handleSend}
             size="icon"
-            className="absolute right-1 top-1 bottom-1 h-auto w-8 rounded-full"
+            className="h-9 w-9 rounded-full flex-shrink-0"
             disabled={!content.trim() || sendMessage.isPending}
           >
-            {sendMessage.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
+            {sendMessage.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
-        </form>
+        </div>
       </div>
     </div>
   );

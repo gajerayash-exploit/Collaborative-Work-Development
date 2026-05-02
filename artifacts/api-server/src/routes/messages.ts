@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, messagesTable, usersTable, workspaceMembersTable, messageReactionsTable, pinnedMessagesTable } from "@workspace/db";
 import { eq, and, desc, inArray } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
-import { notifyWorkspaceMembers } from "../lib/notify";
+import { notifyWorkspaceMembers, notifySpecificUsers, extractMentionedUserIds } from "../lib/notify";
 
 const router: IRouter = Router();
 
@@ -102,13 +102,26 @@ router.post("/workspaces/:workspaceId/messages", requireAuth, async (req: any, r
       isPinned: false,
     });
 
+    const trimmed = content.trim();
+    const mentionedIds = extractMentionedUserIds(trimmed).filter(id => id !== user[0].id);
+
     notifyWorkspaceMembers({
       workspaceId,
       excludeUserId: user[0].id,
       type: "message",
       title: `New message from ${user[0].name}`,
-      body: content.trim().length > 80 ? content.trim().substring(0, 80) + "…" : content.trim(),
+      body: trimmed.replace(/@\[([^\]|]+)\|[^\]]+\]/g, "@$1").slice(0, 80) + (trimmed.length > 80 ? "…" : ""),
     }).catch(() => {});
+
+    if (mentionedIds.length > 0) {
+      notifySpecificUsers({
+        userIds: mentionedIds,
+        workspaceId,
+        type: "mention",
+        title: `${user[0].name} mentioned you`,
+        body: trimmed.replace(/@\[([^\]|]+)\|[^\]]+\]/g, "@$1").slice(0, 80) + (trimmed.length > 80 ? "…" : ""),
+      }).catch(() => {});
+    }
   } catch (err) {
     req.log.error({ err }, "Failed to send message");
     res.status(500).json({ error: "Internal server error" });
