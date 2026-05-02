@@ -17,6 +17,8 @@ import { VaultTab } from "@/components/workspace/vault-tab";
 import { BurndownTab } from "@/components/workspace/burndown-tab";
 import { SearchDialog } from "@/components/workspace/search-dialog";
 
+const TAB_CLASS = "data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-2 pb-3 font-medium text-muted-foreground data-[state=active]:text-foreground hover:text-foreground transition-colors flex-shrink-0";
+
 export default function WorkspaceHubPage({ id }: { id: string }) {
   const { data: workspace, isLoading } = useGetWorkspace(id, {
     query: { enabled: !!id, queryKey: getGetWorkspaceQueryKey(id) },
@@ -27,7 +29,6 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [searchOpen, setSearchOpen] = useState(false);
 
-  // Sync tab when URL query changes (e.g. clicking a notification deep link)
   useEffect(() => {
     const tab = new URLSearchParams(search).get("tab");
     if (tab) setActiveTab(tab);
@@ -47,10 +48,10 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
   if (isLoading) {
     return (
       <AppLayout activeWorkspaceId={id}>
-        <div className="p-6">
-          <Skeleton className="h-10 w-1/3 mb-4" />
-          <Skeleton className="h-4 w-1/4 mb-8" />
-          <Skeleton className="h-10 w-full mb-6" />
+        <div className="p-4 md:p-6">
+          <Skeleton className="h-8 w-1/3 mb-3" />
+          <Skeleton className="h-4 w-1/4 mb-6" />
+          <Skeleton className="h-10 w-full mb-4" />
           <Skeleton className="h-[400px] w-full" />
         </div>
       </AppLayout>
@@ -60,10 +61,10 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
   if (!workspace) {
     return (
       <AppLayout activeWorkspaceId={id}>
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center p-8 bg-card rounded-xl border border-dashed">
-            <h2 className="text-xl font-bold mb-2">Workspace not found</h2>
-            <p className="text-muted-foreground">The workspace you are looking for does not exist or you don't have access.</p>
+        <div className="flex items-center justify-center h-full p-4">
+          <div className="text-center p-6 bg-card rounded-xl border border-dashed">
+            <h2 className="text-lg font-bold mb-2">Workspace not found</h2>
+            <p className="text-muted-foreground text-sm">The workspace you are looking for does not exist or you don't have access.</p>
           </div>
         </div>
       </AppLayout>
@@ -76,22 +77,25 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
     <AppLayout activeWorkspaceId={id}>
       <div className="flex flex-col h-full overflow-hidden">
         {/* Header */}
-        <header className="px-6 py-5 border-b bg-card flex-shrink-0 z-10 relative shadow-sm">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight mb-2 text-foreground">{workspace.name}</h1>
-              <p className="text-muted-foreground max-w-2xl">{workspace.description || "No description provided."}</p>
+        <header className="px-3 md:px-6 py-3 md:py-5 border-b bg-card flex-shrink-0 z-10 relative shadow-sm">
+          {/* Title row */}
+          <div className="flex justify-between items-center mb-3 md:mb-4 gap-2">
+            <div className="min-w-0">
+              <h1 className="text-lg md:text-2xl font-bold tracking-tight text-foreground truncate">{workspace.name}</h1>
+              {workspace.description && (
+                <p className="text-muted-foreground text-xs md:text-sm truncate hidden sm:block mt-0.5">{workspace.description}</p>
+              )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setSearchOpen(true)}
-                className="gap-2 text-muted-foreground hidden sm:flex"
+                className="gap-1.5 text-muted-foreground hidden sm:flex h-8 px-2.5"
               >
                 <Search className="h-3.5 w-3.5" />
-                Search
-                <kbd className="ml-1 pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                <span className="text-xs">Search</span>
+                <kbd className="pointer-events-none hidden lg:inline-flex h-4 select-none items-center gap-0.5 rounded border bg-muted px-1 font-mono text-[9px] font-medium text-muted-foreground">
                   ⌘K
                 </kbd>
               </Button>
@@ -99,83 +103,62 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
                 variant="outline"
                 size="icon"
                 onClick={() => setSearchOpen(true)}
-                className="sm:hidden"
+                className="sm:hidden h-8 w-8"
               >
-                <Search className="h-4 w-4" />
+                <Search className="h-3.5 w-3.5" />
               </Button>
-              <Badge variant={isAdmin ? "default" : "secondary"} className="capitalize px-3 py-1 shadow-sm">
+              <Badge variant={isAdmin ? "default" : "secondary"} className="capitalize px-2 py-0.5 text-xs">
                 {workspace.role}
               </Badge>
             </div>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-transparent h-auto p-0 w-full justify-start rounded-none space-x-6">
-              <TabsTrigger 
-                value="overview" 
-                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-2 pb-3 font-medium text-muted-foreground data-[state=active]:text-foreground hover:text-foreground transition-colors"
-              >
-                <Activity className="h-4 w-4 mr-2" />
-                Overview
-              </TabsTrigger>
-              <TabsTrigger 
-                value="chat" 
-                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-2 pb-3 font-medium text-muted-foreground data-[state=active]:text-foreground hover:text-foreground transition-colors"
-              >
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Chat
-              </TabsTrigger>
-              <TabsTrigger 
-                value="files" 
-                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-2 pb-3 font-medium text-muted-foreground data-[state=active]:text-foreground hover:text-foreground transition-colors"
-              >
-                <Files className="h-4 w-4 mr-2" />
-                Files
-              </TabsTrigger>
-              <TabsTrigger 
-                value="members" 
-                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-2 pb-3 font-medium text-muted-foreground data-[state=active]:text-foreground hover:text-foreground transition-colors"
-              >
-                <Users className="h-4 w-4 mr-2" />
-                Members
-              </TabsTrigger>
-              <TabsTrigger 
-                value="tasks" 
-                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-2 pb-3 font-medium text-muted-foreground data-[state=active]:text-foreground hover:text-foreground transition-colors"
-              >
-                <CheckSquare className="h-4 w-4 mr-2" />
-                Tasks
-              </TabsTrigger>
-              <TabsTrigger
-                value="vault"
-                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-2 pb-3 font-medium text-muted-foreground data-[state=active]:text-foreground hover:text-foreground transition-colors"
-              >
-                <KeyRound className="h-4 w-4 mr-2" />
-                Vault
-              </TabsTrigger>
-              <TabsTrigger
-                value="analytics"
-                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-2 pb-3 font-medium text-muted-foreground data-[state=active]:text-foreground hover:text-foreground transition-colors"
-              >
-                <BarChart2 className="h-4 w-4 mr-2" />
-                Analytics
-              </TabsTrigger>
-              {isAdmin && (
-                <TabsTrigger 
-                  value="settings" 
-                  className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-2 pb-3 font-medium text-muted-foreground data-[state=active]:text-foreground hover:text-foreground transition-colors ml-auto"
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
+          {/* Tabs - scrollable on mobile */}
+          <div className="overflow-x-auto -mx-3 md:-mx-6 px-3 md:px-6 scrollbar-none">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="bg-transparent h-auto p-0 justify-start rounded-none gap-4 md:gap-6 w-max min-w-full">
+                <TabsTrigger value="overview" className={TAB_CLASS}>
+                  <Activity className="h-4 w-4 md:mr-1.5 shrink-0" />
+                  <span className="hidden sm:inline text-sm">Overview</span>
                 </TabsTrigger>
-              )}
-            </TabsList>
-          </Tabs>
+                <TabsTrigger value="chat" className={TAB_CLASS}>
+                  <MessageSquare className="h-4 w-4 md:mr-1.5 shrink-0" />
+                  <span className="hidden sm:inline text-sm">Chat</span>
+                </TabsTrigger>
+                <TabsTrigger value="tasks" className={TAB_CLASS}>
+                  <CheckSquare className="h-4 w-4 md:mr-1.5 shrink-0" />
+                  <span className="hidden sm:inline text-sm">Tasks</span>
+                </TabsTrigger>
+                <TabsTrigger value="files" className={TAB_CLASS}>
+                  <Files className="h-4 w-4 md:mr-1.5 shrink-0" />
+                  <span className="hidden sm:inline text-sm">Files</span>
+                </TabsTrigger>
+                <TabsTrigger value="members" className={TAB_CLASS}>
+                  <Users className="h-4 w-4 md:mr-1.5 shrink-0" />
+                  <span className="hidden sm:inline text-sm">Members</span>
+                </TabsTrigger>
+                <TabsTrigger value="vault" className={TAB_CLASS}>
+                  <KeyRound className="h-4 w-4 md:mr-1.5 shrink-0" />
+                  <span className="hidden sm:inline text-sm">Vault</span>
+                </TabsTrigger>
+                <TabsTrigger value="analytics" className={TAB_CLASS}>
+                  <BarChart2 className="h-4 w-4 md:mr-1.5 shrink-0" />
+                  <span className="hidden sm:inline text-sm">Analytics</span>
+                </TabsTrigger>
+                {isAdmin && (
+                  <TabsTrigger value="settings" className={`${TAB_CLASS} ml-auto`}>
+                    <Settings className="h-4 w-4 md:mr-1.5 shrink-0" />
+                    <span className="hidden sm:inline text-sm">Settings</span>
+                  </TabsTrigger>
+                )}
+              </TabsList>
+            </Tabs>
+          </div>
         </header>
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto bg-muted/10">
-          <div className="p-6 h-full max-w-6xl mx-auto">
+          <div className="p-3 md:p-6 h-full max-w-6xl mx-auto">
             {activeTab === "overview" && <OverviewTab workspaceId={id} />}
             {activeTab === "chat" && <ChatTab workspaceId={id} role={workspace.role} />}
             {activeTab === "files" && <FilesTab workspaceId={id} role={workspace.role} />}

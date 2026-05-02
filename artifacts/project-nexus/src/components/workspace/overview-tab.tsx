@@ -68,13 +68,13 @@ function StatCard({
   return (
     <Card className="relative overflow-hidden group hover:shadow-md transition-all duration-200">
       <div className={`absolute inset-0 opacity-40 ${gradient}`} />
-      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 relative z-10">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <div className="text-2xl">{icon}</div>
+      <CardHeader className="flex flex-row items-center justify-between pb-1.5 space-y-0 relative z-10 p-3 sm:p-6 sm:pb-2">
+        <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <div className="text-xl sm:text-2xl">{icon}</div>
       </CardHeader>
-      <CardContent className="relative z-10">
-        <div className="text-3xl font-black tracking-tight">{value}</div>
-        {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
+      <CardContent className="relative z-10 p-3 pt-0 sm:p-6 sm:pt-0">
+        <div className="text-2xl sm:text-3xl font-black tracking-tight">{value}</div>
+        {sub && <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">{sub}</p>}
       </CardContent>
     </Card>
   );
