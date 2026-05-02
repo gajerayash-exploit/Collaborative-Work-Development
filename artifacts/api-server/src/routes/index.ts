@@ -16,6 +16,7 @@ import readsRouter from "./reads";
 import typingRouter from "./typing";
 import secretsRouter from "./secrets";
 import analyticsRouter from "./analytics";
+import activityRouter from "./activity";
 
 const router: IRouter = Router();
 
@@ -36,5 +37,6 @@ router.use(readsRouter);
 router.use(typingRouter);
 router.use(secretsRouter);
 router.use(analyticsRouter);
+router.use(activityRouter);
 
 export default router;

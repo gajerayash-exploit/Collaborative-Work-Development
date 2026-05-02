@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, tasksTable, usersTable, workspaceMembersTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
+import { recordActivity } from "../lib/recordActivity";
 
 const router: IRouter = Router();
 
@@ -87,6 +88,8 @@ router.post("/workspaces/:workspaceId/tasks", requireAuth, async (req: any, res)
     }
 
     res.status(201).json({ ...task, assignee, creator: { id: user[0].id, name: user[0].name, avatarUrl: user[0].avatarUrl, email: user[0].email } });
+
+    recordActivity({ workspaceId, userId: user[0].id, type: "task_created", payload: { taskId: task.id, taskTitle: task.title, status: task.status } }).catch(() => {});
   } catch (err) {
     req.log.error({ err }, "Failed to create task");
     res.status(500).json({ error: "Internal server error" });
@@ -106,6 +109,11 @@ router.patch("/workspaces/:workspaceId/tasks/:taskId", requireAuth, async (req: 
     if (!membership[0] || membership[0].role === "viewer") { res.status(403).json({ error: "Viewers cannot update tasks" }); return; }
 
     const { title, description, status, priority, assigneeId, dueDate } = req.body;
+
+    // Read current state to detect what changed
+    const existing = await db.select().from(tasksTable).where(and(eq(tasksTable.id, taskId), eq(tasksTable.workspaceId, workspaceId))).limit(1);
+    if (!existing[0]) { res.status(404).json({ error: "Task not found" }); return; }
+    const before = existing[0];
 
     const updateData: Record<string, unknown> = { updatedAt: new Date() };
     if (title !== undefined) updateData.title = title;
@@ -130,6 +138,17 @@ router.patch("/workspaces/:workspaceId/tasks/:taskId", requireAuth, async (req: 
     const creator = await db.select({ id: usersTable.id, name: usersTable.name, avatarUrl: usersTable.avatarUrl, email: usersTable.email }).from(usersTable).where(eq(usersTable.id, updated.createdBy)).limit(1);
 
     res.json({ ...updated, assignee, creator: creator[0] ?? null });
+
+    // Fire-and-forget activity events for each changed field
+    if (status !== undefined && status !== before.status) {
+      recordActivity({ workspaceId, userId: user[0].id, type: "task_status_changed", payload: { taskId: updated.id, taskTitle: updated.title, oldStatus: before.status, newStatus: status } }).catch(() => {});
+    }
+    if (priority !== undefined && priority !== before.priority) {
+      recordActivity({ workspaceId, userId: user[0].id, type: "task_priority_changed", payload: { taskId: updated.id, taskTitle: updated.title, oldPriority: before.priority, newPriority: priority } }).catch(() => {});
+    }
+    if (assigneeId !== undefined && assigneeId !== before.assigneeId && assignee) {
+      recordActivity({ workspaceId, userId: user[0].id, type: "task_assigned", payload: { taskId: updated.id, taskTitle: updated.title, assigneeName: assignee.name } }).catch(() => {});
+    }
   } catch (err) {
     req.log.error({ err }, "Failed to update task");
     res.status(500).json({ error: "Internal server error" });

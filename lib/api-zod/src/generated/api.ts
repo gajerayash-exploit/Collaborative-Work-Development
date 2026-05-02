@@ -427,6 +427,32 @@ export const SendReplyBody = zod.object({
 });
 
 /**
+ * @summary Get real-time activity feed for a workspace
+ */
+export const GetWorkspaceActivityParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const getWorkspaceActivityQueryLimitDefault = 50;
+
+export const GetWorkspaceActivityQueryParams = zod.object({
+  limit: zod.coerce.number().default(getWorkspaceActivityQueryLimitDefault),
+});
+
+export const GetWorkspaceActivityResponse = zod.object({
+  events: zod.array(
+    zod.object({
+      id: zod.string(),
+      type: zod.string(),
+      userName: zod.string(),
+      userAvatarUrl: zod.string().nullable(),
+      description: zod.string(),
+      createdAt: zod.string(),
+    }),
+  ),
+});
+
+/**
  * @summary Get burn-down analytics for a workspace
  */
 export const GetBurndownAnalyticsParams = zod.object({

@@ -3,6 +3,7 @@ import { db, workspaceFilesTable, usersTable, workspaceMembersTable } from "@wor
 import { eq, and, desc } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
 import { notifyWorkspaceMembers } from "../lib/notify";
+import { recordActivity } from "../lib/recordActivity";
 
 const router: IRouter = Router();
 
@@ -65,6 +66,8 @@ router.post("/workspaces/:workspaceId/files", requireAuth, async (req: any, res)
     }).returning();
 
     res.status(201).json({ ...file, uploaderName: user[0].name });
+
+    recordActivity({ workspaceId, userId: user[0].id, type: "file_uploaded", payload: { fileId: file.id, fileName: name, fileSize: size, mimeType } }).catch(() => {});
 
     notifyWorkspaceMembers({
       workspaceId,

@@ -554,6 +554,33 @@ paths:
               schema:
                 $ref: "#/components/schemas/Reply"
 
+  /workspaces/{workspaceId}/activity:
+    get:
+      operationId: getWorkspaceActivity
+      tags: [workspaces]
+      summary: Get real-time activity feed for a workspace
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: Activity feed events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityFeedResponse"
+
   /workspaces/{workspaceId}/analytics/burndown:
     get:
       operationId: getBurndownAnalytics
@@ -1648,6 +1675,40 @@ components:
         - mimeType
         - uploaderName
         - createdAt
+
+    ActivityFeedEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        userName:
+          type: string
+        userAvatarUrl:
+          type: string
+          nullable: true
+        description:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - type
+        - userName
+        - userAvatarUrl
+        - description
+        - createdAt
+
+    ActivityFeedResponse:
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityFeedEvent"
+      required:
+        - events
 
     LeaderboardEntry:
       type: object

@@ -9,3 +9,4 @@ export * from "./message_reactions";
 export * from "./pinned_messages";
 export * from "./message-reads";
 export * from "./workspace-secrets";
+export * from "./activity-events";

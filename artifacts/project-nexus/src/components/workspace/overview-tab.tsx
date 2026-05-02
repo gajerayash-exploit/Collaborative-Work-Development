@@ -1,4 +1,4 @@
-import { useGetWorkspaceStats } from "@workspace/api-client-react";
+import { useGetWorkspaceStats, useGetWorkspaceActivity, getGetWorkspaceActivityQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -27,16 +27,20 @@ function getFileEmoji(mimeType: string) {
 }
 
 function getActivityEmoji(type: string) {
-  if (type === "message") return "💬";
-  if (type === "file_upload") return "📤";
+  if (type === "task_created") return "📋";
+  if (type === "task_status_changed") return "🔄";
+  if (type === "task_assigned") return "👤";
+  if (type === "task_priority_changed") return "🚦";
+  if (type === "file_uploaded") return "📤";
   if (type === "member_joined") return "🎉";
+  if (type === "member_role_changed") return "👑";
   return "⚡";
 }
 
 function getActivityBg(type: string) {
-  if (type === "message") return "bg-blue-100 dark:bg-blue-900/30";
-  if (type === "file_upload") return "bg-emerald-100 dark:bg-emerald-900/30";
-  if (type === "member_joined") return "bg-purple-100 dark:bg-purple-900/30";
+  if (type.startsWith("task_")) return "bg-violet-100 dark:bg-violet-900/30";
+  if (type === "file_uploaded") return "bg-emerald-100 dark:bg-emerald-900/30";
+  if (type === "member_joined" || type === "member_role_changed") return "bg-purple-100 dark:bg-purple-900/30";
   return "bg-muted";
 }
 
@@ -78,6 +82,13 @@ function StatCard({
 
 export function OverviewTab({ workspaceId }: { workspaceId: string }) {
   const { data: stats, isLoading } = useGetWorkspaceStats(workspaceId);
+  const { data: activityData } = useGetWorkspaceActivity(workspaceId, { limit: 50 }, {
+    query: {
+      queryKey: getGetWorkspaceActivityQueryKey(workspaceId, { limit: 50 }),
+      refetchInterval: 30_000,
+      enabled: !!workspaceId,
+    },
+  });
 
   if (isLoading) {
     return (
@@ -146,25 +157,25 @@ export function OverviewTab({ workspaceId }: { workspaceId: string }) {
           </CardHeader>
           <CardContent className="flex-1 p-0">
             <ScrollArea className="h-[480px] px-6 pb-6">
-              {stats.recentActivity.length === 0 ? (
+              {!activityData || activityData.events.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-48 text-center">
                   <div className="text-4xl mb-3">🌱</div>
                   <p className="text-sm font-semibold">No activity yet</p>
-                  <p className="text-xs text-muted-foreground mt-1">Start chatting, uploading files, or inviting members.</p>
+                  <p className="text-xs text-muted-foreground mt-1">Create tasks, upload files, or invite members to see events here.</p>
                 </div>
               ) : (
                 <div className="relative">
                   <div className="absolute left-[15px] top-2 bottom-2 w-px bg-border" />
                   <div className="space-y-5">
-                    {stats.recentActivity.map((activity, i) => (
-                      <div key={i} className="flex gap-4 relative">
+                    {activityData.events.map((activity) => (
+                      <div key={activity.id} className="flex gap-4 relative">
                         <div className={`h-8 w-8 rounded-full border-2 border-background flex items-center justify-center flex-shrink-0 z-10 text-sm ${getActivityBg(activity.type)}`}>
                           {getActivityEmoji(activity.type)}
                         </div>
                         <div className="flex-1 min-w-0 pt-0.5">
                           <div className="flex items-center gap-2 flex-wrap">
                             <Avatar className="h-5 w-5 border">
-                              <AvatarImage src={activity.avatarUrl ?? undefined} />
+                              <AvatarImage src={activity.userAvatarUrl ?? undefined} />
                               <AvatarFallback className="text-[9px]">
                                 {activity.userName.substring(0, 2).toUpperCase()}
                               </AvatarFallback>

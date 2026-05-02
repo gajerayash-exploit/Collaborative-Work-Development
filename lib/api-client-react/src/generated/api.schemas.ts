@@ -381,6 +381,19 @@ export interface SearchResults {
   tasks: SearchTask[];
 }
 
+export interface ActivityFeedEvent {
+  id: string;
+  type: string;
+  userName: string;
+  userAvatarUrl: string | null;
+  description: string;
+  createdAt: string;
+}
+
+export interface ActivityFeedResponse {
+  events: ActivityFeedEvent[];
+}
+
 export interface LeaderboardEntry {
   userId: string;
   name: string;
@@ -449,6 +462,10 @@ export type ListMessagesParams = {
    * Cursor for pagination (message ID)
    */
   before?: string;
+};
+
+export type GetWorkspaceActivityParams = {
+  limit?: number;
 };
 
 export type GetBurndownAnalyticsParams = {

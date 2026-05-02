@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, workspaceMembersTable, usersTable, workspacesTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
+import { recordActivity } from "../lib/recordActivity";
 
 const router: IRouter = Router();
 
@@ -86,6 +87,8 @@ router.post("/workspaces/:workspaceId/members", requireAuth, async (req: any, re
       ...newMember,
       user: targetUser[0],
     });
+
+    recordActivity({ workspaceId, userId: currentUser[0].id, type: "member_joined", payload: { memberId: targetUser[0].id, memberName: targetUser[0].name, role } }).catch(() => {});
   } catch (err) {
     req.log.error({ err }, "Failed to invite member");
     res.status(500).json({ error: "Internal server error" });
@@ -116,6 +119,10 @@ router.patch("/workspaces/:workspaceId/members/:memberId", requireAuth, async (r
     const user = await db.select().from(usersTable).where(eq(usersTable.id, updated.userId)).limit(1);
 
     res.json({ ...updated, user: user[0] });
+
+    if (user[0]) {
+      recordActivity({ workspaceId, userId: currentUser[0].id, type: "member_role_changed", payload: { memberId: updated.userId, memberName: user[0].name, newRole: role } }).catch(() => {});
+    }
   } catch (err) {
     req.log.error({ err }, "Failed to update member role");
     res.status(500).json({ error: "Internal server error" });

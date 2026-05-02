@@ -17,12 +17,14 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  ActivityFeedResponse,
   BurndownAnalytics,
   CreateSecretBody,
   CreateTaskBody,
   CreateWorkspaceBody,
   DeleteTask200,
   GetBurndownAnalyticsParams,
+  GetWorkspaceActivityParams,
   HealthStatus,
   InviteMemberBody,
   LeaderboardResponse,
@@ -2099,6 +2101,127 @@ export const useSendReply = <
 > => {
   return useMutation(getSendReplyMutationOptions(options));
 };
+
+/**
+ * @summary Get real-time activity feed for a workspace
+ */
+export const getGetWorkspaceActivityUrl = (
+  workspaceId: string,
+  params?: GetWorkspaceActivityParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/workspaces/${workspaceId}/activity?${stringifiedParams}`
+    : `/api/workspaces/${workspaceId}/activity`;
+};
+
+export const getWorkspaceActivity = async (
+  workspaceId: string,
+  params?: GetWorkspaceActivityParams,
+  options?: RequestInit,
+): Promise<ActivityFeedResponse> => {
+  return customFetch<ActivityFeedResponse>(
+    getGetWorkspaceActivityUrl(workspaceId, params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetWorkspaceActivityQueryKey = (
+  workspaceId: string,
+  params?: GetWorkspaceActivityParams,
+) => {
+  return [
+    `/api/workspaces/${workspaceId}/activity`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getGetWorkspaceActivityQueryOptions = <
+  TData = Awaited<ReturnType<typeof getWorkspaceActivity>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  params?: GetWorkspaceActivityParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getWorkspaceActivity>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getGetWorkspaceActivityQueryKey(workspaceId, params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getWorkspaceActivity>>
+  > = ({ signal }) =>
+    getWorkspaceActivity(workspaceId, params, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!workspaceId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getWorkspaceActivity>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetWorkspaceActivityQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getWorkspaceActivity>>
+>;
+export type GetWorkspaceActivityQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get real-time activity feed for a workspace
+ */
+
+export function useGetWorkspaceActivity<
+  TData = Awaited<ReturnType<typeof getWorkspaceActivity>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  params?: GetWorkspaceActivityParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getWorkspaceActivity>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetWorkspaceActivityQueryOptions(
+    workspaceId,
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Get burn-down analytics for a workspace
