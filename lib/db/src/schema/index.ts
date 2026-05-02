@@ -10,3 +10,5 @@ export * from "./pinned_messages";
 export * from "./message-reads";
 export * from "./workspace-secrets";
 export * from "./activity-events";
+export * from "./conversations";
+export * from "./ai-messages";

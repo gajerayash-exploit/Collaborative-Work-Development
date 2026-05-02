@@ -17,6 +17,7 @@ import typingRouter from "./typing";
 import secretsRouter from "./secrets";
 import analyticsRouter from "./analytics";
 import activityRouter from "./activity";
+import srsSuggestRouter from "./srs-suggest";
 
 const router: IRouter = Router();
 
@@ -38,5 +39,6 @@ router.use(typingRouter);
 router.use(secretsRouter);
 router.use(analyticsRouter);
 router.use(activityRouter);
+router.use(srsSuggestRouter);
 
 export default router;

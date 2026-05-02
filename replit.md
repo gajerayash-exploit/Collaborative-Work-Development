@@ -32,10 +32,14 @@ Unified collaboration platform for students and teams. pnpm workspace monorepo u
 - **Dashboard**: Workspace overview with stats, activity timeline, recent files, team roster, recent messages
 - **Notifications**: In-app notification bell; triggers on new messages, files, member joins; 15s polling
 - **Settings**: Rename workspace, update description (admin only)
+- **Digital SRS Engine**: Interactive React Flow dependency graph (dark violet canvas), glassmorphic nodes, animated pulse edges, edge labels, node editing, Mermaid import, Project Health Radar, Sunburst chart, Neo-Brutalist mode, mini-map, JSON export, localStorage persistence
+- **SRS Connection Audit**: Detects orphaned nodes, missing critical links, circular dependencies; colored glow rings on affected nodes; badge on SRS tab trigger and canvas label
+- **AI Edge Suggestions**: `POST /api/srs/suggest` — sends graph to GPT-5-mini, returns up to 6 missing-edge recommendations with confidence scores; one-click "Add Edge" per suggestion in the Audit sidebar panel
+- **OpenAI Integration**: Replit AI Integrations proxy (`AI_INTEGRATIONS_OPENAI_BASE_URL` + `AI_INTEGRATIONS_OPENAI_API_KEY`); lib at `lib/integrations-openai-ai-server`
 
 ## DB Tables
 
-`users`, `workspaces`, `workspace_members`, `workspace_files`, `messages`, `notifications`, `tasks`
+`users`, `workspaces`, `workspace_members`, `workspace_files`, `messages`, `notifications`, `tasks`, `conversations`, `ai_messages`
 
 ## Key Commands
 

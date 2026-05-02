@@ -22,7 +22,7 @@ import {
   Plus, Lock, Download, Zap, ChevronLeft, ChevronRight,
   GitBranch, Target, Layers, Code2, RefreshCw, Trash2,
   Pencil, X, Check, AlertTriangle, ShieldAlert, CircleDot,
-  Link2Off, GitMerge, ArrowRight,
+  Link2Off, GitMerge, ArrowRight, Sparkles, CheckCircle2,
 } from "lucide-react";
 
 const VIOLET = "#8B5CF6";
@@ -465,6 +465,52 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
   const [auditIssues, setAuditIssues] = useState<AuditIssue[]>([]);
   const [auditHighlight, setAuditHighlight] = useState<Set<string>>(new Set());
 
+  type AISuggestion = {
+    fromId: string; toId: string;
+    fromTitle: string; toTitle: string;
+    reason: string;
+    confidence: "high" | "medium" | "low";
+  };
+  const [suggestions, setSuggestions] = useState<AISuggestion[]>([]);
+  const [suggestLoading, setSuggestLoading] = useState(false);
+  const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(new Set());
+
+  const fetchSuggestions = useCallback(async () => {
+    setSuggestLoading(true);
+    setSuggestions([]);
+    setDismissedSuggestions(new Set());
+    try {
+      const payload = {
+        nodes: nodes.map(n => {
+          const d = n.data as SRSNodeData;
+          return { id: n.id, title: d.title, description: d.description, category: d.category, priority: d.priority };
+        }),
+        edges: edges.map(e => ({ source: e.source, target: e.target })),
+      };
+      const resp = await fetch("/api/srs/suggest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!resp.ok) throw new Error("Request failed");
+      const data = await resp.json() as { suggestions: AISuggestion[] };
+      setSuggestions(data.suggestions ?? []);
+    } catch {
+      setSuggestions([]);
+    } finally {
+      setSuggestLoading(false);
+    }
+  }, [nodes, edges]);
+
+  const acceptSuggestion = useCallback((s: AISuggestion) => {
+    setEdges(es => addEdge({ source: s.fromId, target: s.toId, type: "pulseEdge", id: `ai-${Date.now()}`, data: { label: "", neoMode: neo } }, es));
+    setDismissedSuggestions(prev => new Set([...prev, `${s.fromId}→${s.toId}`]));
+  }, [setEdges, neo]);
+
+  const dismissSuggestion = useCallback((s: AISuggestion) => {
+    setDismissedSuggestions(prev => new Set([...prev, `${s.fromId}→${s.toId}`]));
+  }, []);
+
   useEffect(() => {
     const issues = computeAudit(nodes, edges);
     setAuditIssues(issues);
@@ -848,6 +894,95 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
                         <span style={{ color: "#a855f7", fontWeight: 700 }}>●</span> Cycle — circular dependency<br />
                         Click any item to zoom to the node.
                       </div>
+                    </div>
+
+                    {/* AI Suggestions */}
+                    <div style={{ marginTop: 16 }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: neo ? "#000" : VIOLET, textTransform: "uppercase", letterSpacing: 1, display: "flex", alignItems: "center", gap: 5 }}>
+                          <Sparkles size={11} /> AI Suggestions
+                        </div>
+                        <button
+                          onClick={fetchSuggestions}
+                          disabled={suggestLoading}
+                          style={{
+                            padding: "3px 10px", fontSize: 9, fontWeight: 700, cursor: suggestLoading ? "default" : "pointer",
+                            background: neo ? "#000" : VIOLET, color: "#fff",
+                            border: "none", borderRadius: neo ? 2 : 6,
+                            opacity: suggestLoading ? 0.6 : 1,
+                            display: "flex", alignItems: "center", gap: 4,
+                          }}
+                        >
+                          {suggestLoading ? <RefreshCw size={9} style={{ animation: "spin 1s linear infinite" }} /> : <Sparkles size={9} />}
+                          {suggestLoading ? "Thinking…" : "Analyze"}
+                        </button>
+                      </div>
+
+                      {suggestions.length === 0 && !suggestLoading && (
+                        <div style={{ fontSize: 9, color: neo ? "#777" : "rgba(255,255,255,0.3)", textAlign: "center", padding: "10px 0" }}>
+                          Click Analyze to get AI-powered connection recommendations.
+                        </div>
+                      )}
+
+                      {(() => {
+                        const CONF_COLORS = { high: "#22c55e", medium: "#f59e0b", low: "rgba(255,255,255,0.4)" };
+                        const visible = suggestions.filter(s => !dismissedSuggestions.has(`${s.fromId}→${s.toId}`));
+                        return visible.map(s => {
+                          const key = `${s.fromId}→${s.toId}`;
+                          const confColor = CONF_COLORS[s.confidence] ?? CONF_COLORS.medium;
+                          return (
+                            <div
+                              key={key}
+                              style={{
+                                marginBottom: 7, padding: "8px 10px",
+                                background: neo ? "#fff" : "rgba(139,92,246,0.06)",
+                                border: neo ? "2px solid #000" : `1px solid ${VIOLET_DIM}`,
+                                borderRadius: neo ? 2 : 7,
+                              }}
+                            >
+                              <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4, flexWrap: "wrap" }}>
+                                <span style={{ fontSize: 9, fontWeight: 700, color: neo ? "#000" : "rgba(255,255,255,0.85)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 80 }}>
+                                  {s.fromTitle}
+                                </span>
+                                <ArrowRight size={9} style={{ color: VIOLET, flexShrink: 0 }} />
+                                <span style={{ fontSize: 9, fontWeight: 700, color: neo ? "#000" : "rgba(255,255,255,0.85)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 80 }}>
+                                  {s.toTitle}
+                                </span>
+                                <span style={{ fontSize: 7, fontWeight: 900, color: confColor, textTransform: "uppercase", flexShrink: 0 }}>
+                                  {s.confidence}
+                                </span>
+                              </div>
+                              <div style={{ fontSize: 9, color: neo ? "#555" : "rgba(255,255,255,0.4)", marginBottom: 7, lineHeight: 1.5 }}>
+                                {s.reason}
+                              </div>
+                              <div style={{ display: "flex", gap: 5 }}>
+                                <button
+                                  onClick={() => acceptSuggestion(s)}
+                                  style={{
+                                    flex: 1, padding: "3px 0", fontSize: 9, fontWeight: 700, cursor: "pointer",
+                                    background: "#22c55e", color: "#fff", border: "none",
+                                    borderRadius: neo ? 2 : 4,
+                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 3,
+                                  }}
+                                >
+                                  <CheckCircle2 size={9} /> Add Edge
+                                </button>
+                                <button
+                                  onClick={() => dismissSuggestion(s)}
+                                  style={{
+                                    padding: "3px 8px", fontSize: 9, fontWeight: 700, cursor: "pointer",
+                                    background: "transparent", color: neo ? "#666" : "rgba(255,255,255,0.35)",
+                                    border: neo ? "1px solid #ccc" : `1px solid rgba(255,255,255,0.12)`,
+                                    borderRadius: neo ? 2 : 4,
+                                  }}
+                                >
+                                  <X size={9} />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
                     </div>
                   </div>
                 );
