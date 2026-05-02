@@ -15,6 +15,7 @@ import repliesRouter from "./replies";
 import readsRouter from "./reads";
 import typingRouter from "./typing";
 import secretsRouter from "./secrets";
+import analyticsRouter from "./analytics";
 
 const router: IRouter = Router();
 
@@ -34,5 +35,6 @@ router.use(repliesRouter);
 router.use(readsRouter);
 router.use(typingRouter);
 router.use(secretsRouter);
+router.use(analyticsRouter);
 
 export default router;

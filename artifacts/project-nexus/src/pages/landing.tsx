@@ -96,19 +96,8 @@ export default function LandingPage() {
 
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 text-foreground leading-[1.05]">
               The command center{" "}
-              <span className="relative">
-                <span className="bg-gradient-to-r from-primary via-blue-500 to-purple-600 bg-clip-text text-transparent">
-                  for your team
-                </span>
-                <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none" preserveAspectRatio="none">
-                  <path d="M2 8C50 4 100 2 150 4 200 6 250 10 298 8" stroke="url(#grad)" strokeWidth="3" strokeLinecap="round"/>
-                  <defs>
-                    <linearGradient id="grad" x1="0" y1="0" x2="300" y2="0">
-                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.8"/>
-                      <stop offset="100%" stopColor="#a855f7" stopOpacity="0.8"/>
-                    </linearGradient>
-                  </defs>
-                </svg>
+              <span className="bg-gradient-to-r from-primary via-blue-500 to-purple-600 bg-clip-text text-transparent">
+                for your team
               </span>
               .
             </h1>

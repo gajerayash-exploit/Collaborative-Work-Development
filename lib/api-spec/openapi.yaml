@@ -554,6 +554,33 @@ paths:
               schema:
                 $ref: "#/components/schemas/Reply"
 
+  /workspaces/{workspaceId}/analytics/burndown:
+    get:
+      operationId: getBurndownAnalytics
+      tags: [workspaces]
+      summary: Get burn-down analytics for a workspace
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: days
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 30
+      responses:
+        "200":
+          description: Burndown analytics data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BurndownAnalytics"
+
   /workspaces/{workspaceId}/secrets:
     get:
       operationId: listSecrets
@@ -1600,6 +1627,79 @@ components:
         - mimeType
         - uploaderName
         - createdAt
+
+    BurndownDayData:
+      type: object
+      properties:
+        date:
+          type: string
+        created:
+          type: integer
+        completed:
+          type: integer
+        cumCreated:
+          type: integer
+        cumCompleted:
+          type: integer
+      required:
+        - date
+        - created
+        - completed
+        - cumCreated
+        - cumCompleted
+
+    BurndownSummary:
+      type: object
+      properties:
+        total:
+          type: integer
+        done:
+          type: integer
+        inProgress:
+          type: integer
+        todo:
+          type: integer
+        completionRate:
+          type: integer
+      required:
+        - total
+        - done
+        - inProgress
+        - todo
+        - completionRate
+
+    BurndownPriorityBreakdown:
+      type: object
+      properties:
+        high:
+          type: integer
+        medium:
+          type: integer
+        low:
+          type: integer
+      required:
+        - high
+        - medium
+        - low
+
+    BurndownAnalytics:
+      type: object
+      properties:
+        dailyData:
+          type: array
+          items:
+            $ref: "#/components/schemas/BurndownDayData"
+        summary:
+          $ref: "#/components/schemas/BurndownSummary"
+        velocity:
+          type: number
+        priorityBreakdown:
+          $ref: "#/components/schemas/BurndownPriorityBreakdown"
+      required:
+        - dailyData
+        - summary
+        - velocity
+        - priorityBreakdown
 
     SecretMeta:
       type: object

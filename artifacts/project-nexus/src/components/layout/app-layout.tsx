@@ -121,18 +121,6 @@ export function AppLayout({ children, activeWorkspaceId }: AppLayoutProps) {
           </nav>
         </div>
 
-        {/* Branding watermark */}
-        <div className="px-4 pb-2">
-          <div className="flex items-center gap-1.5 opacity-30">
-            <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5" stroke="currentColor" strokeWidth="2">
-              <path d="M12 2L2 7l10 5 10-5-10-5z" strokeLinejoin="round" />
-              <path d="M2 17l10 5 10-5" strokeLinejoin="round" />
-              <path d="M2 12l10 5 10-5" strokeLinejoin="round" />
-            </svg>
-            <span className="text-[10px] font-semibold tracking-wider uppercase">Project Nexus</span>
-          </div>
-        </div>
-
         {/* User Profile */}
         <div className="p-3 border-t border-sidebar-border space-y-2">
           <div className="flex items-center justify-between px-1">

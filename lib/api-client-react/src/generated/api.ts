@@ -17,10 +17,12 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  BurndownAnalytics,
   CreateSecretBody,
   CreateTaskBody,
   CreateWorkspaceBody,
   DeleteTask200,
+  GetBurndownAnalyticsParams,
   HealthStatus,
   InviteMemberBody,
   ListMessagesParams,
@@ -2096,6 +2098,127 @@ export const useSendReply = <
 > => {
   return useMutation(getSendReplyMutationOptions(options));
 };
+
+/**
+ * @summary Get burn-down analytics for a workspace
+ */
+export const getGetBurndownAnalyticsUrl = (
+  workspaceId: string,
+  params?: GetBurndownAnalyticsParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/workspaces/${workspaceId}/analytics/burndown?${stringifiedParams}`
+    : `/api/workspaces/${workspaceId}/analytics/burndown`;
+};
+
+export const getBurndownAnalytics = async (
+  workspaceId: string,
+  params?: GetBurndownAnalyticsParams,
+  options?: RequestInit,
+): Promise<BurndownAnalytics> => {
+  return customFetch<BurndownAnalytics>(
+    getGetBurndownAnalyticsUrl(workspaceId, params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetBurndownAnalyticsQueryKey = (
+  workspaceId: string,
+  params?: GetBurndownAnalyticsParams,
+) => {
+  return [
+    `/api/workspaces/${workspaceId}/analytics/burndown`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getGetBurndownAnalyticsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getBurndownAnalytics>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  params?: GetBurndownAnalyticsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getBurndownAnalytics>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getGetBurndownAnalyticsQueryKey(workspaceId, params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getBurndownAnalytics>>
+  > = ({ signal }) =>
+    getBurndownAnalytics(workspaceId, params, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!workspaceId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getBurndownAnalytics>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetBurndownAnalyticsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBurndownAnalytics>>
+>;
+export type GetBurndownAnalyticsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get burn-down analytics for a workspace
+ */
+
+export function useGetBurndownAnalytics<
+  TData = Awaited<ReturnType<typeof getBurndownAnalytics>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  params?: GetBurndownAnalyticsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getBurndownAnalytics>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetBurndownAnalyticsQueryOptions(
+    workspaceId,
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary List secret keys (values never returned)

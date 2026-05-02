@@ -427,6 +427,44 @@ export const SendReplyBody = zod.object({
 });
 
 /**
+ * @summary Get burn-down analytics for a workspace
+ */
+export const GetBurndownAnalyticsParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const getBurndownAnalyticsQueryDaysDefault = 30;
+
+export const GetBurndownAnalyticsQueryParams = zod.object({
+  days: zod.coerce.number().default(getBurndownAnalyticsQueryDaysDefault),
+});
+
+export const GetBurndownAnalyticsResponse = zod.object({
+  dailyData: zod.array(
+    zod.object({
+      date: zod.string(),
+      created: zod.number(),
+      completed: zod.number(),
+      cumCreated: zod.number(),
+      cumCompleted: zod.number(),
+    }),
+  ),
+  summary: zod.object({
+    total: zod.number(),
+    done: zod.number(),
+    inProgress: zod.number(),
+    todo: zod.number(),
+    completionRate: zod.number(),
+  }),
+  velocity: zod.number(),
+  priorityBreakdown: zod.object({
+    high: zod.number(),
+    medium: zod.number(),
+    low: zod.number(),
+  }),
+});
+
+/**
  * @summary List secret keys (values never returned)
  */
 export const ListSecretsParams = zod.object({

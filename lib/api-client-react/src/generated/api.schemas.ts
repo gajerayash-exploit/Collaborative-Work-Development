@@ -381,6 +381,35 @@ export interface SearchResults {
   tasks: SearchTask[];
 }
 
+export interface BurndownDayData {
+  date: string;
+  created: number;
+  completed: number;
+  cumCreated: number;
+  cumCompleted: number;
+}
+
+export interface BurndownSummary {
+  total: number;
+  done: number;
+  inProgress: number;
+  todo: number;
+  completionRate: number;
+}
+
+export interface BurndownPriorityBreakdown {
+  high: number;
+  medium: number;
+  low: number;
+}
+
+export interface BurndownAnalytics {
+  dailyData: BurndownDayData[];
+  summary: BurndownSummary;
+  velocity: number;
+  priorityBreakdown: BurndownPriorityBreakdown;
+}
+
 export interface SecretMeta {
   id: string;
   key: string;
@@ -405,6 +434,10 @@ export type ListMessagesParams = {
    * Cursor for pagination (message ID)
    */
   before?: string;
+};
+
+export type GetBurndownAnalyticsParams = {
+  days?: number;
 };
 
 export type DeleteTask200 = {
