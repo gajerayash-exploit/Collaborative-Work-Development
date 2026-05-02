@@ -218,10 +218,24 @@ export interface Message {
   senderAvatarUrl?: string | null;
   createdAt: string;
   reactions: MessageReaction[];
+  isPinned: boolean;
 }
 
 export interface SendMessageBody {
   content: string;
+}
+
+export interface PinnedMessage {
+  id: string;
+  workspaceId: string;
+  messageId: string;
+  pinnedBy: string;
+  pinnedByName: string;
+  pinnedAt: string;
+  content: string;
+  senderName: string;
+  senderAvatarUrl?: string | null;
+  senderId: string;
 }
 
 export interface ToggleReactionBody {
@@ -352,6 +366,10 @@ export type ListMessagesParams = {
 };
 
 export type DeleteTask200 = {
+  success: boolean;
+};
+
+export type UnpinMessage200 = {
   success: boolean;
 };
 

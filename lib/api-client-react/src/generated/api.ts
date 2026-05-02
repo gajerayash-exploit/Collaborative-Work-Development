@@ -24,6 +24,7 @@ import type {
   InviteMemberBody,
   ListMessagesParams,
   Message,
+  PinnedMessage,
   SearchResults,
   SearchWorkspaceParams,
   SendMessageBody,
@@ -31,6 +32,7 @@ import type {
   Task,
   ToggleReaction200,
   ToggleReactionBody,
+  UnpinMessage200,
   UpdateMemberRoleBody,
   UpdateTaskBody,
   UpdateUserProfileBody,
@@ -1985,6 +1987,268 @@ export const useDeleteTask = <
   TContext
 > => {
   return useMutation(getDeleteTaskMutationOptions(options));
+};
+
+/**
+ * @summary List pinned messages in workspace
+ */
+export const getListPinnedMessagesUrl = (workspaceId: string) => {
+  return `/api/workspaces/${workspaceId}/pinned-messages`;
+};
+
+export const listPinnedMessages = async (
+  workspaceId: string,
+  options?: RequestInit,
+): Promise<PinnedMessage[]> => {
+  return customFetch<PinnedMessage[]>(getListPinnedMessagesUrl(workspaceId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListPinnedMessagesQueryKey = (workspaceId: string) => {
+  return [`/api/workspaces/${workspaceId}/pinned-messages`] as const;
+};
+
+export const getListPinnedMessagesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listPinnedMessages>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listPinnedMessages>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListPinnedMessagesQueryKey(workspaceId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listPinnedMessages>>
+  > = ({ signal }) =>
+    listPinnedMessages(workspaceId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!workspaceId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listPinnedMessages>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListPinnedMessagesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listPinnedMessages>>
+>;
+export type ListPinnedMessagesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List pinned messages in workspace
+ */
+
+export function useListPinnedMessages<
+  TData = Awaited<ReturnType<typeof listPinnedMessages>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listPinnedMessages>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListPinnedMessagesQueryOptions(workspaceId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Pin a message
+ */
+export const getPinMessageUrl = (workspaceId: string, messageId: string) => {
+  return `/api/workspaces/${workspaceId}/messages/${messageId}/pin`;
+};
+
+export const pinMessage = async (
+  workspaceId: string,
+  messageId: string,
+  options?: RequestInit,
+): Promise<PinnedMessage> => {
+  return customFetch<PinnedMessage>(getPinMessageUrl(workspaceId, messageId), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getPinMessageMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof pinMessage>>,
+    TError,
+    { workspaceId: string; messageId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof pinMessage>>,
+  TError,
+  { workspaceId: string; messageId: string },
+  TContext
+> => {
+  const mutationKey = ["pinMessage"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof pinMessage>>,
+    { workspaceId: string; messageId: string }
+  > = (props) => {
+    const { workspaceId, messageId } = props ?? {};
+
+    return pinMessage(workspaceId, messageId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PinMessageMutationResult = NonNullable<
+  Awaited<ReturnType<typeof pinMessage>>
+>;
+
+export type PinMessageMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Pin a message
+ */
+export const usePinMessage = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof pinMessage>>,
+    TError,
+    { workspaceId: string; messageId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof pinMessage>>,
+  TError,
+  { workspaceId: string; messageId: string },
+  TContext
+> => {
+  return useMutation(getPinMessageMutationOptions(options));
+};
+
+/**
+ * @summary Unpin a message
+ */
+export const getUnpinMessageUrl = (workspaceId: string, messageId: string) => {
+  return `/api/workspaces/${workspaceId}/messages/${messageId}/pin`;
+};
+
+export const unpinMessage = async (
+  workspaceId: string,
+  messageId: string,
+  options?: RequestInit,
+): Promise<UnpinMessage200> => {
+  return customFetch<UnpinMessage200>(
+    getUnpinMessageUrl(workspaceId, messageId),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getUnpinMessageMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof unpinMessage>>,
+    TError,
+    { workspaceId: string; messageId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof unpinMessage>>,
+  TError,
+  { workspaceId: string; messageId: string },
+  TContext
+> => {
+  const mutationKey = ["unpinMessage"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof unpinMessage>>,
+    { workspaceId: string; messageId: string }
+  > = (props) => {
+    const { workspaceId, messageId } = props ?? {};
+
+    return unpinMessage(workspaceId, messageId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UnpinMessageMutationResult = NonNullable<
+  Awaited<ReturnType<typeof unpinMessage>>
+>;
+
+export type UnpinMessageMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Unpin a message
+ */
+export const useUnpinMessage = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof unpinMessage>>,
+    TError,
+    { workspaceId: string; messageId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof unpinMessage>>,
+  TError,
+  { workspaceId: string; messageId: string },
+  TContext
+> => {
+  return useMutation(getUnpinMessageMutationOptions(options));
 };
 
 /**

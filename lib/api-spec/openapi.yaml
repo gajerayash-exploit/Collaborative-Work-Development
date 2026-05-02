@@ -540,6 +540,84 @@ paths:
                 required:
                   - success
 
+  /workspaces/{workspaceId}/pinned-messages:
+    get:
+      operationId: listPinnedMessages
+      tags: [messages]
+      summary: List pinned messages in workspace
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of pinned messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PinnedMessage"
+
+  /workspaces/{workspaceId}/messages/{messageId}/pin:
+    post:
+      operationId: pinMessage
+      tags: [messages]
+      summary: Pin a message
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Message pinned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PinnedMessage"
+    delete:
+      operationId: unpinMessage
+      tags: [messages]
+      summary: Unpin a message
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Message unpinned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                required:
+                  - success
+
   /workspaces/{workspaceId}/messages/{messageId}/reactions:
     post:
       operationId: toggleReaction
@@ -1013,6 +1091,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/MessageReaction"
+        isPinned:
+          type: boolean
       required:
         - id
         - workspaceId
@@ -1021,6 +1101,7 @@ components:
         - senderName
         - createdAt
         - reactions
+        - isPinned
 
     SendMessageBody:
       type: object
@@ -1029,6 +1110,42 @@ components:
           type: string
       required:
         - content
+
+    PinnedMessage:
+      type: object
+      properties:
+        id:
+          type: string
+        workspaceId:
+          type: string
+        messageId:
+          type: string
+        pinnedBy:
+          type: string
+        pinnedByName:
+          type: string
+        pinnedAt:
+          type: string
+          format: date-time
+        content:
+          type: string
+        senderName:
+          type: string
+        senderAvatarUrl:
+          type: string
+          nullable: true
+        senderId:
+          type: string
+      required:
+        - id
+        - workspaceId
+        - messageId
+        - pinnedBy
+        - pinnedByName
+        - pinnedAt
+        - content
+        - senderName
+        - senderId
 
     ToggleReactionBody:
       type: object

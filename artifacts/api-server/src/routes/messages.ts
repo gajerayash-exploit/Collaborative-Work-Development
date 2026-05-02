@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, messagesTable, usersTable, workspaceMembersTable, messageReactionsTable } from "@workspace/db";
+import { db, messagesTable, usersTable, workspaceMembersTable, messageReactionsTable, pinnedMessagesTable } from "@workspace/db";
 import { eq, and, desc, inArray } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
 import { notifyWorkspaceMembers } from "../lib/notify";
@@ -43,10 +43,11 @@ router.get("/workspaces/:workspaceId/messages", requireAuth, async (req: any, re
     }
 
     const messageIds = reversed.map(m => m.id);
-    const allReactions = await db
-      .select()
-      .from(messageReactionsTable)
-      .where(inArray(messageReactionsTable.messageId, messageIds));
+    const [allReactions, allPinned] = await Promise.all([
+      db.select().from(messageReactionsTable).where(inArray(messageReactionsTable.messageId, messageIds)),
+      db.select({ messageId: pinnedMessagesTable.messageId }).from(pinnedMessagesTable)
+        .where(eq(pinnedMessagesTable.workspaceId, workspaceId)),
+    ]);
 
     const reactionsByMessage: Record<string, Record<string, string[]>> = {};
     for (const r of allReactions) {
@@ -54,9 +55,11 @@ router.get("/workspaces/:workspaceId/messages", requireAuth, async (req: any, re
       if (!reactionsByMessage[r.messageId][r.emoji]) reactionsByMessage[r.messageId][r.emoji] = [];
       reactionsByMessage[r.messageId][r.emoji].push(r.userId);
     }
+    const pinnedSet = new Set(allPinned.map(p => p.messageId));
 
     res.json(reversed.map(m => ({
       ...m,
+      isPinned: pinnedSet.has(m.id),
       reactions: Object.entries(reactionsByMessage[m.id] ?? {}).map(([emoji, userIds]) => ({
         emoji,
         count: userIds.length,
@@ -96,6 +99,7 @@ router.post("/workspaces/:workspaceId/messages", requireAuth, async (req: any, r
       senderName: user[0].name,
       senderAvatarUrl: user[0].avatarUrl,
       reactions: [],
+      isPinned: false,
     });
 
     notifyWorkspaceMembers({

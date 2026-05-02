@@ -153,7 +153,7 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
           <div className="absolute inset-0 bg-grid-slate-900/[0.04] bg-[bottom_1px_center] dark:bg-grid-slate-400/[0.05] pointer-events-none" />
           <div className="p-6 h-full max-w-6xl mx-auto relative z-10">
             {activeTab === "overview" && <OverviewTab workspaceId={id} />}
-            {activeTab === "chat" && <ChatTab workspaceId={id} />}
+            {activeTab === "chat" && <ChatTab workspaceId={id} role={workspace.role} />}
             {activeTab === "files" && <FilesTab workspaceId={id} role={workspace.role} />}
             {activeTab === "members" && <MembersTab workspaceId={id} role={workspace.role} />}
             {activeTab === "tasks" && <TasksTab workspaceId={id} role={workspace.role} />}

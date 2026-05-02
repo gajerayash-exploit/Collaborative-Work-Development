@@ -334,6 +334,7 @@ export const ListMessagesResponseItem = zod.object({
       userIds: zod.array(zod.string()),
     }),
   ),
+  isPinned: zod.boolean(),
 });
 export const ListMessagesResponse = zod.array(ListMessagesResponseItem);
 
@@ -478,6 +479,62 @@ export const DeleteTaskParams = zod.object({
 });
 
 export const DeleteTaskResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
+ * @summary List pinned messages in workspace
+ */
+export const ListPinnedMessagesParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const ListPinnedMessagesResponseItem = zod.object({
+  id: zod.string(),
+  workspaceId: zod.string(),
+  messageId: zod.string(),
+  pinnedBy: zod.string(),
+  pinnedByName: zod.string(),
+  pinnedAt: zod.coerce.date(),
+  content: zod.string(),
+  senderName: zod.string(),
+  senderAvatarUrl: zod.string().nullish(),
+  senderId: zod.string(),
+});
+export const ListPinnedMessagesResponse = zod.array(
+  ListPinnedMessagesResponseItem,
+);
+
+/**
+ * @summary Pin a message
+ */
+export const PinMessageParams = zod.object({
+  workspaceId: zod.coerce.string(),
+  messageId: zod.coerce.string(),
+});
+
+export const PinMessageResponse = zod.object({
+  id: zod.string(),
+  workspaceId: zod.string(),
+  messageId: zod.string(),
+  pinnedBy: zod.string(),
+  pinnedByName: zod.string(),
+  pinnedAt: zod.coerce.date(),
+  content: zod.string(),
+  senderName: zod.string(),
+  senderAvatarUrl: zod.string().nullish(),
+  senderId: zod.string(),
+});
+
+/**
+ * @summary Unpin a message
+ */
+export const UnpinMessageParams = zod.object({
+  workspaceId: zod.coerce.string(),
+  messageId: zod.coerce.string(),
+});
+
+export const UnpinMessageResponse = zod.object({
   success: zod.boolean(),
 });
 
