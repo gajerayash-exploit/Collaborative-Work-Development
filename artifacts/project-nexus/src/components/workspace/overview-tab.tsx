@@ -57,7 +57,7 @@ function StatCard({
       <div className={`absolute inset-0 opacity-40 ${gradient}`} />
       <CardHeader className="flex flex-row items-center justify-between pb-1.5 space-y-0 relative z-10 p-3 sm:p-6 sm:pb-2">
         <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <div className="text-muted-foreground/50">{icon}</div>
+        <div className="text-[#2b2b2b] dark:text-[#d4d4d4]">{icon}</div>
       </CardHeader>
       <CardContent className="relative z-10 p-3 pt-0 sm:p-6 sm:pt-0">
         <div className="text-2xl sm:text-3xl font-black tracking-tight">{value}</div>
