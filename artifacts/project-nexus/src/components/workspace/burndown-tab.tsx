@@ -303,10 +303,7 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-[#2b2b2b] dark:text-[#d4d4d4]" />
-            Analytics
-          </h2>
+          <h2 className="text-xl font-bold flex items-center gap-2">📈 Analytics</h2>
           <p className="text-sm text-muted-foreground mt-0.5">
             Task velocity and burn-down trends for this workspace
           </p>
@@ -380,15 +377,13 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
         {/* Burn-up chart takes 3 cols */}
         <Card className="xl:col-span-3">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-            <BarChart2 className="h-4 w-4 text-[#2b2b2b] dark:text-[#d4d4d4]" /> Burn-up Chart
-          </CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">📊 Burn-up Chart</CardTitle>
             <CardDescription>Cumulative tasks created vs completed over {days} days</CardDescription>
           </CardHeader>
           <CardContent>
             {summary.total === 0 ? (
               <div className="flex flex-col items-center justify-center h-56 text-center">
-                <BarChart2 className="h-10 w-10 mb-3 text-[#2b2b2b] dark:text-[#d4d4d4] opacity-40" />
+                <div className="text-5xl mb-3">🌱</div>
                 <p className="font-semibold">No task data yet</p>
                 <p className="text-sm text-muted-foreground mt-1">Create tasks to start tracking progress.</p>
               </div>
@@ -457,9 +452,7 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-            <Target className="h-4 w-4 text-[#2b2b2b] dark:text-[#d4d4d4]" /> Status Breakdown
-          </CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">🎯 Status Breakdown</CardTitle>
             <CardDescription>How tasks are distributed across columns</CardDescription>
           </CardHeader>
           <CardContent>
