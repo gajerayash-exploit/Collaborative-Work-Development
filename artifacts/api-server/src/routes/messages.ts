@@ -69,6 +69,14 @@ router.post("/workspaces/:workspaceId/messages", requireAuth, async (req: any, r
       senderName: user[0].name,
       senderAvatarUrl: user[0].avatarUrl,
     });
+
+    notifyWorkspaceMembers({
+      workspaceId,
+      excludeUserId: user[0].id,
+      type: "message",
+      title: `New message from ${user[0].name}`,
+      body: content.trim().length > 80 ? content.trim().substring(0, 80) + "…" : content.trim(),
+    }).catch(() => {});
   } catch (err) {
     req.log.error({ err }, "Failed to send message");
     res.status(500).json({ error: "Internal server error" });

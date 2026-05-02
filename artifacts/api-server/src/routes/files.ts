@@ -65,6 +65,14 @@ router.post("/workspaces/:workspaceId/files", requireAuth, async (req: any, res)
     }).returning();
 
     res.status(201).json({ ...file, uploaderName: user[0].name });
+
+    notifyWorkspaceMembers({
+      workspaceId,
+      excludeUserId: user[0].id,
+      type: "file_uploaded",
+      title: `New file uploaded by ${user[0].name}`,
+      body: name,
+    }).catch(() => {});
   } catch (err) {
     req.log.error({ err }, "Failed to upload file");
     res.status(500).json({ error: "Internal server error" });

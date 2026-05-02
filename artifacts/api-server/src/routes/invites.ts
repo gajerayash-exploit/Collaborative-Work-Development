@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, workspacesTable, workspaceMembersTable, usersTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
+import { notifyWorkspaceAdmins } from "../lib/notify";
 
 const router: IRouter = Router();
 
@@ -88,6 +89,14 @@ router.get("/join/:inviteCode", requireAuth, async (req: any, res): Promise<void
     });
 
     res.json({ workspaceId: workspace[0].id, alreadyMember: false });
+
+    notifyWorkspaceAdmins({
+      workspaceId: workspace[0].id,
+      excludeUserId: user[0].id,
+      type: "member_joined",
+      title: `${user[0].name} joined ${workspace[0].name}`,
+      body: `${user[0].name} joined via invite link as a viewer.`,
+    }).catch(() => {});
   } catch (err) {
     req.log.error({ err }, "Failed to join via invite");
     res.status(500).json({ error: "Internal server error" });
