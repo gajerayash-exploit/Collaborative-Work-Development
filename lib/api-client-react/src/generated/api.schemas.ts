@@ -381,6 +381,24 @@ export interface SearchResults {
   tasks: SearchTask[];
 }
 
+export interface SecretMeta {
+  id: string;
+  key: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SecretRevealed {
+  id: string;
+  key: string;
+  value: string;
+}
+
+export interface CreateSecretBody {
+  key: string;
+  value: string;
+}
+
 export type ListMessagesParams = {
   limit?: number;
   /**

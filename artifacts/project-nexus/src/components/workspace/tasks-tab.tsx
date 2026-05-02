@@ -7,6 +7,7 @@ import {
   useDeleteTask,
   getListTasksQueryKey,
 } from "@workspace/api-client-react";
+import { KanbanBoard } from "./kanban-board";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -45,6 +46,8 @@ import {
   ArrowRight,
   ArrowDown,
   ClipboardList,
+  List,
+  LayoutDashboard,
 } from "lucide-react";
 import { useListWorkspaceMembers } from "@workspace/api-client-react";
 
@@ -267,15 +270,22 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
   const deleteTask = useDeleteTask();
 
   const [createOpen, setCreateOpen] = useState(false);
+  const [createStatus, setCreateStatus] = useState<string>("todo");
   const [editTask, setEditTask] = useState<any>(null);
   const [filter, setFilter] = useState<"all" | "todo" | "in_progress" | "done">("all");
+  const [view, setView] = useState<"list" | "board">("list");
 
   const canEdit = role !== "viewer";
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: getListTasksQueryKey(workspaceId) });
 
   const handleCreate = (data: any) => {
-    createTask.mutate({ workspaceId, data }, { onSuccess: invalidate });
+    createTask.mutate({ workspaceId, data: { ...data, status: data.status ?? createStatus } }, { onSuccess: invalidate });
+  };
+
+  const handleAddTaskInColumn = (status: string) => {
+    setCreateStatus(status);
+    setCreateOpen(true);
   };
 
   const handleUpdate = (data: any) => {
@@ -312,67 +322,121 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h2 className="text-xl font-bold">Tasks</h2>
           <p className="text-sm text-muted-foreground">{counts.all} total · {counts.done} done</p>
         </div>
-        {canEdit && (
-          <Button onClick={() => setCreateOpen(true)} size="sm" className="gap-2">
-            <Plus className="h-4 w-4" /> New Task
-          </Button>
-        )}
-      </div>
 
-      {/* Filter Tabs */}
-      <div className="flex gap-2 flex-wrap">
-        {(["all", "todo", "in_progress", "done"] as const).map(f => (
-          <Button
-            key={f}
-            variant={filter === f ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFilter(f)}
-            className="capitalize gap-1.5"
-          >
-            {f === "all" ? "All" : STATUS_CONFIG[f as keyof typeof STATUS_CONFIG].label}
-            <Badge variant="secondary" className="text-xs px-1.5 py-0 min-w-[1.25rem] text-center">
-              {counts[f]}
-            </Badge>
-          </Button>
-        ))}
-      </div>
-
-      {/* Task List */}
-      {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="p-4 rounded-full bg-muted mb-4">
-            <ClipboardList className="h-8 w-8 text-muted-foreground" />
+        <div className="flex items-center gap-2">
+          {/* View toggle */}
+          <div className="flex items-center rounded-lg border bg-muted/40 p-0.5 gap-0.5">
+            <Button
+              variant={view === "list" ? "default" : "ghost"}
+              size="sm"
+              className={`h-7 px-2.5 gap-1.5 ${view === "list" ? "" : "text-muted-foreground hover:text-foreground"}`}
+              onClick={() => setView("list")}
+            >
+              <List className="h-3.5 w-3.5" />
+              <span className="text-xs">List</span>
+            </Button>
+            <Button
+              variant={view === "board" ? "default" : "ghost"}
+              size="sm"
+              className={`h-7 px-2.5 gap-1.5 ${view === "board" ? "" : "text-muted-foreground hover:text-foreground"}`}
+              onClick={() => setView("board")}
+            >
+              <LayoutDashboard className="h-3.5 w-3.5" />
+              <span className="text-xs">Board</span>
+            </Button>
           </div>
-          <h3 className="font-semibold text-lg mb-1">
-            {filter === "all" ? "No tasks yet" : `No ${STATUS_CONFIG[filter as keyof typeof STATUS_CONFIG]?.label} tasks`}
-          </h3>
-          <p className="text-muted-foreground text-sm max-w-xs">
-            {filter === "all" && canEdit ? "Create your first task to get started." : "Nothing here yet."}
-          </p>
-          {filter === "all" && canEdit && (
-            <Button className="mt-4 gap-2" onClick={() => setCreateOpen(true)}>
-              <Plus className="h-4 w-4" /> Create Task
+
+          {canEdit && (
+            <Button onClick={() => { setCreateStatus("todo"); setCreateOpen(true); }} size="sm" className="gap-2">
+              <Plus className="h-4 w-4" /> New Task
             </Button>
           )}
         </div>
+      </div>
+
+      {/* Board view */}
+      {view === "board" ? (
+        tasks.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="p-4 rounded-full bg-muted mb-4">
+              <ClipboardList className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="font-semibold text-lg mb-1">No tasks yet</h3>
+            <p className="text-muted-foreground text-sm max-w-xs">Create your first task to populate the board.</p>
+            {canEdit && (
+              <Button className="mt-4 gap-2" onClick={() => setCreateOpen(true)}>
+                <Plus className="h-4 w-4" /> Create Task
+              </Button>
+            )}
+          </div>
+        ) : (
+          <KanbanBoard
+            tasks={tasks}
+            canEdit={canEdit}
+            onStatusChange={handleStatusChange}
+            onEdit={setEditTask}
+            onDelete={handleDelete}
+            onAddTask={handleAddTaskInColumn}
+          />
+        )
       ) : (
-        <div className="space-y-2">
-          {filtered.map((task: any) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              onStatusChange={handleStatusChange}
-              onEdit={setEditTask}
-              onDelete={handleDelete}
-              canEdit={canEdit}
-            />
-          ))}
-        </div>
+        <>
+          {/* Filter Tabs — list view only */}
+          <div className="flex gap-2 flex-wrap">
+            {(["all", "todo", "in_progress", "done"] as const).map(f => (
+              <Button
+                key={f}
+                variant={filter === f ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilter(f)}
+                className="capitalize gap-1.5"
+              >
+                {f === "all" ? "All" : STATUS_CONFIG[f as keyof typeof STATUS_CONFIG].label}
+                <Badge variant="secondary" className="text-xs px-1.5 py-0 min-w-[1.25rem] text-center">
+                  {counts[f]}
+                </Badge>
+              </Button>
+            ))}
+          </div>
+
+          {/* Task List */}
+          {filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="p-4 rounded-full bg-muted mb-4">
+                <ClipboardList className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="font-semibold text-lg mb-1">
+                {filter === "all" ? "No tasks yet" : `No ${STATUS_CONFIG[filter as keyof typeof STATUS_CONFIG]?.label} tasks`}
+              </h3>
+              <p className="text-muted-foreground text-sm max-w-xs">
+                {filter === "all" && canEdit ? "Create your first task to get started." : "Nothing here yet."}
+              </p>
+              {filter === "all" && canEdit && (
+                <Button className="mt-4 gap-2" onClick={() => setCreateOpen(true)}>
+                  <Plus className="h-4 w-4" /> Create Task
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filtered.map((task: any) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onStatusChange={handleStatusChange}
+                  onEdit={setEditTask}
+                  onDelete={handleDelete}
+                  canEdit={canEdit}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {/* Create Dialog */}
@@ -381,6 +445,7 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
         members={membersData}
         open={createOpen}
         onOpenChange={setCreateOpen}
+        editTask={createOpen && !editTask ? { status: createStatus } : undefined}
         onSave={handleCreate}
       />
 

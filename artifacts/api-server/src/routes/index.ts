@@ -14,6 +14,7 @@ import pinnedRouter from "./pinned";
 import repliesRouter from "./replies";
 import readsRouter from "./reads";
 import typingRouter from "./typing";
+import secretsRouter from "./secrets";
 
 const router: IRouter = Router();
 
@@ -32,5 +33,6 @@ router.use(pinnedRouter);
 router.use(repliesRouter);
 router.use(readsRouter);
 router.use(typingRouter);
+router.use(secretsRouter);
 
 export default router;

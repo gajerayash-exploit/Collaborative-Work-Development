@@ -6,13 +6,14 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Activity, MessageSquare, Files, Users, Settings, CheckSquare, Search } from "lucide-react";
+import { Activity, MessageSquare, Files, Users, Settings, CheckSquare, Search, KeyRound } from "lucide-react";
 import { OverviewTab } from "@/components/workspace/overview-tab";
 import { ChatTab } from "@/components/workspace/chat-tab";
 import { FilesTab } from "@/components/workspace/files-tab";
 import { MembersTab } from "@/components/workspace/members-tab";
 import { SettingsTab } from "@/components/workspace/settings-tab";
 import { TasksTab } from "@/components/workspace/tasks-tab";
+import { VaultTab } from "@/components/workspace/vault-tab";
 import { SearchDialog } from "@/components/workspace/search-dialog";
 
 export default function WorkspaceHubPage({ id }: { id: string }) {
@@ -144,6 +145,13 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
                 <CheckSquare className="h-4 w-4 mr-2" />
                 Tasks
               </TabsTrigger>
+              <TabsTrigger
+                value="vault"
+                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-2 pb-3 font-medium text-muted-foreground data-[state=active]:text-foreground hover:text-foreground transition-colors"
+              >
+                <KeyRound className="h-4 w-4 mr-2" />
+                Vault
+              </TabsTrigger>
               {isAdmin && (
                 <TabsTrigger 
                   value="settings" 
@@ -166,6 +174,7 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
             {activeTab === "files" && <FilesTab workspaceId={id} role={workspace.role} />}
             {activeTab === "members" && <MembersTab workspaceId={id} role={workspace.role} />}
             {activeTab === "tasks" && <TasksTab workspaceId={id} role={workspace.role} />}
+            {activeTab === "vault" && <VaultTab workspaceId={id} role={workspace.role} />}
             {isAdmin && activeTab === "settings" && <SettingsTab workspaceId={id} initialName={workspace.name} initialDescription={workspace.description ?? null} />}
           </div>
         </div>

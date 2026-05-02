@@ -17,6 +17,7 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  CreateSecretBody,
   CreateTaskBody,
   CreateWorkspaceBody,
   DeleteTask200,
@@ -29,6 +30,8 @@ import type {
   Reply,
   SearchResults,
   SearchWorkspaceParams,
+  SecretMeta,
+  SecretRevealed,
   SendMessageBody,
   SuccessResponse,
   Task,
@@ -2092,6 +2095,370 @@ export const useSendReply = <
   TContext
 > => {
   return useMutation(getSendReplyMutationOptions(options));
+};
+
+/**
+ * @summary List secret keys (values never returned)
+ */
+export const getListSecretsUrl = (workspaceId: string) => {
+  return `/api/workspaces/${workspaceId}/secrets`;
+};
+
+export const listSecrets = async (
+  workspaceId: string,
+  options?: RequestInit,
+): Promise<SecretMeta[]> => {
+  return customFetch<SecretMeta[]>(getListSecretsUrl(workspaceId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListSecretsQueryKey = (workspaceId: string) => {
+  return [`/api/workspaces/${workspaceId}/secrets`] as const;
+};
+
+export const getListSecretsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listSecrets>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listSecrets>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListSecretsQueryKey(workspaceId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listSecrets>>> = ({
+    signal,
+  }) => listSecrets(workspaceId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!workspaceId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listSecrets>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListSecretsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listSecrets>>
+>;
+export type ListSecretsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List secret keys (values never returned)
+ */
+
+export function useListSecrets<
+  TData = Awaited<ReturnType<typeof listSecrets>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listSecrets>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListSecretsQueryOptions(workspaceId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create or update a secret
+ */
+export const getCreateSecretUrl = (workspaceId: string) => {
+  return `/api/workspaces/${workspaceId}/secrets`;
+};
+
+export const createSecret = async (
+  workspaceId: string,
+  createSecretBody: CreateSecretBody,
+  options?: RequestInit,
+): Promise<SecretMeta> => {
+  return customFetch<SecretMeta>(getCreateSecretUrl(workspaceId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createSecretBody),
+  });
+};
+
+export const getCreateSecretMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createSecret>>,
+    TError,
+    { workspaceId: string; data: BodyType<CreateSecretBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createSecret>>,
+  TError,
+  { workspaceId: string; data: BodyType<CreateSecretBody> },
+  TContext
+> => {
+  const mutationKey = ["createSecret"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createSecret>>,
+    { workspaceId: string; data: BodyType<CreateSecretBody> }
+  > = (props) => {
+    const { workspaceId, data } = props ?? {};
+
+    return createSecret(workspaceId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateSecretMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createSecret>>
+>;
+export type CreateSecretMutationBody = BodyType<CreateSecretBody>;
+export type CreateSecretMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create or update a secret
+ */
+export const useCreateSecret = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createSecret>>,
+    TError,
+    { workspaceId: string; data: BodyType<CreateSecretBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createSecret>>,
+  TError,
+  { workspaceId: string; data: BodyType<CreateSecretBody> },
+  TContext
+> => {
+  return useMutation(getCreateSecretMutationOptions(options));
+};
+
+/**
+ * @summary Reveal the decrypted value of a secret
+ */
+export const getRevealSecretUrl = (workspaceId: string, secretId: string) => {
+  return `/api/workspaces/${workspaceId}/secrets/${secretId}/reveal`;
+};
+
+export const revealSecret = async (
+  workspaceId: string,
+  secretId: string,
+  options?: RequestInit,
+): Promise<SecretRevealed> => {
+  return customFetch<SecretRevealed>(
+    getRevealSecretUrl(workspaceId, secretId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getRevealSecretQueryKey = (
+  workspaceId: string,
+  secretId: string,
+) => {
+  return [`/api/workspaces/${workspaceId}/secrets/${secretId}/reveal`] as const;
+};
+
+export const getRevealSecretQueryOptions = <
+  TData = Awaited<ReturnType<typeof revealSecret>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  secretId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof revealSecret>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getRevealSecretQueryKey(workspaceId, secretId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof revealSecret>>> = ({
+    signal,
+  }) => revealSecret(workspaceId, secretId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!(workspaceId && secretId),
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof revealSecret>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type RevealSecretQueryResult = NonNullable<
+  Awaited<ReturnType<typeof revealSecret>>
+>;
+export type RevealSecretQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Reveal the decrypted value of a secret
+ */
+
+export function useRevealSecret<
+  TData = Awaited<ReturnType<typeof revealSecret>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  secretId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof revealSecret>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getRevealSecretQueryOptions(
+    workspaceId,
+    secretId,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Delete a secret
+ */
+export const getDeleteSecretUrl = (workspaceId: string, secretId: string) => {
+  return `/api/workspaces/${workspaceId}/secrets/${secretId}`;
+};
+
+export const deleteSecret = async (
+  workspaceId: string,
+  secretId: string,
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(
+    getDeleteSecretUrl(workspaceId, secretId),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getDeleteSecretMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteSecret>>,
+    TError,
+    { workspaceId: string; secretId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteSecret>>,
+  TError,
+  { workspaceId: string; secretId: string },
+  TContext
+> => {
+  const mutationKey = ["deleteSecret"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteSecret>>,
+    { workspaceId: string; secretId: string }
+  > = (props) => {
+    const { workspaceId, secretId } = props ?? {};
+
+    return deleteSecret(workspaceId, secretId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteSecretMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteSecret>>
+>;
+
+export type DeleteSecretMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a secret
+ */
+export const useDeleteSecret = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteSecret>>,
+    TError,
+    { workspaceId: string; secretId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteSecret>>,
+  TError,
+  { workspaceId: string; secretId: string },
+  TContext
+> => {
+  return useMutation(getDeleteSecretMutationOptions(options));
 };
 
 /**

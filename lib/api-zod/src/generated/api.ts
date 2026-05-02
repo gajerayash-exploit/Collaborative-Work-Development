@@ -427,6 +427,59 @@ export const SendReplyBody = zod.object({
 });
 
 /**
+ * @summary List secret keys (values never returned)
+ */
+export const ListSecretsParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const ListSecretsResponseItem = zod.object({
+  id: zod.string(),
+  key: zod.string(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListSecretsResponse = zod.array(ListSecretsResponseItem);
+
+/**
+ * @summary Create or update a secret
+ */
+export const CreateSecretParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const CreateSecretBody = zod.object({
+  key: zod.string(),
+  value: zod.string(),
+});
+
+/**
+ * @summary Reveal the decrypted value of a secret
+ */
+export const RevealSecretParams = zod.object({
+  workspaceId: zod.coerce.string(),
+  secretId: zod.coerce.string(),
+});
+
+export const RevealSecretResponse = zod.object({
+  id: zod.string(),
+  key: zod.string(),
+  value: zod.string(),
+});
+
+/**
+ * @summary Delete a secret
+ */
+export const DeleteSecretParams = zod.object({
+  workspaceId: zod.coerce.string(),
+  secretId: zod.coerce.string(),
+});
+
+export const DeleteSecretResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
  * @summary List tasks in a workspace
  */
 export const ListTasksParams = zod.object({
