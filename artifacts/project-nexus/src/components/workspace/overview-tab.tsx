@@ -4,12 +4,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Users, FileText, MessageSquare, Calendar,
-  MessageCircle, Upload, UserPlus, FileImage,
-  FileCode, FileArchive, File, Music, Video,
-  Inbox
-} from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 
 function formatBytes(bytes: number): string {
@@ -20,29 +14,30 @@ function formatBytes(bytes: number): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
-function getFileIcon(mimeType: string) {
-  if (mimeType.startsWith("image/")) return <FileImage className="h-4 w-4 text-blue-500" />;
-  if (mimeType.startsWith("video/")) return <Video className="h-4 w-4 text-purple-500" />;
-  if (mimeType.startsWith("audio/")) return <Music className="h-4 w-4 text-pink-500" />;
-  if (mimeType.includes("zip") || mimeType.includes("tar") || mimeType.includes("rar")) return <FileArchive className="h-4 w-4 text-yellow-600" />;
-  if (mimeType.includes("javascript") || mimeType.includes("typescript") || mimeType.includes("html") || mimeType.includes("css") || mimeType.includes("json") || mimeType.includes("xml")) return <FileCode className="h-4 w-4 text-green-500" />;
-  if (mimeType.includes("pdf")) return <FileText className="h-4 w-4 text-red-500" />;
-  return <File className="h-4 w-4 text-muted-foreground" />;
+function getFileEmoji(mimeType: string) {
+  if (mimeType.startsWith("image/")) return "🖼️";
+  if (mimeType.startsWith("video/")) return "🎬";
+  if (mimeType.startsWith("audio/")) return "🎵";
+  if (mimeType.includes("zip") || mimeType.includes("tar") || mimeType.includes("rar")) return "📦";
+  if (mimeType.includes("javascript") || mimeType.includes("typescript") || mimeType.includes("html") || mimeType.includes("css") || mimeType.includes("json")) return "💻";
+  if (mimeType.includes("pdf")) return "📄";
+  if (mimeType.includes("word") || mimeType.includes("document")) return "📝";
+  if (mimeType.includes("spreadsheet") || mimeType.includes("excel")) return "📊";
+  return "📎";
 }
 
-function ActivityTypeIcon({ type }: { type: string }) {
-  const base = "h-4 w-4";
-  if (type === "message") return <MessageCircle className={`${base} text-blue-500`} />;
-  if (type === "file_upload") return <Upload className={`${base} text-green-500`} />;
-  if (type === "member_joined") return <UserPlus className={`${base} text-purple-500`} />;
-  return <Inbox className={`${base} text-muted-foreground`} />;
+function getActivityEmoji(type: string) {
+  if (type === "message") return "💬";
+  if (type === "file_upload") return "📤";
+  if (type === "member_joined") return "🎉";
+  return "⚡";
 }
 
-function ActivityDotColor(type: string): string {
-  if (type === "message") return "bg-blue-500";
-  if (type === "file_upload") return "bg-green-500";
-  if (type === "member_joined") return "bg-purple-500";
-  return "bg-muted-foreground";
+function getActivityBg(type: string) {
+  if (type === "message") return "bg-blue-100 dark:bg-blue-900/30";
+  if (type === "file_upload") return "bg-emerald-100 dark:bg-emerald-900/30";
+  if (type === "member_joined") return "bg-purple-100 dark:bg-purple-900/30";
+  return "bg-muted";
 }
 
 function roleColor(role: string) {
@@ -51,24 +46,30 @@ function roleColor(role: string) {
   return "outline";
 }
 
+function roleEmoji(role: string) {
+  if (role === "admin") return "👑";
+  if (role === "editor") return "✏️";
+  return "👁️";
+}
+
 function StatCard({
-  title, value, icon, sub,
+  title, value, icon, sub, gradient,
 }: {
   title: string;
   value: string | number;
-  icon: React.ReactNode;
+  icon: string;
   sub?: string;
+  gradient: string;
 }) {
   return (
-    <Card className="relative overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+    <Card className="relative overflow-hidden group hover:shadow-md transition-all duration-200">
+      <div className={`absolute inset-0 opacity-40 ${gradient}`} />
+      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 relative z-10">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-          {icon}
-        </div>
+        <div className="text-2xl">{icon}</div>
       </CardHeader>
-      <CardContent>
-        <div className="text-3xl font-bold tracking-tight">{value}</div>
+      <CardContent className="relative z-10">
+        <div className="text-3xl font-black tracking-tight">{value}</div>
         {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
       </CardContent>
     </Card>
@@ -108,26 +109,30 @@ export function OverviewTab({ workspaceId }: { workspaceId: string }) {
         <StatCard
           title="Members"
           value={stats.memberCount}
-          icon={<Users className="h-4 w-4 text-primary" />}
+          icon="👥"
           sub={stats.memberCount === 1 ? "1 person" : `${stats.memberCount} people`}
+          gradient="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/20"
         />
         <StatCard
           title="Files"
           value={stats.fileCount}
-          icon={<FileText className="h-4 w-4 text-primary" />}
+          icon="📁"
           sub="uploaded"
+          gradient="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20"
         />
         <StatCard
           title="Messages"
           value={stats.messageCount}
-          icon={<MessageSquare className="h-4 w-4 text-primary" />}
+          icon="💬"
           sub="sent total"
+          gradient="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/20"
         />
         <StatCard
           title="Days Active"
           value={daysActive}
-          icon={<Calendar className="h-4 w-4 text-primary" />}
+          icon="🔥"
           sub={`Since ${format(new Date(stats.workspaceCreatedAt), "MMM d, yyyy")}`}
+          gradient="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/20"
         />
       </div>
 
@@ -136,33 +141,25 @@ export function OverviewTab({ workspaceId }: { workspaceId: string }) {
         {/* Activity Feed */}
         <Card className="lg:col-span-3 flex flex-col">
           <CardHeader className="pb-3 flex-shrink-0">
-            <CardTitle className="text-base">Activity Feed</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">⚡ Activity Feed</CardTitle>
             <CardDescription>Everything happening in this workspace</CardDescription>
           </CardHeader>
           <CardContent className="flex-1 p-0">
             <ScrollArea className="h-[480px] px-6 pb-6">
               {stats.recentActivity.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-48 text-center">
-                  <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-3">
-                    <Inbox className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                  <p className="text-sm font-medium text-muted-foreground">No activity yet</p>
+                  <div className="text-4xl mb-3">🌱</div>
+                  <p className="text-sm font-semibold">No activity yet</p>
                   <p className="text-xs text-muted-foreground mt-1">Start chatting, uploading files, or inviting members.</p>
                 </div>
               ) : (
                 <div className="relative">
-                  {/* Timeline line */}
                   <div className="absolute left-[15px] top-2 bottom-2 w-px bg-border" />
                   <div className="space-y-5">
                     {stats.recentActivity.map((activity, i) => (
                       <div key={i} className="flex gap-4 relative">
-                        {/* Timeline dot */}
-                        <div className={`h-8 w-8 rounded-full border-2 border-background flex items-center justify-center flex-shrink-0 z-10 ${
-                          activity.type === "message" ? "bg-blue-100" :
-                          activity.type === "file_upload" ? "bg-green-100" :
-                          "bg-purple-100"
-                        }`}>
-                          <ActivityTypeIcon type={activity.type} />
+                        <div className={`h-8 w-8 rounded-full border-2 border-background flex items-center justify-center flex-shrink-0 z-10 text-sm ${getActivityBg(activity.type)}`}>
+                          {getActivityEmoji(activity.type)}
                         </div>
                         <div className="flex-1 min-w-0 pt-0.5">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -193,21 +190,21 @@ export function OverviewTab({ workspaceId }: { workspaceId: string }) {
           {/* Recent Files */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Recent Files</CardTitle>
+              <CardTitle className="text-base flex items-center gap-2">📂 Recent Files</CardTitle>
               <CardDescription>Latest uploads</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               {stats.recentFiles.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
-                  <FileText className="h-8 w-8 text-muted-foreground/30 mb-2" />
+                  <div className="text-3xl mb-2">🗂️</div>
                   <p className="text-sm text-muted-foreground">No files yet</p>
                 </div>
               ) : (
                 <div className="divide-y">
                   {stats.recentFiles.map((file) => (
                     <div key={file.id} className="flex items-center gap-3 px-6 py-3 hover:bg-muted/30 transition-colors">
-                      <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
-                        {getFileIcon(file.mimeType)}
+                      <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 text-lg">
+                        {getFileEmoji(file.mimeType)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{file.name}</p>
@@ -225,30 +222,30 @@ export function OverviewTab({ workspaceId }: { workspaceId: string }) {
           {/* Team Members */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Team</CardTitle>
+              <CardTitle className="text-base flex items-center gap-2">👥 Team</CardTitle>
               <CardDescription>{stats.memberCount} {stats.memberCount === 1 ? "member" : "members"}</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               {stats.recentMembers.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <Users className="h-8 w-8 text-muted-foreground/30 mb-2" />
+                  <div className="text-3xl mb-2">🤝</div>
                   <p className="text-sm text-muted-foreground">No members yet</p>
                 </div>
               ) : (
                 <div className="divide-y">
                   {stats.recentMembers.map((member) => (
                     <div key={member.id} className="flex items-center gap-3 px-6 py-3">
-                      <Avatar className="h-8 w-8 border flex-shrink-0">
+                      <Avatar className="h-8 w-8 border-2 border-border flex-shrink-0">
                         <AvatarImage src={member.avatarUrl ?? undefined} />
-                        <AvatarFallback className="text-xs">{member.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                        <AvatarFallback className="text-xs font-bold bg-gradient-to-br from-primary/20 to-primary/5 text-primary">
+                          {member.name.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{member.name}</p>
+                        <p className="text-sm font-semibold truncate">{member.name}</p>
                         <p className="text-xs text-muted-foreground truncate">{member.email}</p>
                       </div>
-                      <Badge variant={roleColor(member.role) as any} className="capitalize text-[10px] px-2 py-0 flex-shrink-0">
-                        {member.role}
-                      </Badge>
+                      <span className="text-sm">{roleEmoji(member.role)}</span>
                     </div>
                   ))}
                   {stats.memberCount > stats.recentMembers.length && (
@@ -265,7 +262,7 @@ export function OverviewTab({ workspaceId }: { workspaceId: string }) {
           {stats.recentMessages.length > 0 && (
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Latest Messages</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2">💬 Latest Messages</CardTitle>
                 <CardDescription>Recent conversation</CardDescription>
               </CardHeader>
               <CardContent className="p-0">

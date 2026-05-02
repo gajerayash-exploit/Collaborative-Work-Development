@@ -1,6 +1,6 @@
 import { useListWorkspaces, useCreateWorkspace, getListWorkspacesQueryKey } from "@workspace/api-client-react";
 import { Link, useLocation } from "wouter";
-import { Plus, LayoutDashboard, Users, Activity } from "lucide-react";
+import { Plus, Users, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,6 +14,19 @@ import { useAuthSync } from "@/hooks/use-auth-sync";
 import { AppLayout } from "@/components/layout/app-layout";
 import { Badge } from "@/components/ui/badge";
 
+const WORKSPACE_EMOJIS = ["🚀", "⚡", "🎯", "🛠️", "💡", "🔥", "🌊", "🎨", "🦊", "🏗️", "🌐", "🧪"];
+
+function getWorkspaceEmoji(name: string) {
+  const idx = name.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) % WORKSPACE_EMOJIS.length;
+  return WORKSPACE_EMOJIS[idx];
+}
+
+const ROLE_CONFIG = {
+  admin: { label: "Admin", emoji: "👑", class: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800" },
+  editor: { label: "Editor", emoji: "✏️", class: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800" },
+  viewer: { label: "Viewer", emoji: "👁️", class: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700" },
+};
+
 export default function WorkspacesPage() {
   useAuthSync();
   const { data: workspaces, isLoading } = useListWorkspaces();
@@ -22,9 +35,12 @@ export default function WorkspacesPage() {
   return (
     <AppLayout>
       <div className="flex-1 flex flex-col p-6 max-w-7xl mx-auto w-full">
+        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Workspaces</h1>
+            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+              🏠 Workspaces
+            </h1>
             <p className="text-muted-foreground mt-1">Manage your team projects and collaborations.</p>
           </div>
           <CreateWorkspaceDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} />
@@ -35,6 +51,7 @@ export default function WorkspacesPage() {
             {[1, 2, 3].map((i) => (
               <Card key={i} className="animate-pulse">
                 <CardHeader>
+                  <Skeleton className="h-10 w-10 rounded-xl mb-3" />
                   <Skeleton className="h-6 w-1/2 mb-2" />
                   <Skeleton className="h-4 w-full" />
                 </CardHeader>
@@ -45,49 +62,66 @@ export default function WorkspacesPage() {
             ))}
           </div>
         ) : workspaces?.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center border rounded-xl bg-card border-dashed">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-              <LayoutDashboard className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="text-lg font-medium mb-2">No workspaces yet</h3>
-            <p className="text-muted-foreground max-w-sm mb-6">
-              Create a workspace to start collaborating with your team, managing tasks, and sharing files.
+          <div className="flex flex-col items-center justify-center py-24 text-center border-2 border-dashed rounded-2xl bg-muted/10">
+            <div className="text-6xl mb-4">🌌</div>
+            <h3 className="text-xl font-bold mb-2">No workspaces yet</h3>
+            <p className="text-muted-foreground max-w-sm mb-6 text-sm">
+              Create a workspace to start collaborating with your team — tasks, chat, files, and secrets all in one place.
             </p>
-            <Button onClick={() => setIsCreateOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Workspace
+            <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Create your first workspace
             </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {workspaces?.map((workspace) => (
-              <Card key={workspace.id} className="hover:border-primary/50 transition-colors flex flex-col">
-                <CardHeader>
-                  <div className="flex justify-between items-start mb-2">
-                    <CardTitle className="line-clamp-1">{workspace.name}</CardTitle>
-                    <Badge variant={workspace.role === "admin" ? "default" : "secondary"} className="capitalize">
-                      {workspace.role}
-                    </Badge>
-                  </div>
-                  <CardDescription className="line-clamp-2 min-h-[2.5rem]">
-                    {workspace.description || "No description provided."}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="mt-auto">
-                  <div className="flex items-center text-sm text-muted-foreground gap-4">
-                    <div className="flex items-center gap-1.5">
-                      <Users className="h-4 w-4" />
-                      <span>{workspace.memberCount} members</span>
+            {workspaces?.map((workspace) => {
+              const emoji = getWorkspaceEmoji(workspace.name);
+              const role = workspace.role as keyof typeof ROLE_CONFIG;
+              const roleConfig = ROLE_CONFIG[role] ?? ROLE_CONFIG.viewer;
+              return (
+                <Card key={workspace.id} className="group hover:border-primary/40 hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center text-2xl flex-shrink-0 shadow-sm">
+                        {emoji}
+                      </div>
+                      <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full border ${roleConfig.class}`}>
+                        {roleConfig.emoji} {roleConfig.label}
+                      </span>
                     </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="pt-4 border-t">
-                  <Link href={`/workspaces/${workspace.id}`} className="w-full">
-                    <Button variant="secondary" className="w-full">Open Workspace</Button>
-                  </Link>
-                </CardFooter>
-              </Card>
-            ))}
+                    <CardTitle className="text-base line-clamp-1 group-hover:text-primary transition-colors">{workspace.name}</CardTitle>
+                    <CardDescription className="line-clamp-2 min-h-[2.5rem] text-sm">
+                      {workspace.description || "No description provided."}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="mt-auto pb-3">
+                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <Users className="h-3.5 w-3.5" />
+                      <span>{workspace.memberCount} {workspace.memberCount === 1 ? "member" : "members"}</span>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="pt-3 border-t">
+                    <Link href={`/workspaces/${workspace.id}`} className="w-full">
+                      <Button variant="secondary" className="w-full gap-2 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                        Open Workspace →
+                      </Button>
+                    </Link>
+                  </CardFooter>
+                </Card>
+              );
+            })}
+
+            {/* Create new card */}
+            <button
+              onClick={() => setIsCreateOpen(true)}
+              className="flex flex-col items-center justify-center min-h-[200px] rounded-xl border-2 border-dashed border-muted-foreground/20 hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 text-muted-foreground hover:text-primary group"
+            >
+              <div className="h-12 w-12 rounded-xl bg-muted/50 group-hover:bg-primary/10 flex items-center justify-center mb-3 transition-colors">
+                <Plus className="h-6 w-6" />
+              </div>
+              <span className="text-sm font-medium">New Workspace</span>
+            </button>
           </div>
         )}
       </div>
@@ -123,21 +157,23 @@ function CreateWorkspaceDialog({ open, onOpenChange }: { open: boolean, onOpenCh
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
+        <Button className="gap-2">
+          <Sparkles className="h-4 w-4" />
           New Workspace
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Workspace</DialogTitle>
+          <DialogTitle className="flex items-center gap-2 text-lg">
+            🏗️ Create Workspace
+          </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">Workspace Name</Label>
             <Input
               id="name"
-              placeholder="e.g. Engineering Team"
+              placeholder="e.g. Engineering Team 🚀"
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={createWorkspace.isPending}
@@ -145,7 +181,7 @@ function CreateWorkspaceDialog({ open, onOpenChange }: { open: boolean, onOpenCh
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
+            <Label htmlFor="description">Description <span className="text-muted-foreground font-normal">(optional)</span></Label>
             <Textarea
               id="description"
               placeholder="What is this workspace for?"
@@ -164,8 +200,8 @@ function CreateWorkspaceDialog({ open, onOpenChange }: { open: boolean, onOpenCh
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={!name.trim() || createWorkspace.isPending}>
-              {createWorkspace.isPending ? "Creating..." : "Create"}
+            <Button type="submit" disabled={!name.trim() || createWorkspace.isPending} className="gap-2">
+              {createWorkspace.isPending ? "Creating..." : "🚀 Create"}
             </Button>
           </DialogFooter>
         </form>

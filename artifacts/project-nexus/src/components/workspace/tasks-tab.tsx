@@ -19,7 +19,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -36,31 +35,25 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Plus,
-  CheckCircle2,
-  Circle,
   Loader2,
   MoreVertical,
   Trash2,
   Pencil,
-  ArrowUp,
-  ArrowRight,
-  ArrowDown,
-  ClipboardList,
   List,
   LayoutDashboard,
 } from "lucide-react";
 import { useListWorkspaceMembers } from "@workspace/api-client-react";
 
 const STATUS_CONFIG = {
-  todo: { label: "To Do", icon: Circle, color: "text-slate-500" },
-  in_progress: { label: "In Progress", icon: Loader2, color: "text-blue-500" },
-  done: { label: "Done", icon: CheckCircle2, color: "text-green-500" },
+  todo: { label: "To Do", emoji: "⭕", color: "text-slate-500", bg: "bg-slate-100 dark:bg-slate-800" },
+  in_progress: { label: "In Progress", emoji: "🔄", color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30" },
+  done: { label: "Done", emoji: "✅", color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30" },
 };
 
 const PRIORITY_CONFIG = {
-  high: { label: "High", icon: ArrowUp, color: "text-red-500", badge: "destructive" as const },
-  medium: { label: "Medium", icon: ArrowRight, color: "text-amber-500", badge: "secondary" as const },
-  low: { label: "Low", icon: ArrowDown, color: "text-slate-400", badge: "outline" as const },
+  high: { label: "High", emoji: "🔴", badge: "destructive" as const },
+  medium: { label: "Medium", emoji: "🟡", badge: "secondary" as const },
+  low: { label: "Low", emoji: "🟢", badge: "outline" as const },
 };
 
 function initials(name: string) {
@@ -82,35 +75,31 @@ function TaskCard({
 }) {
   const status = STATUS_CONFIG[task.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.todo;
   const priority = PRIORITY_CONFIG[task.priority as keyof typeof PRIORITY_CONFIG] ?? PRIORITY_CONFIG.medium;
-  const StatusIcon = status.icon;
-  const PriorityIcon = priority.icon;
 
   return (
-    <div className="group flex items-start gap-3 p-4 rounded-xl bg-card border hover:border-primary/30 hover:shadow-sm transition-all">
+    <div className="group flex items-start gap-3 p-4 rounded-xl bg-card border hover:border-primary/30 hover:shadow-sm transition-all duration-200">
       <button
-        className={`mt-0.5 flex-shrink-0 ${status.color} hover:scale-110 transition-transform`}
+        className="mt-0.5 flex-shrink-0 text-xl hover:scale-110 transition-transform"
         onClick={() => {
           if (!canEdit) return;
           const next = task.status === "todo" ? "in_progress" : task.status === "in_progress" ? "done" : "todo";
           onStatusChange(task.id, next);
         }}
         disabled={!canEdit}
-        title={`Status: ${status.label}`}
+        title={`Status: ${status.label} — click to advance`}
       >
-        <StatusIcon className={`h-5 w-5 ${task.status === "in_progress" ? "animate-spin" : ""}`} />
+        {status.emoji}
       </button>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
-          <span className={`text-sm font-medium ${task.status === "done" ? "line-through text-muted-foreground" : ""}`}>
+          <span className={`text-sm font-semibold ${task.status === "done" ? "line-through text-muted-foreground" : ""}`}>
             {task.title}
           </span>
-          <div className="flex items-center gap-1">
-            <PriorityIcon className={`h-3.5 w-3.5 ${priority.color}`} />
-            <Badge variant={priority.badge} className="text-xs px-1.5 py-0">
-              {priority.label}
-            </Badge>
-          </div>
+          <span className="text-sm">{priority.emoji}</span>
+          <Badge variant={priority.badge} className="text-xs px-1.5 py-0">
+            {priority.label}
+          </Badge>
         </div>
         {task.description && (
           <p className="text-xs text-muted-foreground mb-2 leading-relaxed">{task.description}</p>
@@ -126,8 +115,8 @@ function TaskCard({
             </div>
           )}
           {task.dueDate && (
-            <span className="text-xs text-muted-foreground">
-              Due {new Date(task.dueDate).toLocaleDateString()}
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              📅 {new Date(task.dueDate).toLocaleDateString()}
             </span>
           )}
           <span className="text-xs text-muted-foreground">
@@ -144,11 +133,11 @@ function TaskCard({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEdit(task)}>
-              <Pencil className="h-3.5 w-3.5 mr-2" /> Edit
+            <DropdownMenuItem onClick={() => onEdit(task)} className="gap-2">
+              <Pencil className="h-3.5 w-3.5" /> Edit
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-destructive focus:text-destructive">
-              <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
+            <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-destructive focus:text-destructive gap-2">
+              <Trash2 className="h-3.5 w-3.5" /> Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -196,16 +185,18 @@ function TaskFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{editTask ? "Edit Task" : "Create Task"}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            {editTask ? "✏️ Edit Task" : "✨ Create Task"}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div>
             <label className="text-sm font-medium mb-1.5 block">Title *</label>
-            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Task title..." />
+            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="What needs to be done?" />
           </div>
           <div>
             <label className="text-sm font-medium mb-1.5 block">Description</label>
-            <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional description..." rows={3} className="resize-none" />
+            <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional details..." rows={3} className="resize-none" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -213,9 +204,9 @@ function TaskFormDialog({
               <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todo">To Do</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="done">Done</SelectItem>
+                  <SelectItem value="todo">⭕ To Do</SelectItem>
+                  <SelectItem value="in_progress">🔄 In Progress</SelectItem>
+                  <SelectItem value="done">✅ Done</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -224,9 +215,9 @@ function TaskFormDialog({
               <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="high">🔴 High</SelectItem>
+                  <SelectItem value="medium">🟡 Medium</SelectItem>
+                  <SelectItem value="low">🟢 Low</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -236,7 +227,7 @@ function TaskFormDialog({
             <Select value={assigneeId} onValueChange={setAssigneeId}>
               <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Unassigned</SelectItem>
+                <SelectItem value="none">👤 Unassigned</SelectItem>
                 {members.map((m: any) => (
                   <SelectItem key={m.userId} value={m.userId}>{m.user?.name ?? m.userId}</SelectItem>
                 ))}
@@ -244,14 +235,14 @@ function TaskFormDialog({
             </Select>
           </div>
           <div>
-            <label className="text-sm font-medium mb-1.5 block">Due Date</label>
+            <label className="text-sm font-medium mb-1.5 block">📅 Due Date</label>
             <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={!title.trim()}>
-            {editTask ? "Save Changes" : "Create Task"}
+          <Button onClick={handleSubmit} disabled={!title.trim()} className="gap-1.5">
+            {editTask ? "💾 Save Changes" : "✨ Create Task"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -276,7 +267,6 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
   const [view, setView] = useState<"list" | "board">("list");
 
   const canEdit = role !== "viewer";
-
   const invalidate = () => queryClient.invalidateQueries({ queryKey: getListTasksQueryKey(workspaceId) });
 
   const handleCreate = (data: any) => {
@@ -303,7 +293,6 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
   };
 
   const filtered = filter === "all" ? tasks : tasks.filter((t: any) => t.status === filter);
-
   const counts = {
     all: tasks.length,
     todo: tasks.filter((t: any) => t.status === "todo").length,
@@ -319,17 +308,26 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
     );
   }
 
+  const FILTER_TABS = [
+    { key: "all", label: "All", emoji: "📋" },
+    { key: "todo", label: "To Do", emoji: "⭕" },
+    { key: "in_progress", label: "In Progress", emoji: "🔄" },
+    { key: "done", label: "Done", emoji: "✅" },
+  ] as const;
+
   return (
     <div className="space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h2 className="text-xl font-bold">Tasks</h2>
-          <p className="text-sm text-muted-foreground">{counts.all} total · {counts.done} done</p>
+          <h2 className="text-xl font-bold flex items-center gap-2">📋 Tasks</h2>
+          <p className="text-sm text-muted-foreground">
+            {counts.all} total · {counts.done} done
+            {counts.in_progress > 0 && ` · ${counts.in_progress} in progress 🔄`}
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* View toggle */}
           <div className="flex items-center rounded-lg border bg-muted/40 p-0.5 gap-0.5">
             <Button
               variant={view === "list" ? "default" : "ghost"}
@@ -363,9 +361,7 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
       {view === "board" ? (
         tasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="p-4 rounded-full bg-muted mb-4">
-              <ClipboardList className="h-8 w-8 text-muted-foreground" />
-            </div>
+            <div className="text-5xl mb-4">🗂️</div>
             <h3 className="font-semibold text-lg mb-1">No tasks yet</h3>
             <p className="text-muted-foreground text-sm max-w-xs">Create your first task to populate the board.</p>
             {canEdit && (
@@ -386,29 +382,29 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
         )
       ) : (
         <>
-          {/* Filter Tabs — list view only */}
+          {/* Filter Tabs */}
           <div className="flex gap-2 flex-wrap">
-            {(["all", "todo", "in_progress", "done"] as const).map(f => (
+            {FILTER_TABS.map(f => (
               <Button
-                key={f}
-                variant={filter === f ? "default" : "outline"}
+                key={f.key}
+                variant={filter === f.key ? "default" : "outline"}
                 size="sm"
-                onClick={() => setFilter(f)}
-                className="capitalize gap-1.5"
+                onClick={() => setFilter(f.key)}
+                className="gap-1.5"
               >
-                {f === "all" ? "All" : STATUS_CONFIG[f as keyof typeof STATUS_CONFIG].label}
+                <span>{f.emoji}</span>
+                {f.label}
                 <Badge variant="secondary" className="text-xs px-1.5 py-0 min-w-[1.25rem] text-center">
-                  {counts[f]}
+                  {counts[f.key]}
                 </Badge>
               </Button>
             ))}
           </div>
 
-          {/* Task List */}
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="p-4 rounded-full bg-muted mb-4">
-                <ClipboardList className="h-8 w-8 text-muted-foreground" />
+              <div className="text-5xl mb-4">
+                {filter === "all" ? "🗂️" : STATUS_CONFIG[filter as keyof typeof STATUS_CONFIG]?.emoji}
               </div>
               <h3 className="font-semibold text-lg mb-1">
                 {filter === "all" ? "No tasks yet" : `No ${STATUS_CONFIG[filter as keyof typeof STATUS_CONFIG]?.label} tasks`}
@@ -439,7 +435,6 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
         </>
       )}
 
-      {/* Create Dialog */}
       <TaskFormDialog
         workspaceId={workspaceId}
         members={membersData}
@@ -449,7 +444,6 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
         onSave={handleCreate}
       />
 
-      {/* Edit Dialog */}
       {editTask && (
         <TaskFormDialog
           workspaceId={workspaceId}
