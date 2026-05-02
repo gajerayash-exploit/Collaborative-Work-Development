@@ -9,6 +9,7 @@ import invitesRouter from "./invites";
 import notificationsRouter from "./notifications";
 import tasksRouter from "./tasks";
 import searchRouter from "./search";
+import reactionsRouter from "./reactions";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(invitesRouter);
 router.use(notificationsRouter);
 router.use(tasksRouter);
 router.use(searchRouter);
+router.use(reactionsRouter);
 
 export default router;

@@ -327,6 +327,13 @@ export const ListMessagesResponseItem = zod.object({
   senderName: zod.string(),
   senderAvatarUrl: zod.string().nullish(),
   createdAt: zod.coerce.date(),
+  reactions: zod.array(
+    zod.object({
+      emoji: zod.string(),
+      count: zod.number(),
+      userIds: zod.array(zod.string()),
+    }),
+  ),
 });
 export const ListMessagesResponse = zod.array(ListMessagesResponseItem);
 
@@ -472,6 +479,23 @@ export const DeleteTaskParams = zod.object({
 
 export const DeleteTaskResponse = zod.object({
   success: zod.boolean(),
+});
+
+/**
+ * @summary Toggle an emoji reaction on a message
+ */
+export const ToggleReactionParams = zod.object({
+  workspaceId: zod.coerce.string(),
+  messageId: zod.coerce.string(),
+});
+
+export const ToggleReactionBody = zod.object({
+  emoji: zod.string(),
+});
+
+export const ToggleReactionResponse = zod.object({
+  action: zod.enum(["added", "removed"]),
+  emoji: zod.string(),
 });
 
 /**

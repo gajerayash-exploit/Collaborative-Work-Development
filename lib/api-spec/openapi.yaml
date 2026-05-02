@@ -540,6 +540,47 @@ paths:
                 required:
                   - success
 
+  /workspaces/{workspaceId}/messages/{messageId}/reactions:
+    post:
+      operationId: toggleReaction
+      tags: [messages]
+      summary: Toggle an emoji reaction on a message
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ToggleReactionBody"
+      responses:
+        "200":
+          description: Reaction toggled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  action:
+                    type: string
+                    enum: [added, removed]
+                  emoji:
+                    type: string
+                required:
+                  - action
+                  - emoji
+
   /workspaces/{workspaceId}/search:
     get:
       operationId: searchWorkspace
@@ -933,6 +974,22 @@ components:
         - mimeType
         - url
 
+    MessageReaction:
+      type: object
+      properties:
+        emoji:
+          type: string
+        count:
+          type: integer
+        userIds:
+          type: array
+          items:
+            type: string
+      required:
+        - emoji
+        - count
+        - userIds
+
     Message:
       type: object
       properties:
@@ -952,6 +1009,10 @@ components:
         createdAt:
           type: string
           format: date-time
+        reactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/MessageReaction"
       required:
         - id
         - workspaceId
@@ -959,6 +1020,7 @@ components:
         - senderId
         - senderName
         - createdAt
+        - reactions
 
     SendMessageBody:
       type: object
@@ -967,6 +1029,14 @@ components:
           type: string
       required:
         - content
+
+    ToggleReactionBody:
+      type: object
+      properties:
+        emoji:
+          type: string
+      required:
+        - emoji
 
     Task:
       type: object

@@ -203,6 +203,12 @@ export interface UploadFileBody {
   url: string;
 }
 
+export interface MessageReaction {
+  emoji: string;
+  count: number;
+  userIds: string[];
+}
+
 export interface Message {
   id: string;
   workspaceId: string;
@@ -211,10 +217,15 @@ export interface Message {
   senderName: string;
   senderAvatarUrl?: string | null;
   createdAt: string;
+  reactions: MessageReaction[];
 }
 
 export interface SendMessageBody {
   content: string;
+}
+
+export interface ToggleReactionBody {
+  emoji: string;
 }
 
 export type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus];
@@ -342,6 +353,19 @@ export type ListMessagesParams = {
 
 export type DeleteTask200 = {
   success: boolean;
+};
+
+export type ToggleReaction200Action =
+  (typeof ToggleReaction200Action)[keyof typeof ToggleReaction200Action];
+
+export const ToggleReaction200Action = {
+  added: "added",
+  removed: "removed",
+} as const;
+
+export type ToggleReaction200 = {
+  action: ToggleReaction200Action;
+  emoji: string;
 };
 
 export type SearchWorkspaceParams = {

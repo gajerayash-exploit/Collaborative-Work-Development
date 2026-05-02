@@ -5,3 +5,4 @@ export * from "./workspace_files";
 export * from "./messages";
 export * from "./notifications";
 export * from "./tasks";
+export * from "./message_reactions";

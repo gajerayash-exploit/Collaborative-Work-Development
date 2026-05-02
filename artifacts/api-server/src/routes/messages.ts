@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { db, messagesTable, usersTable, workspaceMembersTable } from "@workspace/db";
-import { eq, and, desc } from "drizzle-orm";
+import { db, messagesTable, usersTable, workspaceMembersTable, messageReactionsTable } from "@workspace/db";
+import { eq, and, desc, inArray } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
 import { notifyWorkspaceMembers } from "../lib/notify";
 
@@ -35,7 +35,34 @@ router.get("/workspaces/:workspaceId/messages", requireAuth, async (req: any, re
       .orderBy(desc(messagesTable.createdAt))
       .limit(Math.min(parseInt(limit), 100));
 
-    res.json(msgs.reverse());
+    const reversed = msgs.reverse();
+
+    if (reversed.length === 0) {
+      res.json([]);
+      return;
+    }
+
+    const messageIds = reversed.map(m => m.id);
+    const allReactions = await db
+      .select()
+      .from(messageReactionsTable)
+      .where(inArray(messageReactionsTable.messageId, messageIds));
+
+    const reactionsByMessage: Record<string, Record<string, string[]>> = {};
+    for (const r of allReactions) {
+      if (!reactionsByMessage[r.messageId]) reactionsByMessage[r.messageId] = {};
+      if (!reactionsByMessage[r.messageId][r.emoji]) reactionsByMessage[r.messageId][r.emoji] = [];
+      reactionsByMessage[r.messageId][r.emoji].push(r.userId);
+    }
+
+    res.json(reversed.map(m => ({
+      ...m,
+      reactions: Object.entries(reactionsByMessage[m.id] ?? {}).map(([emoji, userIds]) => ({
+        emoji,
+        count: userIds.length,
+        userIds,
+      })),
+    })));
   } catch (err) {
     req.log.error({ err }, "Failed to list messages");
     res.status(500).json({ error: "Internal server error" });
@@ -68,6 +95,7 @@ router.post("/workspaces/:workspaceId/messages", requireAuth, async (req: any, r
       ...msg,
       senderName: user[0].name,
       senderAvatarUrl: user[0].avatarUrl,
+      reactions: [],
     });
 
     notifyWorkspaceMembers({

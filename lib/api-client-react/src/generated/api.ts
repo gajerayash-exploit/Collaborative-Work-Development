@@ -29,6 +29,8 @@ import type {
   SendMessageBody,
   SuccessResponse,
   Task,
+  ToggleReaction200,
+  ToggleReactionBody,
   UpdateMemberRoleBody,
   UpdateTaskBody,
   UpdateUserProfileBody,
@@ -1983,6 +1985,120 @@ export const useDeleteTask = <
   TContext
 > => {
   return useMutation(getDeleteTaskMutationOptions(options));
+};
+
+/**
+ * @summary Toggle an emoji reaction on a message
+ */
+export const getToggleReactionUrl = (
+  workspaceId: string,
+  messageId: string,
+) => {
+  return `/api/workspaces/${workspaceId}/messages/${messageId}/reactions`;
+};
+
+export const toggleReaction = async (
+  workspaceId: string,
+  messageId: string,
+  toggleReactionBody: ToggleReactionBody,
+  options?: RequestInit,
+): Promise<ToggleReaction200> => {
+  return customFetch<ToggleReaction200>(
+    getToggleReactionUrl(workspaceId, messageId),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(toggleReactionBody),
+    },
+  );
+};
+
+export const getToggleReactionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof toggleReaction>>,
+    TError,
+    {
+      workspaceId: string;
+      messageId: string;
+      data: BodyType<ToggleReactionBody>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof toggleReaction>>,
+  TError,
+  {
+    workspaceId: string;
+    messageId: string;
+    data: BodyType<ToggleReactionBody>;
+  },
+  TContext
+> => {
+  const mutationKey = ["toggleReaction"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof toggleReaction>>,
+    {
+      workspaceId: string;
+      messageId: string;
+      data: BodyType<ToggleReactionBody>;
+    }
+  > = (props) => {
+    const { workspaceId, messageId, data } = props ?? {};
+
+    return toggleReaction(workspaceId, messageId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ToggleReactionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof toggleReaction>>
+>;
+export type ToggleReactionMutationBody = BodyType<ToggleReactionBody>;
+export type ToggleReactionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Toggle an emoji reaction on a message
+ */
+export const useToggleReaction = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof toggleReaction>>,
+    TError,
+    {
+      workspaceId: string;
+      messageId: string;
+      data: BodyType<ToggleReactionBody>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof toggleReaction>>,
+  TError,
+  {
+    workspaceId: string;
+    messageId: string;
+    data: BodyType<ToggleReactionBody>;
+  },
+  TContext
+> => {
+  return useMutation(getToggleReactionMutationOptions(options));
 };
 
 /**
