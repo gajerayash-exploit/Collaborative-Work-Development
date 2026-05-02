@@ -1,4 +1,5 @@
 import { useState } from "react";
+import React from "react";
 import {
   useGetBurndownAnalytics,
   getGetBurndownAnalyticsQueryKey,
@@ -11,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   ClipboardList, CheckCircle2, Zap, Clock, TrendingUp, BarChart2,
-  Target, Layers, CalendarDays, Users, Download, Sprout,
+  Target, Layers, CalendarDays, Users, Download, Sprout, Circle,
 } from "lucide-react";
 import {
   AreaChart,
@@ -87,7 +88,7 @@ function ProgressRing({ pct, size = 80, stroke = 8, color = "hsl(var(--primary))
   );
 }
 
-function StatRing({ label, value, total, emoji, color }: { label: string; value: number; total: number; emoji: string; color: string }) {
+function StatRing({ label, value, total, icon: Icon, color }: { label: string; value: number; total: number; icon: React.ElementType; color: string }) {
   const pct = total > 0 ? Math.round((value / total) * 100) : 0;
   return (
     <div className="flex flex-col items-center gap-2 p-4">
@@ -99,7 +100,7 @@ function StatRing({ label, value, total, emoji, color }: { label: string; value:
       </div>
       <div className="text-center">
         <div className="flex items-center justify-center gap-1">
-          <span>{emoji}</span>
+          <Icon className="h-4 w-4 text-[#2b2b2b] dark:text-[#d4d4d4]" />
           <span className="text-xl font-black">{value}</span>
         </div>
         <p className="text-xs text-muted-foreground">{label}</p>
@@ -457,9 +458,9 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-around flex-wrap gap-2">
-              <StatRing label="Done" value={summary.done} total={summary.total} emoji="✅" color="#22c55e" />
-              <StatRing label="In Progress" value={summary.inProgress} total={summary.total} emoji="🔄" color="#3b82f6" />
-              <StatRing label="To Do" value={summary.todo} total={summary.total} emoji="⭕" color="#94a3b8" />
+              <StatRing label="Done" value={summary.done} total={summary.total} icon={CheckCircle2} color="#22c55e" />
+              <StatRing label="In Progress" value={summary.inProgress} total={summary.total} icon={Clock} color="#3b82f6" />
+              <StatRing label="To Do" value={summary.todo} total={summary.total} icon={Circle} color="#94a3b8" />
             </div>
           </CardContent>
         </Card>
