@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   ClipboardList, CheckCircle2, Zap, Clock, TrendingUp, BarChart2,
-  Target, Layers, CalendarDays, Users,
+  Target, Layers, CalendarDays, Users, Download,
 } from "lucide-react";
 import {
   AreaChart,
@@ -26,6 +26,32 @@ import {
   Bar,
   Cell,
 } from "recharts";
+
+function exportToCsv(dailyData: any[], summary: any, days: number) {
+  const rows = [
+    ["Date", "Created", "Completed", "Cumulative Created", "Cumulative Completed"],
+    ...dailyData.map((d: any) => [
+      d.date, d.created, d.completed, d.cumCreated, d.cumCompleted,
+    ]),
+    [],
+    ["Summary", ""],
+    ["Total Tasks", summary.total],
+    ["Completed", summary.done],
+    ["In Progress", summary.inProgress],
+    ["To Do", summary.todo],
+    ["Completion Rate", `${summary.completionRate}%`],
+    ["Period (days)", days],
+  ];
+
+  const csv = rows.map(r => r.join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `analytics-${days}d-${new Date().toISOString().split("T")[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 const RANGE_OPTIONS = [
   { label: "7 days", days: 7 },
@@ -285,18 +311,31 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
             Task velocity and burn-down trends for this workspace
           </p>
         </div>
-        <div className="flex items-center gap-1.5 rounded-lg border bg-muted/40 p-1">
-          {RANGE_OPTIONS.map(opt => (
-            <Button
-              key={opt.days}
-              variant={days === opt.days ? "default" : "ghost"}
-              size="sm"
-              className="h-7 px-3 text-xs"
-              onClick={() => setDays(opt.days)}
-            >
-              {opt.label}
-            </Button>
-          ))}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 rounded-lg border bg-muted/40 p-1">
+            {RANGE_OPTIONS.map(opt => (
+              <Button
+                key={opt.days}
+                variant={days === opt.days ? "default" : "ghost"}
+                size="sm"
+                className="h-7 px-3 text-xs"
+                onClick={() => setDays(opt.days)}
+              >
+                {opt.label}
+              </Button>
+            ))}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 gap-1.5 text-xs"
+            onClick={() => exportToCsv(dailyData, summary, days)}
+            disabled={summary.total === 0}
+            title="Export daily data as CSV"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Export CSV
+          </Button>
         </div>
       </div>
 
