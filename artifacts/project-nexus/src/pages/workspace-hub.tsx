@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearch } from "wouter";
 import { AppLayout } from "@/components/layout/app-layout";
 import { useGetWorkspace, getGetWorkspaceQueryKey } from "@workspace/api-client-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,8 +20,16 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
     query: { enabled: !!id, queryKey: getGetWorkspaceQueryKey(id) },
   });
 
-  const [activeTab, setActiveTab] = useState("overview");
+  const search = useSearch();
+  const initialTab = new URLSearchParams(search).get("tab") ?? "overview";
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [searchOpen, setSearchOpen] = useState(false);
+
+  // Sync tab when URL query changes (e.g. clicking a notification deep link)
+  useEffect(() => {
+    const tab = new URLSearchParams(search).get("tab");
+    if (tab) setActiveTab(tab);
+  }, [search]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
