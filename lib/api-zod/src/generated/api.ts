@@ -340,3 +340,176 @@ export const SendMessageParams = zod.object({
 export const SendMessageBody = zod.object({
   content: zod.string(),
 });
+
+/**
+ * @summary List tasks in a workspace
+ */
+export const ListTasksParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const ListTasksResponseItem = zod.object({
+  id: zod.string(),
+  workspaceId: zod.string(),
+  title: zod.string(),
+  description: zod.string().nullish(),
+  status: zod.enum(["todo", "in_progress", "done"]),
+  priority: zod.enum(["low", "medium", "high"]),
+  assigneeId: zod.string().nullish(),
+  createdBy: zod.string(),
+  dueDate: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+  assignee: zod
+    .union([
+      zod.object({
+        id: zod.string(),
+        clerkId: zod.string(),
+        email: zod.string(),
+        name: zod.string(),
+        avatarUrl: zod.string().nullish(),
+        createdAt: zod.coerce.date(),
+      }),
+      zod.null(),
+    ])
+    .nullish(),
+  creator: zod
+    .union([
+      zod.object({
+        id: zod.string(),
+        clerkId: zod.string(),
+        email: zod.string(),
+        name: zod.string(),
+        avatarUrl: zod.string().nullish(),
+        createdAt: zod.coerce.date(),
+      }),
+      zod.null(),
+    ])
+    .nullish(),
+});
+export const ListTasksResponse = zod.array(ListTasksResponseItem);
+
+/**
+ * @summary Create a task
+ */
+export const CreateTaskParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const CreateTaskBody = zod.object({
+  title: zod.string(),
+  description: zod.string().optional(),
+  status: zod.enum(["todo", "in_progress", "done"]).optional(),
+  priority: zod.enum(["low", "medium", "high"]).optional(),
+  assigneeId: zod.string().nullish(),
+  dueDate: zod.coerce.date().nullish(),
+});
+
+/**
+ * @summary Update a task
+ */
+export const UpdateTaskParams = zod.object({
+  workspaceId: zod.coerce.string(),
+  taskId: zod.coerce.string(),
+});
+
+export const UpdateTaskBody = zod.object({
+  title: zod.string().optional(),
+  description: zod.string().nullish(),
+  status: zod.enum(["todo", "in_progress", "done"]).optional(),
+  priority: zod.enum(["low", "medium", "high"]).optional(),
+  assigneeId: zod.string().nullish(),
+  dueDate: zod.coerce.date().nullish(),
+});
+
+export const UpdateTaskResponse = zod.object({
+  id: zod.string(),
+  workspaceId: zod.string(),
+  title: zod.string(),
+  description: zod.string().nullish(),
+  status: zod.enum(["todo", "in_progress", "done"]),
+  priority: zod.enum(["low", "medium", "high"]),
+  assigneeId: zod.string().nullish(),
+  createdBy: zod.string(),
+  dueDate: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+  assignee: zod
+    .union([
+      zod.object({
+        id: zod.string(),
+        clerkId: zod.string(),
+        email: zod.string(),
+        name: zod.string(),
+        avatarUrl: zod.string().nullish(),
+        createdAt: zod.coerce.date(),
+      }),
+      zod.null(),
+    ])
+    .nullish(),
+  creator: zod
+    .union([
+      zod.object({
+        id: zod.string(),
+        clerkId: zod.string(),
+        email: zod.string(),
+        name: zod.string(),
+        avatarUrl: zod.string().nullish(),
+        createdAt: zod.coerce.date(),
+      }),
+      zod.null(),
+    ])
+    .nullish(),
+});
+
+/**
+ * @summary Delete a task
+ */
+export const DeleteTaskParams = zod.object({
+  workspaceId: zod.coerce.string(),
+  taskId: zod.coerce.string(),
+});
+
+export const DeleteTaskResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
+ * @summary Search messages, files, and tasks
+ */
+export const SearchWorkspaceParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const SearchWorkspaceQueryParams = zod.object({
+  q: zod.coerce.string(),
+});
+
+export const SearchWorkspaceResponse = zod.object({
+  messages: zod.array(
+    zod.object({
+      id: zod.string(),
+      content: zod.string(),
+      senderName: zod.string(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+  files: zod.array(
+    zod.object({
+      id: zod.string(),
+      name: zod.string(),
+      mimeType: zod.string(),
+      uploaderName: zod.string(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+  tasks: zod.array(
+    zod.object({
+      id: zod.string(),
+      title: zod.string(),
+      status: zod.string(),
+      priority: zod.string(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+});

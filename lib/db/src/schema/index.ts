@@ -4,3 +4,4 @@ export * from "./workspace_members";
 export * from "./workspace_files";
 export * from "./messages";
 export * from "./notifications";
+export * from "./tasks";

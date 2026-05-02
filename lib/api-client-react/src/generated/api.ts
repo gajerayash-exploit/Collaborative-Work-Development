@@ -17,14 +17,20 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  CreateTaskBody,
   CreateWorkspaceBody,
+  DeleteTask200,
   HealthStatus,
   InviteMemberBody,
   ListMessagesParams,
   Message,
+  SearchResults,
+  SearchWorkspaceParams,
   SendMessageBody,
   SuccessResponse,
+  Task,
   UpdateMemberRoleBody,
+  UpdateTaskBody,
   UpdateUserProfileBody,
   UpdateWorkspaceBody,
   UploadFileBody,
@@ -1633,3 +1639,467 @@ export const useSendMessage = <
 > => {
   return useMutation(getSendMessageMutationOptions(options));
 };
+
+/**
+ * @summary List tasks in a workspace
+ */
+export const getListTasksUrl = (workspaceId: string) => {
+  return `/api/workspaces/${workspaceId}/tasks`;
+};
+
+export const listTasks = async (
+  workspaceId: string,
+  options?: RequestInit,
+): Promise<Task[]> => {
+  return customFetch<Task[]>(getListTasksUrl(workspaceId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListTasksQueryKey = (workspaceId: string) => {
+  return [`/api/workspaces/${workspaceId}/tasks`] as const;
+};
+
+export const getListTasksQueryOptions = <
+  TData = Awaited<ReturnType<typeof listTasks>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listTasks>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListTasksQueryKey(workspaceId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listTasks>>> = ({
+    signal,
+  }) => listTasks(workspaceId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!workspaceId,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof listTasks>>, TError, TData> & {
+    queryKey: QueryKey;
+  };
+};
+
+export type ListTasksQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listTasks>>
+>;
+export type ListTasksQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List tasks in a workspace
+ */
+
+export function useListTasks<
+  TData = Awaited<ReturnType<typeof listTasks>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listTasks>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListTasksQueryOptions(workspaceId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a task
+ */
+export const getCreateTaskUrl = (workspaceId: string) => {
+  return `/api/workspaces/${workspaceId}/tasks`;
+};
+
+export const createTask = async (
+  workspaceId: string,
+  createTaskBody: CreateTaskBody,
+  options?: RequestInit,
+): Promise<Task> => {
+  return customFetch<Task>(getCreateTaskUrl(workspaceId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createTaskBody),
+  });
+};
+
+export const getCreateTaskMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createTask>>,
+    TError,
+    { workspaceId: string; data: BodyType<CreateTaskBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createTask>>,
+  TError,
+  { workspaceId: string; data: BodyType<CreateTaskBody> },
+  TContext
+> => {
+  const mutationKey = ["createTask"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createTask>>,
+    { workspaceId: string; data: BodyType<CreateTaskBody> }
+  > = (props) => {
+    const { workspaceId, data } = props ?? {};
+
+    return createTask(workspaceId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateTaskMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createTask>>
+>;
+export type CreateTaskMutationBody = BodyType<CreateTaskBody>;
+export type CreateTaskMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a task
+ */
+export const useCreateTask = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createTask>>,
+    TError,
+    { workspaceId: string; data: BodyType<CreateTaskBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createTask>>,
+  TError,
+  { workspaceId: string; data: BodyType<CreateTaskBody> },
+  TContext
+> => {
+  return useMutation(getCreateTaskMutationOptions(options));
+};
+
+/**
+ * @summary Update a task
+ */
+export const getUpdateTaskUrl = (workspaceId: string, taskId: string) => {
+  return `/api/workspaces/${workspaceId}/tasks/${taskId}`;
+};
+
+export const updateTask = async (
+  workspaceId: string,
+  taskId: string,
+  updateTaskBody: UpdateTaskBody,
+  options?: RequestInit,
+): Promise<Task> => {
+  return customFetch<Task>(getUpdateTaskUrl(workspaceId, taskId), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateTaskBody),
+  });
+};
+
+export const getUpdateTaskMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateTask>>,
+    TError,
+    { workspaceId: string; taskId: string; data: BodyType<UpdateTaskBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateTask>>,
+  TError,
+  { workspaceId: string; taskId: string; data: BodyType<UpdateTaskBody> },
+  TContext
+> => {
+  const mutationKey = ["updateTask"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateTask>>,
+    { workspaceId: string; taskId: string; data: BodyType<UpdateTaskBody> }
+  > = (props) => {
+    const { workspaceId, taskId, data } = props ?? {};
+
+    return updateTask(workspaceId, taskId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateTaskMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateTask>>
+>;
+export type UpdateTaskMutationBody = BodyType<UpdateTaskBody>;
+export type UpdateTaskMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a task
+ */
+export const useUpdateTask = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateTask>>,
+    TError,
+    { workspaceId: string; taskId: string; data: BodyType<UpdateTaskBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateTask>>,
+  TError,
+  { workspaceId: string; taskId: string; data: BodyType<UpdateTaskBody> },
+  TContext
+> => {
+  return useMutation(getUpdateTaskMutationOptions(options));
+};
+
+/**
+ * @summary Delete a task
+ */
+export const getDeleteTaskUrl = (workspaceId: string, taskId: string) => {
+  return `/api/workspaces/${workspaceId}/tasks/${taskId}`;
+};
+
+export const deleteTask = async (
+  workspaceId: string,
+  taskId: string,
+  options?: RequestInit,
+): Promise<DeleteTask200> => {
+  return customFetch<DeleteTask200>(getDeleteTaskUrl(workspaceId, taskId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteTaskMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteTask>>,
+    TError,
+    { workspaceId: string; taskId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteTask>>,
+  TError,
+  { workspaceId: string; taskId: string },
+  TContext
+> => {
+  const mutationKey = ["deleteTask"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteTask>>,
+    { workspaceId: string; taskId: string }
+  > = (props) => {
+    const { workspaceId, taskId } = props ?? {};
+
+    return deleteTask(workspaceId, taskId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteTaskMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteTask>>
+>;
+
+export type DeleteTaskMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a task
+ */
+export const useDeleteTask = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteTask>>,
+    TError,
+    { workspaceId: string; taskId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteTask>>,
+  TError,
+  { workspaceId: string; taskId: string },
+  TContext
+> => {
+  return useMutation(getDeleteTaskMutationOptions(options));
+};
+
+/**
+ * @summary Search messages, files, and tasks
+ */
+export const getSearchWorkspaceUrl = (
+  workspaceId: string,
+  params: SearchWorkspaceParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/workspaces/${workspaceId}/search?${stringifiedParams}`
+    : `/api/workspaces/${workspaceId}/search`;
+};
+
+export const searchWorkspace = async (
+  workspaceId: string,
+  params: SearchWorkspaceParams,
+  options?: RequestInit,
+): Promise<SearchResults> => {
+  return customFetch<SearchResults>(
+    getSearchWorkspaceUrl(workspaceId, params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getSearchWorkspaceQueryKey = (
+  workspaceId: string,
+  params?: SearchWorkspaceParams,
+) => {
+  return [
+    `/api/workspaces/${workspaceId}/search`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getSearchWorkspaceQueryOptions = <
+  TData = Awaited<ReturnType<typeof searchWorkspace>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  params: SearchWorkspaceParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof searchWorkspace>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getSearchWorkspaceQueryKey(workspaceId, params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof searchWorkspace>>> = ({
+    signal,
+  }) => searchWorkspace(workspaceId, params, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!workspaceId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof searchWorkspace>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type SearchWorkspaceQueryResult = NonNullable<
+  Awaited<ReturnType<typeof searchWorkspace>>
+>;
+export type SearchWorkspaceQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Search messages, files, and tasks
+ */
+
+export function useSearchWorkspace<
+  TData = Awaited<ReturnType<typeof searchWorkspace>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  params: SearchWorkspaceParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof searchWorkspace>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getSearchWorkspaceQueryOptions(
+    workspaceId,
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}

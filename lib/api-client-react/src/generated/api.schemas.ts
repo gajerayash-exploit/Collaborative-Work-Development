@@ -217,10 +217,133 @@ export interface SendMessageBody {
   content: string;
 }
 
+export type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus];
+
+export const TaskStatus = {
+  todo: "todo",
+  in_progress: "in_progress",
+  done: "done",
+} as const;
+
+export type TaskPriority = (typeof TaskPriority)[keyof typeof TaskPriority];
+
+export const TaskPriority = {
+  low: "low",
+  medium: "medium",
+  high: "high",
+} as const;
+
+export interface Task {
+  id: string;
+  workspaceId: string;
+  title: string;
+  description?: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  assigneeId?: string | null;
+  createdBy: string;
+  dueDate?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  assignee?: UserProfile | null;
+  creator?: UserProfile | null;
+}
+
+export type CreateTaskBodyStatus =
+  (typeof CreateTaskBodyStatus)[keyof typeof CreateTaskBodyStatus];
+
+export const CreateTaskBodyStatus = {
+  todo: "todo",
+  in_progress: "in_progress",
+  done: "done",
+} as const;
+
+export type CreateTaskBodyPriority =
+  (typeof CreateTaskBodyPriority)[keyof typeof CreateTaskBodyPriority];
+
+export const CreateTaskBodyPriority = {
+  low: "low",
+  medium: "medium",
+  high: "high",
+} as const;
+
+export interface CreateTaskBody {
+  title: string;
+  description?: string;
+  status?: CreateTaskBodyStatus;
+  priority?: CreateTaskBodyPriority;
+  assigneeId?: string | null;
+  dueDate?: string | null;
+}
+
+export type UpdateTaskBodyStatus =
+  (typeof UpdateTaskBodyStatus)[keyof typeof UpdateTaskBodyStatus];
+
+export const UpdateTaskBodyStatus = {
+  todo: "todo",
+  in_progress: "in_progress",
+  done: "done",
+} as const;
+
+export type UpdateTaskBodyPriority =
+  (typeof UpdateTaskBodyPriority)[keyof typeof UpdateTaskBodyPriority];
+
+export const UpdateTaskBodyPriority = {
+  low: "low",
+  medium: "medium",
+  high: "high",
+} as const;
+
+export interface UpdateTaskBody {
+  title?: string;
+  description?: string | null;
+  status?: UpdateTaskBodyStatus;
+  priority?: UpdateTaskBodyPriority;
+  assigneeId?: string | null;
+  dueDate?: string | null;
+}
+
+export interface SearchMessage {
+  id: string;
+  content: string;
+  senderName: string;
+  createdAt: string;
+}
+
+export interface SearchFile {
+  id: string;
+  name: string;
+  mimeType: string;
+  uploaderName: string;
+  createdAt: string;
+}
+
+export interface SearchTask {
+  id: string;
+  title: string;
+  status: string;
+  priority: string;
+  createdAt: string;
+}
+
+export interface SearchResults {
+  messages: SearchMessage[];
+  files: SearchFile[];
+  tasks: SearchTask[];
+}
+
 export type ListMessagesParams = {
   limit?: number;
   /**
    * Cursor for pagination (message ID)
    */
   before?: string;
+};
+
+export type DeleteTask200 = {
+  success: boolean;
+};
+
+export type SearchWorkspaceParams = {
+  q: string;
 };

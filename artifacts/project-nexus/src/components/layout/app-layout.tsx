@@ -1,7 +1,7 @@
 import { useState, ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useListWorkspaces } from "@workspace/api-client-react";
-import { LayoutDashboard, LogOut, ChevronDown, User, Check } from "lucide-react";
+import { LayoutDashboard, LogOut, ChevronDown, User, Check, UserCircle } from "lucide-react";
 import { NotificationBell } from "./notification-bell";
 import { useClerk, useUser } from "@clerk/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -124,6 +124,11 @@ export function AppLayout({ children, activeWorkspaceId }: AppLayoutProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => setLocation("/profile")}>
+                <UserCircle className="h-4 w-4 mr-2" />
+                My Profile
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => signOut({ redirectUrl: "/" })}>
                 <LogOut className="h-4 w-4 mr-2 text-destructive" />

@@ -82,6 +82,7 @@ import AuthPage from "@/pages/auth";
 import WorkspacesPage from "@/pages/workspaces";
 import WorkspaceHubPage from "@/pages/workspace-hub";
 import JoinPage from "@/pages/join";
+import ProfilePage from "@/pages/profile";
 
 function HomeRedirect() {
   return (
@@ -135,6 +136,19 @@ function JoinRoute(props: { params: { code: string } }) {
   );
 }
 
+function ProfileRoute() {
+  return (
+    <>
+      <Show when="signed-in">
+        <ProfilePage />
+      </Show>
+      <Show when="signed-out">
+        <Redirect to="/sign-in" />
+      </Show>
+    </>
+  );
+}
+
 function ClerkQueryClientCacheInvalidator() {
   const { addListener } = useClerk();
   const queryClient = useQueryClient();
@@ -183,6 +197,7 @@ function ClerkProviderWithRoutes() {
           <Route path="/workspaces" component={WorkspacesRoute} />
           <Route path="/workspaces/:id" component={WorkspaceHubRoute} />
           <Route path="/join/:code" component={JoinRoute} />
+          <Route path="/profile" component={ProfileRoute} />
           <Route component={NotFound} />
         </Switch>
       </QueryClientProvider>

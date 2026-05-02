@@ -20,6 +20,10 @@ tags:
     description: Workspace file management
   - name: messages
     description: Workspace chat messages
+  - name: tasks
+    description: Workspace task management
+  - name: search
+    description: Workspace search
 
 paths:
   /healthz:
@@ -427,6 +431,141 @@ paths:
               schema:
                 $ref: "#/components/schemas/Message"
 
+  /workspaces/{workspaceId}/tasks:
+    get:
+      operationId: listTasks
+      tags: [tasks]
+      summary: List tasks in a workspace
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: Create a task
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTaskBody"
+      responses:
+        "201":
+          description: Created task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /workspaces/{workspaceId}/tasks/{taskId}:
+    patch:
+      operationId: updateTask
+      tags: [tasks]
+      summary: Update a task
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTaskBody"
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+    delete:
+      operationId: deleteTask
+      tags: [tasks]
+      summary: Delete a task
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                required:
+                  - success
+
+  /workspaces/{workspaceId}/search:
+    get:
+      operationId: searchWorkspace
+      tags: [search]
+      summary: Search messages, files, and tasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResults"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -828,3 +967,181 @@ components:
           type: string
       required:
         - content
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+        workspaceId:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [todo, in_progress, done]
+        priority:
+          type: string
+          enum: [low, medium, high]
+        assigneeId:
+          type: string
+          nullable: true
+        createdBy:
+          type: string
+        dueDate:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        assignee:
+          nullable: true
+          oneOf:
+            - $ref: "#/components/schemas/UserProfile"
+            - type: "null"
+        creator:
+          nullable: true
+          oneOf:
+            - $ref: "#/components/schemas/UserProfile"
+            - type: "null"
+      required:
+        - id
+        - workspaceId
+        - title
+        - status
+        - priority
+        - createdBy
+        - createdAt
+        - updatedAt
+
+    CreateTaskBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [todo, in_progress, done]
+        priority:
+          type: string
+          enum: [low, medium, high]
+        assigneeId:
+          type: string
+          nullable: true
+        dueDate:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - title
+
+    UpdateTaskBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [todo, in_progress, done]
+        priority:
+          type: string
+          enum: [low, medium, high]
+        assigneeId:
+          type: string
+          nullable: true
+        dueDate:
+          type: string
+          format: date-time
+          nullable: true
+
+    SearchResults:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchMessage"
+        files:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchFile"
+        tasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchTask"
+      required:
+        - messages
+        - files
+        - tasks
+
+    SearchMessage:
+      type: object
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+        senderName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - content
+        - senderName
+        - createdAt
+
+    SearchFile:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        mimeType:
+          type: string
+        uploaderName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - mimeType
+        - uploaderName
+        - createdAt
+
+    SearchTask:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+        priority:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - status
+        - priority
+        - createdAt
