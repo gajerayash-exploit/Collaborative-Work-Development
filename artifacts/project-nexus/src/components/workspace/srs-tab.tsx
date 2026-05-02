@@ -23,6 +23,7 @@ import {
   GitBranch, Target, Layers, Code2, RefreshCw, Trash2,
   Pencil, X, Check, AlertTriangle, ShieldAlert, CircleDot,
   Link2Off, GitMerge, ArrowRight, Sparkles, CheckCircle2,
+  Wand2, SendHorizonal,
 } from "lucide-react";
 
 const VIOLET = "#8B5CF6";
@@ -510,6 +511,82 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
   const dismissSuggestion = useCallback((s: AISuggestion) => {
     setDismissedSuggestions(prev => new Set([...prev, `${s.fromId}→${s.toId}`]));
   }, []);
+
+  const [genNodeOpen, setGenNodeOpen] = useState(false);
+  const [genNodePrompt, setGenNodePrompt] = useState("");
+  const [genNodeLoading, setGenNodeLoading] = useState(false);
+  const genInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (genNodeOpen) setTimeout(() => genInputRef.current?.focus(), 80);
+  }, [genNodeOpen]);
+
+  const generateNode = useCallback(async () => {
+    if (!genNodePrompt.trim() || genNodeLoading) return;
+    setGenNodeLoading(true);
+    try {
+      const payload = {
+        prompt: genNodePrompt.trim(),
+        nodes: nodes.map(n => {
+          const d = n.data as SRSNodeData;
+          return { id: n.id, title: d.title, description: d.description, category: d.category, priority: d.priority };
+        }),
+      };
+      const resp = await fetch("/api/srs/generate-node", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!resp.ok) throw new Error("Request failed");
+      const data = await resp.json() as {
+        title: string; description: string;
+        category: SRSNodeData["category"]; priority: SRSNodeData["priority"];
+        suggestedEdges: Array<{ targetId: string; direction: "to" | "from"; reason: string }>;
+      };
+
+      const newId = `ai-gen-${Date.now()}`;
+      const cx = nodes.reduce((s, n) => s + n.position.x, 0) / Math.max(nodes.length, 1);
+      const cy = nodes.reduce((s, n) => s + n.position.y, 0) / Math.max(nodes.length, 1);
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 300 + Math.random() * 120;
+      const newPos = {
+        x: cx + Math.cos(angle) * radius,
+        y: cy + Math.sin(angle) * radius,
+      };
+
+      setNodes(ns => [...ns, {
+        id: newId,
+        type: "srsNode",
+        position: newPos,
+        data: {
+          title: data.title,
+          description: data.description,
+          category: data.category,
+          priority: data.priority,
+          locked: false,
+        },
+      }]);
+
+      if (data.suggestedEdges?.length) {
+        setEdges(es => {
+          let next = es;
+          for (const se of data.suggestedEdges) {
+            const source = se.direction === "to" ? newId : se.targetId;
+            const target = se.direction === "to" ? se.targetId : newId;
+            next = addEdge({ source, target, type: "pulseEdge", id: `ae-${Date.now()}-${Math.random()}`, data: { label: "", neoMode: neo } }, next);
+          }
+          return next;
+        });
+      }
+
+      setTimeout(() => fitView({ nodes: [{ id: newId }], duration: 600, padding: 0.4 }), 120);
+      setGenNodePrompt("");
+      setGenNodeOpen(false);
+    } catch {
+    } finally {
+      setGenNodeLoading(false);
+    }
+  }, [genNodePrompt, genNodeLoading, nodes, setNodes, setEdges, fitView, neo]);
 
   useEffect(() => {
     const issues = computeAudit(nodes, edges);
@@ -1149,6 +1226,183 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
         )}
       </AnimatePresence>
 
+      {/* ───── Smart Node Generator ───── */}
+      <AnimatePresence>
+        {genNodeOpen && (
+          <>
+            <motion.div
+              key="gen-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => { if (!genNodeLoading) { setGenNodeOpen(false); setGenNodePrompt(""); } }}
+              style={{ position: "absolute", inset: 0, zIndex: 55, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(2px)" }}
+            />
+            <motion.div
+              key="gen-dialog"
+              initial={{ opacity: 0, scale: 0.92, y: -24 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: -24 }}
+              transition={{ type: "spring", stiffness: 380, damping: 26 }}
+              style={{
+                position: "absolute", top: "18%", left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 60, width: 480, maxWidth: "calc(100% - 40px)",
+                background: neo ? "#f5f5f5" : "rgba(8,4,20,0.98)",
+                border: neo ? "3px solid #000" : `1px solid rgba(168,85,247,0.4)`,
+                borderRadius: neo ? 4 : 16,
+                boxShadow: neo ? "8px 8px 0 #000" : "0 0 60px rgba(139,92,246,0.3), 0 24px 80px rgba(0,0,0,0.7)",
+                overflow: "hidden",
+              }}
+            >
+              {/* Header */}
+              <div style={{
+                padding: "14px 16px 12px",
+                borderBottom: neo ? "2px solid #000" : "1px solid rgba(168,85,247,0.2)",
+                background: neo ? "#000" : "linear-gradient(135deg, rgba(124,58,237,0.18), rgba(168,85,247,0.08))",
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{
+                    width: 28, height: 28, borderRadius: neo ? 2 : 8,
+                    background: "linear-gradient(135deg, #7c3aed, #a855f7)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    boxShadow: neo ? "none" : "0 0 12px rgba(168,85,247,0.5)",
+                  }}>
+                    <Wand2 size={14} style={{ color: "#fff" }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: neo ? "#fff" : "#e9d5ff", letterSpacing: 0.5 }}>
+                      Smart Node Generator
+                    </div>
+                    <div style={{ fontSize: 9, color: neo ? "rgba(255,255,255,0.6)" : "rgba(168,85,247,0.7)", fontWeight: 500 }}>
+                      Describe a requirement in plain English
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { if (!genNodeLoading) { setGenNodeOpen(false); setGenNodePrompt(""); } }}
+                  style={{ background: "transparent", border: "none", cursor: "pointer", color: neo ? "#fff" : "rgba(255,255,255,0.4)", padding: 4, borderRadius: 4 }}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+
+              {/* Input area */}
+              <div style={{ padding: "16px" }}>
+                <div style={{
+                  display: "flex", gap: 8, alignItems: "flex-start",
+                  background: neo ? "#fff" : "rgba(255,255,255,0.04)",
+                  border: neo ? "2px solid #000" : "1px solid rgba(168,85,247,0.25)",
+                  borderRadius: neo ? 2 : 10, padding: "10px 12px",
+                  boxShadow: neo ? "none" : "inset 0 1px 4px rgba(0,0,0,0.3)",
+                }}>
+                  <Sparkles size={14} style={{ color: "#a855f7", flexShrink: 0, marginTop: 2 }} />
+                  <input
+                    ref={genInputRef}
+                    value={genNodePrompt}
+                    onChange={e => setGenNodePrompt(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); generateNode(); }
+                      if (e.key === "Escape") { setGenNodeOpen(false); setGenNodePrompt(""); }
+                    }}
+                    disabled={genNodeLoading}
+                    placeholder="e.g. Rate limiting middleware for API endpoints..."
+                    style={{
+                      flex: 1, border: "none", outline: "none", background: "transparent",
+                      color: neo ? "#000" : "#e9d5ff", fontSize: 13, fontWeight: 500,
+                      lineHeight: 1.5,
+                    }}
+                  />
+                </div>
+
+                {/* Example prompts */}
+                {!genNodeLoading && genNodePrompt.length === 0 && (
+                  <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 5 }}>
+                    {[
+                      "Email notification system",
+                      "Two-factor authentication",
+                      "File upload size limit constraint",
+                      "Audit log for admin actions",
+                    ].map(ex => (
+                      <button
+                        key={ex}
+                        onClick={() => { setGenNodePrompt(ex); genInputRef.current?.focus(); }}
+                        style={{
+                          fontSize: 9, fontWeight: 600, padding: "3px 9px", cursor: "pointer",
+                          background: neo ? "#eee" : "rgba(168,85,247,0.1)",
+                          color: neo ? "#333" : "rgba(168,85,247,0.8)",
+                          border: neo ? "1px solid #ccc" : "1px solid rgba(168,85,247,0.2)",
+                          borderRadius: 20, whiteSpace: "nowrap",
+                          transition: "all 0.1s",
+                        }}
+                      >
+                        {ex}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Loading state */}
+                {genNodeLoading && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: neo ? "#eee" : "rgba(168,85,247,0.08)", borderRadius: 8, border: neo ? "1px solid #ccc" : "1px solid rgba(168,85,247,0.15)" }}
+                  >
+                    <RefreshCw size={12} style={{ color: "#a855f7", animation: "spin 1s linear infinite" }} />
+                    <span style={{ fontSize: 10, fontWeight: 600, color: neo ? "#555" : "rgba(168,85,247,0.8)" }}>
+                      GPT is analyzing your requirement and existing graph…
+                    </span>
+                  </motion.div>
+                )}
+
+                {/* Generate button */}
+                <div style={{ marginTop: 14, display: "flex", gap: 8 }}>
+                  <button
+                    onClick={generateNode}
+                    disabled={genNodeLoading || !genNodePrompt.trim()}
+                    style={{
+                      flex: 1, padding: "9px 0", fontWeight: 800, fontSize: 12, cursor: genNodeLoading || !genNodePrompt.trim() ? "default" : "pointer",
+                      background: genNodeLoading || !genNodePrompt.trim()
+                        ? (neo ? "#ccc" : "rgba(168,85,247,0.3)")
+                        : (neo ? "#000" : "linear-gradient(135deg, #7c3aed, #a855f7)"),
+                      color: "#fff", border: "none",
+                      borderRadius: neo ? 2 : 9,
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                      boxShadow: (!genNodeLoading && genNodePrompt.trim() && !neo) ? "0 0 20px rgba(168,85,247,0.5)" : "none",
+                      transition: "all 0.15s",
+                      letterSpacing: 0.3,
+                    }}
+                  >
+                    {genNodeLoading
+                      ? <><RefreshCw size={12} style={{ animation: "spin 1s linear infinite" }} /> Generating…</>
+                      : <><Wand2 size={12} /> Generate Node</>
+                    }
+                  </button>
+                  <button
+                    onClick={() => { setGenNodeOpen(false); setGenNodePrompt(""); }}
+                    disabled={genNodeLoading}
+                    style={{
+                      padding: "9px 16px", fontWeight: 600, fontSize: 11, cursor: "pointer",
+                      background: "transparent", color: neo ? "#666" : "rgba(255,255,255,0.35)",
+                      border: neo ? "2px solid #ccc" : `1px solid ${VIOLET_DIM}`,
+                      borderRadius: neo ? 2 : 9,
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+
+                <div style={{ marginTop: 10, fontSize: 9, color: neo ? "#888" : "rgba(255,255,255,0.2)", textAlign: "center" }}>
+                  Press Enter to generate · Escape to close · Node auto-connects to related nodes
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* ───── Node Editor Panel ───── */}
       <AnimatePresence>
         {editingNodeId && editDraft && (
@@ -1388,19 +1642,34 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
           <Panel position="top-right">
             <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
               {isAdmin && (
-                <button
-                  onClick={addNode}
-                  title="Add requirement node"
-                  style={{
-                    background: neo ? "#000" : VIOLET,
-                    color: "#fff", border: "none", borderRadius: neo ? 2 : 7,
-                    padding: "6px 12px", cursor: "pointer", fontWeight: 700, fontSize: 11,
-                    display: "flex", alignItems: "center", gap: 5,
-                    boxShadow: neo ? "none" : `0 0 12px ${VIOLET}66`,
-                  }}
-                >
-                  <Plus size={13} /> Add Node
-                </button>
+                <>
+                  <button
+                    onClick={() => setGenNodeOpen(true)}
+                    title="Generate node from description (AI)"
+                    style={{
+                      background: neo ? "#000" : "linear-gradient(135deg, #7c3aed, #a855f7)",
+                      color: "#fff", border: "none", borderRadius: neo ? 2 : 7,
+                      padding: "6px 12px", cursor: "pointer", fontWeight: 700, fontSize: 11,
+                      display: "flex", alignItems: "center", gap: 5,
+                      boxShadow: neo ? "none" : "0 0 16px rgba(168,85,247,0.5)",
+                    }}
+                  >
+                    <Wand2 size={13} /> Generate
+                  </button>
+                  <button
+                    onClick={addNode}
+                    title="Add requirement node"
+                    style={{
+                      background: neo ? "#000" : VIOLET,
+                      color: "#fff", border: "none", borderRadius: neo ? 2 : 7,
+                      padding: "6px 12px", cursor: "pointer", fontWeight: 700, fontSize: 11,
+                      display: "flex", alignItems: "center", gap: 5,
+                      boxShadow: neo ? "none" : `0 0 12px ${VIOLET}66`,
+                    }}
+                  >
+                    <Plus size={13} /> Add Node
+                  </button>
+                </>
               )}
               <button
                 onClick={() => setNeo(n => !n)}

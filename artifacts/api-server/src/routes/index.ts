@@ -18,6 +18,7 @@ import secretsRouter from "./secrets";
 import analyticsRouter from "./analytics";
 import activityRouter from "./activity";
 import srsSuggestRouter from "./srs-suggest";
+import srsGenerateNodeRouter from "./srs-generate-node";
 
 const router: IRouter = Router();
 
@@ -40,5 +41,6 @@ router.use(secretsRouter);
 router.use(analyticsRouter);
 router.use(activityRouter);
 router.use(srsSuggestRouter);
+router.use(srsGenerateNodeRouter);
 
 export default router;
