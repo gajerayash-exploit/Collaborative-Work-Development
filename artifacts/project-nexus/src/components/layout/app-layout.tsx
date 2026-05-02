@@ -1,7 +1,8 @@
 import { useState, ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useListWorkspaces } from "@workspace/api-client-react";
-import { LayoutDashboard, Settings, LogOut, ChevronDown, User, Check } from "lucide-react";
+import { LayoutDashboard, LogOut, ChevronDown, User, Check } from "lucide-react";
+import { NotificationBell } from "./notification-bell";
 import { useClerk, useUser } from "@clerk/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -103,7 +104,11 @@ export function AppLayout({ children, activeWorkspaceId }: AppLayoutProps) {
         </div>
 
         {/* User Profile */}
-        <div className="p-4 border-t border-sidebar-border">
+        <div className="p-4 border-t border-sidebar-border space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs text-muted-foreground font-medium">Notifications</span>
+            <NotificationBell />
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="w-full justify-start px-2 py-1.5 h-auto font-normal hover:bg-sidebar-accent">

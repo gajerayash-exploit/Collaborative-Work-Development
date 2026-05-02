@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, messagesTable, usersTable, workspaceMembersTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
+import { notifyWorkspaceMembers } from "../lib/notify";
 
 const router: IRouter = Router();
 
