@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   ClipboardList, CheckCircle2, Zap, Clock, TrendingUp, BarChart2,
-  Target, Layers, CalendarDays, Users, Download,
+  Target, Layers, CalendarDays, Users, Download, Sprout,
 } from "lucide-react";
 import {
   AreaChart,
@@ -383,6 +383,7 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
           <CardContent>
             {summary.total === 0 ? (
               <div className="flex flex-col items-center justify-center h-56 text-center">
+                <Sprout className="h-10 w-10 mb-3 text-[#2b2b2b] dark:text-[#d4d4d4] opacity-40" />
                 <p className="font-semibold">No task data yet</p>
                 <p className="text-sm text-muted-foreground mt-1">Create tasks to start tracking progress.</p>
               </div>
