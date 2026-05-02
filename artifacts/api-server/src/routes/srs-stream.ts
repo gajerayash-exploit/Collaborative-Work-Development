@@ -109,7 +109,7 @@ router.post("/srs/sync", requireAuth, (req: Request, res: Response): void => {
 });
 
 router.get("/srs/presence/:workspaceId", requireAuth, (req: Request, res: Response): void => {
-  const { workspaceId } = req.params;
+  const workspaceId = String(req.params.workspaceId ?? "");
   const subs = workspaceSubscribers.get(workspaceId);
   res.json({ count: subs?.size ?? 0 });
 });

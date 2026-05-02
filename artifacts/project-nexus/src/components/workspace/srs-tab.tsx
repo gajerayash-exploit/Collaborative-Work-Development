@@ -658,14 +658,26 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
   }, [nodes, edges]);
 
   const senderId = useMemo(() => `s-${Math.random().toString(36).slice(2, 9)}`, []);
-  const isApplyingRemote = useRef(false);
+  const remoteGenRef = useRef(0);
   const [colabCount, setColabCount] = useState(0);
   const [colabPulse, setColabPulse] = useState(false);
+
+  const fetchPresence = useCallback(async (wsId: string) => {
+    try {
+      const r = await fetch(`/api/srs/presence/${encodeURIComponent(wsId)}`);
+      if (r.ok) {
+        const d = await r.json() as { count: number };
+        setColabCount(d.count);
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     if (!workspaceId) return;
     const url = `/api/srs/stream?workspaceId=${encodeURIComponent(workspaceId)}&senderId=${encodeURIComponent(senderId)}`;
     const es = new EventSource(url);
+
+    fetchPresence(workspaceId);
 
     es.onmessage = (ev) => {
       try {
@@ -674,48 +686,44 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
           nodes?: Node[];
           edges?: Edge[];
           senderId?: string;
-          count?: number;
         };
 
         if (msg.type === "graph-update" || msg.type === "initial-state") {
           if (msg.senderId === senderId) return;
           if (!msg.nodes || !msg.edges) return;
-          isApplyingRemote.current = true;
+          remoteGenRef.current += 1;
           setNodes(msg.nodes as Node[]);
           setEdges(msg.edges as Edge[]);
           setColabPulse(true);
-          setTimeout(() => {
-            isApplyingRemote.current = false;
-            setColabPulse(false);
-          }, 1200);
+          setTimeout(() => setColabPulse(false), 1200);
+        }
+        if (msg.type === "connected") {
+          fetchPresence(workspaceId);
         }
       } catch {}
     };
 
     es.onerror = () => {};
 
-    const presenceInterval = setInterval(async () => {
-      try {
-        const r = await fetch(`/api/srs/presence/${encodeURIComponent(workspaceId)}`);
-        if (r.ok) {
-          const d = await r.json() as { count: number };
-          setColabCount(d.count);
-        }
-      } catch {}
-    }, 10000);
+    const presenceInterval = setInterval(() => fetchPresence(workspaceId), 10000);
 
     return () => {
       es.close();
       clearInterval(presenceInterval);
     };
-  }, [workspaceId, senderId, setNodes, setEdges]);
+  }, [workspaceId, senderId, setNodes, setEdges, fetchPresence]);
 
   const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const syncGenRef = useRef(0);
 
   useEffect(() => {
-    if (isApplyingRemote.current) return;
+    const capturedRemoteGen = remoteGenRef.current;
     if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+    syncGenRef.current += 1;
+    const thisGen = syncGenRef.current;
     syncTimeoutRef.current = setTimeout(async () => {
+      if (remoteGenRef.current !== capturedRemoteGen) return;
+      if (thisGen !== syncGenRef.current) return;
       try {
         const cleanNodes = nodes.map(n => ({ ...n, data: { ...n.data, onLock: undefined, onDelete: undefined, neoMode: undefined } }));
         await fetch("/api/srs/sync", {
@@ -801,12 +809,14 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
       animate={{ opacity: 1 }}
       style={{ width: "100%", height: "100%", display: "flex", position: "relative" }}
     >
-      {/* Pulse animation */}
+      {/* Pulse + spin animations */}
       <style>{`
         @keyframes srs-dash { to { stroke-dashoffset: -24; } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .react-flow__minimap { border-radius: 8px; overflow: hidden; }
         .react-flow__controls button { background: rgba(139,92,246,0.15) !important; border-color: rgba(139,92,246,0.3) !important; color: #8B5CF6 !important; }
         .react-flow__controls button:hover { background: rgba(139,92,246,0.3) !important; }
+        .srs-spin { animation: spin 1s linear infinite; }
       `}</style>
 
       {/* ───── Sidebar ───── */}
@@ -1061,7 +1071,7 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
                             display: "flex", alignItems: "center", gap: 4,
                           }}
                         >
-                          {suggestLoading ? <RefreshCw size={9} style={{ animation: "spin 1s linear infinite" }} /> : <Sparkles size={9} />}
+                          {suggestLoading ? <RefreshCw size={9} className="srs-spin" /> : <Sparkles size={9} />}
                           {suggestLoading ? "Thinking…" : "Analyze"}
                         </button>
                       </div>
@@ -1073,7 +1083,7 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
                       )}
 
                       {(() => {
-                        const CONF_COLORS = { high: "#22c55e", medium: "#f59e0b", low: "rgba(255,255,255,0.4)" };
+                        const CONF_COLORS = { high: "#22c55e", medium: "#f59e0b", low: neo ? "#6b7280" : "rgba(255,255,255,0.4)" };
                         const visible = suggestions.filter(s => !dismissedSuggestions.has(`${s.fromId}→${s.toId}`));
                         return visible.map(s => {
                           const key = `${s.fromId}→${s.toId}`;
@@ -1421,7 +1431,7 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
                     animate={{ opacity: 1, y: 0 }}
                     style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: neo ? "#eee" : "rgba(168,85,247,0.08)", borderRadius: 8, border: neo ? "1px solid #ccc" : "1px solid rgba(168,85,247,0.15)" }}
                   >
-                    <RefreshCw size={12} style={{ color: "#a855f7", animation: "spin 1s linear infinite" }} />
+                    <RefreshCw size={12} className="srs-spin" style={{ color: "#a855f7" }} />
                     <span style={{ fontSize: 10, fontWeight: 600, color: neo ? "#555" : "rgba(168,85,247,0.8)" }}>
                       GPT is analyzing your requirement and existing graph…
                     </span>
@@ -1447,7 +1457,7 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
                     }}
                   >
                     {genNodeLoading
-                      ? <><RefreshCw size={12} style={{ animation: "spin 1s linear infinite" }} /> Generating…</>
+                      ? <><RefreshCw size={12} className="srs-spin" /> Generating…</>
                       : <><Wand2 size={12} /> Generate Node</>
                     }
                   </button>
