@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Activity, MessageSquare, Files, Users, Settings, CheckSquare, Search, KeyRound, BarChart2 } from "lucide-react";
+import { Activity, MessageSquare, Files, Users, Settings, CheckSquare, Search, KeyRound, BarChart2, Network } from "lucide-react";
 import { OverviewTab } from "@/components/workspace/overview-tab";
 import { ChatTab } from "@/components/workspace/chat-tab";
 import { FilesTab } from "@/components/workspace/files-tab";
@@ -15,6 +15,7 @@ import { SettingsTab } from "@/components/workspace/settings-tab";
 import { TasksTab } from "@/components/workspace/tasks-tab";
 import { VaultTab } from "@/components/workspace/vault-tab";
 import { BurndownTab } from "@/components/workspace/burndown-tab";
+import { SRSTab } from "@/components/workspace/srs-tab";
 import { SearchDialog } from "@/components/workspace/search-dialog";
 
 const TAB_CLASS = "data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-2 pb-3 font-medium text-muted-foreground data-[state=active]:text-foreground hover:text-foreground transition-colors flex-shrink-0";
@@ -145,6 +146,10 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
                   <BarChart2 className="h-4 w-4 md:mr-1.5 shrink-0" />
                   <span className="hidden sm:inline text-sm">Analytics</span>
                 </TabsTrigger>
+                <TabsTrigger value="srs" className={TAB_CLASS}>
+                  <Network className="h-4 w-4 md:mr-1.5 shrink-0" />
+                  <span className="hidden sm:inline text-sm">SRS</span>
+                </TabsTrigger>
                 {isAdmin && (
                   <TabsTrigger value="settings" className={`${TAB_CLASS} ml-auto`}>
                     <Settings className="h-4 w-4 md:mr-1.5 shrink-0" />
@@ -157,18 +162,24 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-auto bg-muted/10">
-          <div className="p-3 md:p-6 h-full max-w-6xl mx-auto">
-            {activeTab === "overview" && <OverviewTab workspaceId={id} />}
-            {activeTab === "chat" && <ChatTab workspaceId={id} role={workspace.role} />}
-            {activeTab === "files" && <FilesTab workspaceId={id} role={workspace.role} />}
-            {activeTab === "members" && <MembersTab workspaceId={id} role={workspace.role} />}
-            {activeTab === "tasks" && <TasksTab workspaceId={id} role={workspace.role} />}
-            {activeTab === "vault" && <VaultTab workspaceId={id} role={workspace.role} />}
-            {activeTab === "analytics" && <BurndownTab workspaceId={id} />}
-            {isAdmin && activeTab === "settings" && <SettingsTab workspaceId={id} initialName={workspace.name} initialDescription={workspace.description ?? null} />}
+        {activeTab === "srs" ? (
+          <div className="flex-1 overflow-hidden">
+            <SRSTab workspaceId={id} role={workspace.role} />
           </div>
-        </div>
+        ) : (
+          <div className="flex-1 overflow-auto bg-muted/10">
+            <div className="p-3 md:p-6 h-full max-w-6xl mx-auto">
+              {activeTab === "overview" && <OverviewTab workspaceId={id} />}
+              {activeTab === "chat" && <ChatTab workspaceId={id} role={workspace.role} />}
+              {activeTab === "files" && <FilesTab workspaceId={id} role={workspace.role} />}
+              {activeTab === "members" && <MembersTab workspaceId={id} role={workspace.role} />}
+              {activeTab === "tasks" && <TasksTab workspaceId={id} role={workspace.role} />}
+              {activeTab === "vault" && <VaultTab workspaceId={id} role={workspace.role} />}
+              {activeTab === "analytics" && <BurndownTab workspaceId={id} />}
+              {isAdmin && activeTab === "settings" && <SettingsTab workspaceId={id} initialName={workspace.name} initialDescription={workspace.description ?? null} />}
+            </div>
+          </div>
+        )}
       </div>
 
       <SearchDialog

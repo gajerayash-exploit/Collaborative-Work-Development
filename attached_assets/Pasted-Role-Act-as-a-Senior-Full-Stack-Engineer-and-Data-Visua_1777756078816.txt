@@ -1,0 +1,50 @@
+Role: Act as a Senior Full-Stack Engineer and Data Visualization Expert.
+Objective: Architect a "Digital SRS Engine" for a collaborative workspace that replaces static documents with a "Crazy," interactive, and zoomable graph-based UI.
+
+1. The Visual Canvas (Ultraviolet Aesthetic)
+Background: A dark, infinite grid-based canvas (#050208) with a subtle "Radial Gradient" that follows the user's cursor.
+
+Nodes (The Requirements): Each requirement is a Glassmorphic Card.
+
+Design: bg-white/5, backdrop-blur-md, border: 1px solid rgba(139, 92, 246, 0.3).
+
+Hover State: The card border glows bright Electric Violet (#8B5CF6) and expands slightly.
+
+Edges (The Logic): Use animated, glowing "SVG Path" lines to connect nodes (e.g., Requirement A -> Database Schema B). Lines should "pulse" with light.
+
+2. "Crazy" Data Structures & Charts
+Implement three specific visualization modes:
+
+The Dependency Galaxy (Graph Mode): A force-directed graph where users can drag nodes to reorganize the project structure. Use React Flow or D3.js logic.
+
+The Project Health Radar: A high-end Spider Chart (using Recharts) measuring "Documentation Completion," "Code Implementation," and "Security Readiness."
+
+Sunburst Module: A multi-layered ring chart showing the project hierarchy (Core -> Modules -> Functions).
+
+3. Functional Logic & "Live" Integration
+Text-to-Chart (Mermaid Engine): Integrate a sidebar where users can type simple markdown (e.g., graph TD; Login-->Auth;) and the central canvas updates the visual graph in real-time.
+
+RBAC Control: Ensure the "Team Lead" can "Lock" specific nodes in the SRS to prevent unauthorized changes during the development phase.
+
+Bidirectional Sync: If a user clicks a "Database Requirement" node in the SRS, the workspace should automatically open the corresponding SQL or Schema file in the code editor.
+
+4. Motion & UX (Framer Motion)
+The "Explosion" Effect: When a project is first loaded, the SRS nodes should "explode" out from the center and settle into their positions using a spring animation.
+
+Mini-Map: Provide a small, violet-tinted mini-map in the bottom-right corner for navigating "Massive Projects."
+
+5. Technical Deliverables
+SRSNode Component: A React component for the glassmorphic requirement cards.
+
+GraphCanvas Logic: The implementation of the zoomable, draggable canvas engine.
+
+Export Logic: A function to capture the current canvas state and export it as a high-fidelity "Investor Pitch" PDF or PNG.
+
+Implementation Tips for Your Team
+To make this truly "Revolutionary," don't just use standard lines between nodes.
+
+The "Pulse" Logic: Use CSS animations to make the lines between requirements look like data is flowing through them.
+
+Sound UI (Optional): Add very subtle "click" or "hum" sounds when users connect two nodes to give it a high-tech feel.
+
+Wildcard Mode: For a unique twist, try a "Neo-Brutalist" toggle where the violet glows are replaced with sharp, heavy black shadows and high-contrast borders—it’s a popular look for "Hacker" tools right now.
