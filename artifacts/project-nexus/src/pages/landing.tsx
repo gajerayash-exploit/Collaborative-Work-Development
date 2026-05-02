@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { ReadmeButton } from "@/components/readme-modal";
 
 const FEATURES = [
   {
@@ -68,7 +69,8 @@ export default function LandingPage() {
           </div>
           <span className="text-base sm:text-xl font-bold tracking-tight whitespace-nowrap">Project Nexus</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <ReadmeButton />
           <Link href="/sign-in" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-2 sm:px-3 py-1.5 whitespace-nowrap">
             Log in
           </Link>
