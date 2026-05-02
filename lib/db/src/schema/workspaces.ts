@@ -8,6 +8,7 @@ export const workspacesTable = pgTable("workspaces", {
   description: text("description"),
   slug: text("slug").notNull().unique(),
   ownerId: text("owner_id").notNull(),
+  inviteCode: text("invite_code").unique(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
