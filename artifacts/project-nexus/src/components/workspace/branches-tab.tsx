@@ -104,9 +104,10 @@ function RoleIcon({ role }: { role: "admin" | "editor" | "viewer" }) {
 
   return (
     <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true" fill="none">
-      <circle cx="12" cy="12" r="8.5" fill="#eff6ff" stroke="#60a5fa" strokeWidth="1.2" />
-      <circle cx="12" cy="11.8" r="2.2" fill="#2563eb" />
-      <path d="M8 15.2c1.1-1.6 2.5-2.4 4-2.4s2.9.8 4 2.4" stroke="#2563eb" strokeWidth="1.2" strokeLinecap="round" />
+      <circle cx="12" cy="12" r="8.5" fill="#f8fafc" stroke="#94a3b8" strokeWidth="1.2" />
+      <path d="M6.8 12c1.2-2.3 3.4-3.8 5.2-3.8s4 1.5 5.2 3.8c-1.2 2.3-3.4 3.8-5.2 3.8S8 14.3 6.8 12Z" fill="#e2e8f0" />
+      <circle cx="12" cy="12" r="2.2" fill="#64748b" />
+      <circle cx="12" cy="12" r="1" fill="#ffffff" />
     </svg>
   );
 }
