@@ -210,7 +210,7 @@ function KanbanColumn({
   const { setNodeRef, isOver } = useDroppable({ id: status });
 
   return (
-    <div className="flex flex-col min-w-0 flex-1">
+    <div className="flex flex-col min-w-[260px] flex-1">
       {/* Column header */}
       <div className={`flex items-center justify-between px-3 py-2.5 rounded-t-xl border-x border-t ${config.border} ${config.bg}`}>
         <div className="flex items-center gap-2">
@@ -303,7 +303,7 @@ export function KanbanBoard({
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="group flex gap-4 overflow-x-auto pb-4 min-h-[60vh]">
+      <div className="group flex gap-3 sm:gap-4 overflow-x-auto pb-4 min-h-[60vh]">
         {columns.map(status => (
           <KanbanColumn
             key={status}

@@ -271,34 +271,34 @@ export function VaultTab({ workspaceId, role }: { workspaceId: string; role: str
           )}
         </div>
       ) : (
-        <div className="rounded-xl border overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="rounded-xl border overflow-hidden overflow-x-auto">
+          <table className="w-full text-sm min-w-[380px]">
             <thead>
               <tr className="bg-muted/50 border-b">
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground w-[220px]">Key</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Value</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground w-[140px] hidden sm:table-cell">Updated</th>
+                <th className="text-left px-3 sm:px-4 py-3 font-medium text-muted-foreground w-[140px] sm:w-[200px]">Key</th>
+                <th className="text-left px-3 sm:px-4 py-3 font-medium text-muted-foreground">Value</th>
+                <th className="text-left px-3 sm:px-4 py-3 font-medium text-muted-foreground w-[120px] hidden sm:table-cell">Updated</th>
                 {canEdit && <th className="w-10" />}
               </tr>
             </thead>
             <tbody>
               {(secrets as any[]).map((secret, i) => (
                 <tr key={secret.id} className={`border-b last:border-0 ${i % 2 === 0 ? "" : "bg-muted/20"} hover:bg-muted/30 transition-colors`}>
-                  <td className="px-4 py-3">
+                  <td className="px-3 sm:px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="font-mono text-xs px-2 py-0.5 bg-card">
+                      <Badge variant="outline" className="font-mono text-[11px] sm:text-xs px-1.5 sm:px-2 py-0.5 bg-card max-w-[120px] sm:max-w-none truncate">
                         {secret.key}
                       </Badge>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 sm:px-4 py-3">
                     {canEdit ? (
                       <RevealCell workspaceId={workspaceId} secretId={secret.id} secretKey={secret.key} />
                     ) : (
-                      <span className="text-muted-foreground tracking-[0.25em] text-base select-none">••••••••••••</span>
+                      <span className="text-muted-foreground tracking-[0.25em] text-base select-none">••••••••</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground hidden sm:table-cell">
+                  <td className="px-3 sm:px-4 py-3 text-xs text-muted-foreground hidden sm:table-cell">
                     <div className="flex items-center gap-1.5">
                       <RefreshCw className="h-3 w-3" />
                       {formatDistanceToNow(new Date(secret.updatedAt), { addSuffix: true })}

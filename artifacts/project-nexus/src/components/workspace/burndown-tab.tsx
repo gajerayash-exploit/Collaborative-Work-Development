@@ -478,14 +478,14 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
             Task velocity and burn-down trends for this workspace
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 rounded-lg border bg-muted/40 p-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1 rounded-lg border bg-muted/40 p-1">
             {RANGE_OPTIONS.map(opt => (
               <Button
                 key={opt.days}
                 variant={days === opt.days ? "default" : "ghost"}
                 size="sm"
-                className="h-7 px-3 text-xs"
+                className="h-7 px-2 sm:px-3 text-xs"
                 onClick={() => setDays(opt.days)}
               >
                 {opt.label}
@@ -501,7 +501,8 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
             title="Export daily data as CSV"
           >
             <Download className="h-3.5 w-3.5" />
-            Export CSV
+            <span className="hidden sm:inline">Export CSV</span>
+            <span className="sm:hidden">CSV</span>
           </Button>
         </div>
       </div>

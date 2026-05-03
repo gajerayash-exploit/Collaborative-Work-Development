@@ -96,7 +96,7 @@ export function SettingsTab({ workspaceId, initialName, initialDescription }: { 
               />
             </div>
           </CardContent>
-          <CardFooter className="bg-muted/20 border-t px-6 py-4 flex justify-between items-center">
+          <CardFooter className="bg-muted/20 border-t px-4 sm:px-6 py-4 flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-3">
             <p className="text-sm text-muted-foreground flex items-center gap-2">
               {isSaved ? (
                 <>
@@ -110,7 +110,7 @@ export function SettingsTab({ workspaceId, initialName, initialDescription }: { 
             <Button
               type="submit"
               disabled={!name.trim() || updateWorkspace.isPending || (name === initialName && description === (initialDescription || ""))}
-              className="gap-2"
+              className="gap-2 w-full sm:w-auto"
             >
               {updateWorkspace.isPending
                 ? "Saving..."

@@ -108,25 +108,24 @@ export function MembersTab({ workspaceId, role }: { workspaceId: string, role: W
             members?.map((member) => {
               const rc = ROLE_CONFIG[member.role as keyof typeof ROLE_CONFIG] ?? ROLE_CONFIG.viewer;
               return (
-                <div key={member.id} className="flex items-center justify-between p-4 hover:bg-muted/20 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 border-2 border-border">
+                <div key={member.id} className="flex items-center justify-between p-3 sm:p-4 hover:bg-muted/20 transition-colors gap-2">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <Avatar className="h-9 w-9 sm:h-10 sm:w-10 border-2 border-border flex-shrink-0">
                       <AvatarImage src={member.user.avatarUrl || undefined} />
                       <AvatarFallback className="font-bold bg-gradient-to-br from-primary/20 to-primary/5 text-primary">
                         {member.user.name.substring(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">{member.user.name}</span>
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {member.user.email} · Joined {formatDistanceToNow(new Date(member.joinedAt), { addSuffix: true })}
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-semibold text-sm truncate">{member.user.name}</span>
+                      <span className="text-xs text-muted-foreground truncate">
+                        <span className="hidden sm:inline">{member.user.email} · </span>
+                        Joined {formatDistanceToNow(new Date(member.joinedAt), { addSuffix: true })}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
                     {isAdmin ? (
                       <Select
                         value={member.role}
