@@ -155,7 +155,14 @@ export function FilesTab({ workspaceId, role }: { workspaceId: string, role: Wor
               : "border-muted-foreground/20 hover:border-primary/40 hover:bg-muted/20"
           }`}
         >
-          <div className="text-4xl mb-2">{dragOver ? "📂" : "📤"}</div>
+          <svg viewBox="0 0 24 24" className="mb-2 h-10 w-10" aria-hidden="true" fill="none">
+            <rect x="3.5" y="4.5" width="17" height="15" rx="3" fill={dragOver ? "#eef2ff" : "#f8fafc"} stroke={dragOver ? "#6366f1" : "#94a3b8"} strokeWidth="1.2" />
+            <rect x="6" y="7" width="5.5" height="4" rx="1" fill={dragOver ? "#6366f1" : "#cbd5e1"} />
+            <rect x="12.5" y="7" width="5.5" height="4" rx="1" fill={dragOver ? "#a5b4fc" : "#e2e8f0"} />
+            <path d="M7 15.5h10" stroke={dragOver ? "#4f46e5" : "#64748b"} strokeWidth="1.3" strokeLinecap="round" />
+            <path d="M12 10.5v5" stroke={dragOver ? "#4f46e5" : "#64748b"} strokeWidth="1.3" strokeLinecap="round" />
+            <path d="M10.2 12.4 12 10.6l1.8 1.8" stroke={dragOver ? "#4f46e5" : "#64748b"} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
           <p className="text-sm font-medium">{dragOver ? "Drop to upload" : "Drag & drop files here"}</p>
           <p className="text-xs text-muted-foreground mt-1">or click to browse</p>
         </div>
