@@ -202,11 +202,12 @@ export function FilesTab({ workspaceId, role }: { workspaceId: string, role: Wor
                 <TableRow key={file.id} className="hover:bg-muted/20 transition-colors">
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-3">
-                      <img
-                        src="@assets/image_1777790929735.png"
-                        alt=""
-                        className={`h-9 w-9 rounded-lg object-cover flex-shrink-0 ${getFileBg(file.mimeType)}`}
-                      />
+                      <svg viewBox="0 0 24 24" className={`h-9 w-9 rounded-lg flex-shrink-0 ${getFileBg(file.mimeType)}`} aria-hidden="true" fill="none">
+                        <rect x="4" y="3.5" width="14" height="17" rx="2.2" fill="#fff" stroke="#94a3b8" strokeWidth="1.1" />
+                        <path d="M14 3.5V8h4.5" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="1.1" strokeLinejoin="round" />
+                        <path d="M7 11.5h10M7 14.5h10M7 17.5h6.5" stroke="#cbd5e1" strokeWidth="1.2" strokeLinecap="round" />
+                        <path d="M16 15.8 18.2 18 21 14.8" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
                       <span className="truncate max-w-[180px] text-sm" title={file.name}>{file.name}</span>
                     </div>
                   </TableCell>
