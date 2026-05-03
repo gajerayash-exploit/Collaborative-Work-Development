@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { ClerkProvider, SignIn, SignUp, Show, useClerk, useAuth } from "@clerk/react";
+import { ClerkProvider, Show, useClerk, useAuth } from "@clerk/react";
 import { setAuthTokenGetter } from "@workspace/api-client-react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
@@ -10,8 +10,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import NotFound from "@/pages/not-found";
+import LandingPage from "@/pages/landing";
+import AuthPage from "@/pages/auth";
+import WorkspacesPage from "@/pages/workspaces";
+import WorkspaceHubPage from "@/pages/workspace-hub";
+import JoinPage from "@/pages/join";
+import ProfilePage from "@/pages/profile";
 
-// Setup
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
   import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
@@ -77,14 +82,6 @@ const clerkAppearance = {
     main: "gap-6",
   },
 };
-
-// Pages (to be implemented in following steps)
-import LandingPage from "@/pages/landing";
-import AuthPage from "@/pages/auth";
-import WorkspacesPage from "@/pages/workspaces";
-import WorkspaceHubPage from "@/pages/workspace-hub";
-import JoinPage from "@/pages/join";
-import ProfilePage from "@/pages/profile";
 
 function HomeRedirect() {
   return (

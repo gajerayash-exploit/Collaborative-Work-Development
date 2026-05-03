@@ -4,243 +4,224 @@ import { ReadmeButton } from "@/components/readme-modal";
 
 const FEATURES = [
   {
-    emoji: "⚡",
     title: "Real-time Chat",
     desc: "Threaded conversations, reactions, and live typing indicators keep your team in sync.",
-    gradient: "from-yellow-400/20 to-orange-400/10",
-    border: "border-yellow-400/20",
   },
   {
-    emoji: "📋",
     title: "Kanban Tasks",
-    desc: "Drag-and-drop boards with priority flags, assignees, and due dates — zero overhead.",
-    gradient: "from-blue-400/20 to-cyan-400/10",
-    border: "border-blue-400/20",
+    desc: "Drag-and-drop boards with priority flags, assignees, and due dates.",
   },
   {
-    emoji: "📁",
     title: "Shared Files",
-    desc: "Upload and share any file type. Every asset lives inside the workspace, always accessible.",
-    gradient: "from-emerald-400/20 to-teal-400/10",
-    border: "border-emerald-400/20",
+    desc: "Upload and share any file type. Every asset lives inside the workspace.",
   },
   {
-    emoji: "🔐",
     title: "Secrets Vault",
     desc: "Store API keys with AES-256-GCM encryption. Only teammates can reveal values.",
-    gradient: "from-purple-400/20 to-pink-400/10",
-    border: "border-purple-400/20",
   },
   {
-    emoji: "👥",
     title: "Role-based Access",
     desc: "Admins, editors, and viewers — granular permissions for every team setup.",
-    gradient: "from-rose-400/20 to-red-400/10",
-    border: "border-rose-400/20",
   },
   {
-    emoji: "🔔",
     title: "Smart Notifications",
     desc: "Get pinged only when it matters. Mark read, dismiss, and stay focused.",
-    gradient: "from-indigo-400/20 to-violet-400/10",
-    border: "border-indigo-400/20",
   },
 ];
 
 const STATS = [
-  { value: "∞", label: "Workspaces", emoji: "🏠" },
-  { value: "256", label: "bit encryption", emoji: "🔒" },
-  { value: "0", label: "config files", emoji: "✨" },
-  { value: "100%", label: "free to start", emoji: "🚀" },
+  { value: "∞", label: "Workspaces" },
+  { value: "256", label: "bit encryption" },
+  { value: "0", label: "config files" },
+  { value: "100%", label: "free to start" },
+];
+
+const SECTIONS = [
+  {
+    kicker: "Slack-inspired flow",
+    title: "One platform for planning, shipping, and syncing",
+    text: "A premium workspace with chat, tasks, files, vault, and presence — built for teams that want everything in one place.",
+    reverse: false,
+  },
+  {
+    kicker: "Glassmorphic UI",
+    title: "Warm light sections, deep dark sections, and strong contrast",
+    text: "The layout alternates between airy and immersive zones, with glass cards, bold stats, and clean CTA hierarchy.",
+    reverse: true,
+  },
 ];
 
 export default function LandingPage() {
   return (
-    <div className="flex flex-col min-h-[100dvh] bg-background overflow-x-hidden">
-      {/* Nav */}
-      <header className="sticky top-0 z-50 flex items-center justify-between px-4 sm:px-6 py-3 border-b bg-background/80 backdrop-blur-md">
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-primary flex items-center justify-center shadow-sm flex-shrink-0">
-            <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" stroke="currentColor" strokeWidth="2">
-              <path d="M12 2L2 7l10 5 10-5-10-5z" strokeLinejoin="round" />
-              <path d="M2 17l10 5 10-5" strokeLinejoin="round" />
-              <path d="M2 12l10 5 10-5" strokeLinejoin="round" />
-            </svg>
-          </div>
-          <span className="text-base sm:text-xl font-bold tracking-tight whitespace-nowrap">Project Nexus</span>
-        </div>
-        <div className="flex items-center gap-1 sm:gap-2">
-          <ReadmeButton />
-          <Link href="/sign-in" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-2 sm:px-3 py-1.5 whitespace-nowrap">
-            Log in
-          </Link>
-          <Link href="/sign-up">
-            <Button size="sm" className="shadow-sm text-xs sm:text-sm px-3 sm:px-4 whitespace-nowrap">
-              Get started →
-            </Button>
-          </Link>
-        </div>
-      </header>
-
-      <main className="flex-1">
-        {/* Hero */}
-        <section className="flex flex-col items-center justify-center text-center px-4 pt-16 sm:pt-24 pb-16 sm:pb-20">
-          <div className="max-w-4xl mx-auto w-full">
-            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full border bg-muted/50 text-xs sm:text-sm font-medium text-muted-foreground mb-6 sm:mb-8">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
-              Built for student engineers & indie teams
-            </div>
-
-            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-4 sm:mb-6 text-foreground leading-[1.05]">
-              The command center{" "}
-              <span className="bg-gradient-to-r from-primary via-blue-500 to-purple-600 bg-clip-text text-transparent">
-                for your team
-              </span>
-              .
-            </h1>
-
-            <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed">
-              Chat, Kanban boards, file sharing, secrets vault — everything your team needs, in one workspace. No setup. No subscriptions.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-xs sm:max-w-none mx-auto">
-              <Link href="/sign-up" className="w-full sm:w-auto">
-                <Button size="lg" className="h-11 sm:h-12 px-6 sm:px-8 text-sm sm:text-base shadow-lg gap-2 w-full">
-                  🚀 Start for free
-                </Button>
-              </Link>
-              <Link href="/sign-in" className="w-full sm:w-auto">
-                <Button variant="outline" size="lg" className="h-11 sm:h-12 px-6 sm:px-8 text-sm sm:text-base gap-2 w-full">
-                  → Open your workspaces
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* Hero illustration */}
-          <div className="mt-12 sm:mt-16 w-full max-w-5xl mx-auto px-0 sm:px-4">
-            <div className="rounded-xl sm:rounded-2xl border bg-card shadow-2xl overflow-hidden">
-              {/* Mock app bar */}
-              <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 border-b bg-muted/50">
-                <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-red-400" />
-                <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-yellow-400" />
-                <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-green-400" />
-                <div className="flex-1 mx-2 sm:mx-4 h-5 sm:h-6 rounded-md bg-background/80 border text-[9px] sm:text-[10px] flex items-center px-2 sm:px-3 text-muted-foreground truncate">
-                  app.projectnexus.dev/workspaces/my-team
-                </div>
-              </div>
-              {/* Mock workspace UI */}
-              <div className="flex h-48 sm:h-72">
-                {/* Sidebar mock - hidden on very small screens */}
-                <div className="hidden xs:flex w-32 sm:w-44 border-r bg-muted/30 p-2 sm:p-3 flex-col gap-2 flex-shrink-0">
-                  <div className="flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg bg-primary/10 border border-primary/20">
-                    <div className="h-5 w-5 sm:h-6 sm:w-6 rounded bg-primary flex items-center justify-center text-[8px] sm:text-[10px] text-primary-foreground font-bold flex-shrink-0">MT</div>
-                    <span className="text-[10px] sm:text-xs font-semibold truncate">My Team</span>
-                  </div>
-                  {["💬 Chat","📋 Tasks","📁 Files","🔐 Vault"].map(item => (
-                    <div key={item} className="px-1.5 sm:px-2 py-1 sm:py-1.5 rounded text-[9px] sm:text-xs text-muted-foreground">{item}</div>
-                  ))}
-                </div>
-                {/* Main mock */}
-                <div className="flex-1 p-3 sm:p-4 space-y-2 sm:space-y-3 overflow-hidden">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex-shrink-0" />
-                    <div className="h-2 w-16 sm:w-24 rounded bg-foreground/20" />
-                  </div>
-                  {["Deploy the new API endpoint 🔥", "Fix auth redirect bug 🐛", "Write integration tests ✅", "Update README docs 📝"].map((msg, i) => (
-                    <div key={i} className="flex items-start gap-1.5 sm:gap-2">
-                      <div className={`h-4 w-4 sm:h-5 sm:w-5 rounded-full flex-shrink-0 ${["bg-blue-400","bg-green-400","bg-purple-400","bg-orange-400"][i]}`} />
-                      <div className={`flex-1 rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 text-[9px] sm:text-xs ${i === 0 ? "bg-primary text-primary-foreground" : "bg-muted/60"}`}>
-                        {msg}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            {/* Floating badges — desktop only */}
-            <div className="mt-4 flex items-center justify-center gap-3 sm:hidden">
-              <div className="flex items-center gap-2 bg-card border rounded-xl shadow px-3 py-2">
-                <span className="text-base">⚡</span>
-                <p className="text-xs font-semibold">Real-time sync</p>
-              </div>
-              <div className="flex items-center gap-2 bg-card border rounded-xl shadow px-3 py-2">
-                <span className="text-base">🔐</span>
-                <p className="text-xs font-semibold">AES-256-GCM</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Stats */}
-        <section className="border-y bg-muted/20 py-10 sm:py-12">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center">
-            {STATS.map(s => (
-              <div key={s.label}>
-                <div className="text-2xl sm:text-3xl mb-1">{s.emoji}</div>
-                <div className="text-3xl sm:text-4xl font-black tracking-tight">{s.value}</div>
-                <div className="text-xs sm:text-sm text-muted-foreground mt-1">{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Features */}
-        <section className="py-16 sm:py-24 px-4 sm:px-6 max-w-6xl mx-auto">
-          <div className="text-center mb-10 sm:mb-16">
-            <div className="text-xs sm:text-sm font-medium text-primary mb-2 sm:mb-3 tracking-wider uppercase">Everything included</div>
-            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-3 sm:mb-4">Built for teams that ship 🚢</h2>
-            <p className="text-muted-foreground text-sm sm:text-lg max-w-xl mx-auto">
-              Every feature you need to collaborate, track progress, and keep secrets safe — all in one place.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {FEATURES.map((f) => (
-              <div
-                key={f.title}
-                className={`rounded-xl sm:rounded-2xl border ${f.border} bg-gradient-to-br ${f.gradient} p-5 sm:p-6 hover:shadow-lg transition-all duration-300 bg-card`}
-              >
-                <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">{f.emoji}</div>
-                <h3 className="text-sm sm:text-base font-bold mb-1 sm:mb-2">{f.title}</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* CTA */}
-        <section className="py-16 sm:py-24 px-4 sm:px-6">
-          <div className="max-w-3xl mx-auto text-center rounded-2xl sm:rounded-3xl border bg-muted/30 p-8 sm:p-16">
-            <div className="text-4xl sm:text-5xl mb-4 sm:mb-6">🎯</div>
-            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-3 sm:mb-4">
-              Ready to build something great?
-            </h2>
-            <p className="text-muted-foreground text-sm sm:text-lg mb-6 sm:mb-8">
-              Create your first workspace in seconds. No credit card, no setup.
-            </p>
-            <Link href="/sign-up">
-              <Button size="lg" className="h-11 sm:h-12 px-8 sm:px-10 text-sm sm:text-base shadow-lg gap-2 w-full sm:w-auto">
-                🚀 Create your workspace
-              </Button>
-            </Link>
-          </div>
-        </section>
-      </main>
-
-      <footer className="border-t py-6 sm:py-8 px-4 sm:px-6">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
-          <div className="flex items-center gap-2">
-            <div className="h-5 w-5 sm:h-6 sm:w-6 rounded bg-primary flex items-center justify-center flex-shrink-0">
-              <svg viewBox="0 0 24 24" fill="none" className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary-foreground" stroke="currentColor" strokeWidth="2.5">
+    <div className="min-h-[100dvh] overflow-x-hidden bg-[#07080F] text-white">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#07080F]/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#5B6EF5] to-[#2ECFB5] shadow-lg shadow-[#5B6EF5]/20">
+              <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 text-white" stroke="currentColor" strokeWidth="2">
                 <path d="M12 2L2 7l10 5 10-5-10-5z" strokeLinejoin="round" />
                 <path d="M2 17l10 5 10-5" strokeLinejoin="round" />
                 <path d="M2 12l10 5 10-5" strokeLinejoin="round" />
               </svg>
             </div>
+            <span className="text-lg font-bold tracking-tight">Project Nexus</span>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <ReadmeButton />
+            <Link href="/sign-in" className="text-sm font-medium text-white/70 transition-colors hover:text-white">
+              Log in
+            </Link>
+            <Link href="/sign-up">
+              <Button className="rounded-full bg-[#5B6EF5] px-4 text-sm font-semibold text-white shadow-lg shadow-[#5B6EF5]/25 hover:bg-[#7B8FF7]">
+                Get started →
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section className="relative overflow-hidden bg-[radial-gradient(circle_at_top,rgba(91,110,245,0.22),transparent_35%),linear-gradient(180deg,#07080F_0%,#0D0F1C_100%)]">
+          <div className="mx-auto max-w-7xl px-4 pb-16 pt-16 sm:px-6 sm:pb-24 sm:pt-24 lg:px-8">
+            <div className="mx-auto max-w-4xl text-center">
+              <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium text-white/70 backdrop-blur">
+                <span className="h-2 w-2 rounded-full bg-[#2ECFB5]" />
+                Built for student engineers & indie teams
+              </div>
+              <h1 className="text-4xl font-black tracking-tight sm:text-6xl lg:text-7xl">
+                The command center <span className="bg-gradient-to-r from-[#5B6EF5] to-[#2ECFB5] bg-clip-text text-transparent">for your team</span>.
+              </h1>
+              <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-white/70 sm:text-xl">
+                Chat, Kanban boards, file sharing, secrets vault — everything your team needs, in one workspace. No setup. No subscriptions.
+              </p>
+              <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+                <Link href="/sign-up" className="w-full sm:w-auto">
+                  <Button className="h-12 w-full rounded-full bg-gradient-to-r from-[#5B6EF5] to-[#2ECFB5] px-8 text-sm font-bold text-white shadow-xl shadow-[#5B6EF5]/25 hover:opacity-95 sm:w-auto">
+                    🚀 Start for free
+                  </Button>
+                </Link>
+                <Link href="/sign-in" className="w-full sm:w-auto">
+                  <Button variant="outline" className="h-12 w-full rounded-full border-white/15 bg-white/5 px-8 text-sm font-semibold text-white hover:bg-white/10 sm:w-auto">
+                    → Open your workspaces
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            <div className="mx-auto mt-14 max-w-6xl rounded-3xl border border-white/10 bg-white/5 p-3 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-4">
+              <div className="rounded-2xl border border-white/10 bg-[#111425] p-3 sm:p-4">
+                <div className="mb-3 flex items-center gap-2 border-b border-white/10 pb-3 text-xs text-white/50">
+                  <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
+                  <div className="ml-2 truncate rounded-md border border-white/10 bg-white/5 px-3 py-1.5">
+                    app.projectnexus.dev/workspaces/my-team
+                  </div>
+                </div>
+                <div className="grid gap-3 lg:grid-cols-[220px_1fr]">
+                  <div className="hidden rounded-2xl border border-white/10 bg-white/5 p-3 lg:block">
+                    <div className="mb-3 rounded-xl border border-[#5B6EF5]/20 bg-[#5B6EF5]/10 px-3 py-2 text-sm font-semibold text-white">
+                      My Team
+                    </div>
+                    <div className="space-y-1 text-sm text-white/60">
+                      <div className="rounded-lg px-3 py-2 bg-white/5">Chat</div>
+                      <div className="rounded-lg px-3 py-2">Tasks</div>
+                      <div className="rounded-lg px-3 py-2">Files</div>
+                      <div className="rounded-lg px-3 py-2">Vault</div>
+                    </div>
+                  </div>
+                  <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3 sm:p-4">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#5B6EF5] to-[#A78BFA]" />
+                      <div className="h-3 w-28 rounded-full bg-white/15" />
+                    </div>
+                    {['Deploy the new API endpoint 🔥', 'Fix auth redirect bug 🐛', 'Write integration tests ✅', 'Update README docs 📝'].map((msg, i) => (
+                      <div key={msg} className={`max-w-[92%] rounded-2xl px-3 py-2 text-sm ${i === 0 ? 'bg-[#5B6EF5] text-white' : 'bg-white/8 text-white/85'}`}>
+                        {msg}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-y border-white/10 bg-[#0D0F1C] py-12 sm:py-14">
+          <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 sm:grid-cols-4 sm:px-6 lg:px-8">
+            {STATS.map((stat) => (
+              <div key={stat.label} className="text-center">
+                <div className="text-3xl font-black tracking-tight sm:text-5xl">{stat.value}</div>
+                <div className="mt-1 text-xs uppercase tracking-[0.2em] text-white/45">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="bg-[#F7F6F2] px-4 py-16 text-[#111425] sm:px-6 sm:py-24 lg:px-8">
+          <div className="mx-auto max-w-7xl space-y-12">
+            {SECTIONS.map((section) => (
+              <div key={section.title} className={`grid gap-6 lg:grid-cols-2 lg:items-center ${section.reverse ? 'lg:[&>*:first-child]:order-2' : ''}`}>
+                <div className="space-y-4">
+                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#5A607A]">{section.kicker}</p>
+                  <h2 className="text-3xl font-black tracking-tight sm:text-5xl">{section.title}</h2>
+                  <p className="max-w-xl text-base leading-7 text-[#5A607A] sm:text-lg">{section.text}</p>
+                </div>
+                <div className="rounded-3xl border border-black/10 bg-white p-4 shadow-xl shadow-black/5 sm:p-6">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {FEATURES.slice(0, 4).map((feature) => (
+                      <div key={feature.title} className="rounded-2xl border border-black/5 bg-[#07080F] p-4 text-white">
+                        <div className="text-lg font-bold">{feature.title}</div>
+                        <div className="mt-2 text-sm leading-6 text-white/65">{feature.desc}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="bg-[#07080F] px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-10 text-center">
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-white/45">Everything included</p>
+              <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-5xl">Built for teams that ship</h2>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {FEATURES.map((feature, index) => (
+                <div key={feature.title} className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-xl shadow-black/20 backdrop-blur-xl">
+                  <div className="mb-4 text-3xl">{['⚡', '📋', '📁', '🔐', '👥', '🔔'][index]}</div>
+                  <h3 className="text-lg font-bold">{feature.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-white/65">{feature.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-[#FAFAF8] px-4 py-16 text-[#111425] sm:px-6 sm:py-24 lg:px-8">
+          <div className="mx-auto max-w-4xl rounded-3xl border border-black/10 bg-white p-8 text-center shadow-xl shadow-black/5 sm:p-14">
+            <h2 className="text-3xl font-black tracking-tight sm:text-5xl">Ready to build something great?</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[#5A607A] sm:text-lg">Create your first workspace in seconds. No credit card, no setup.</p>
+            <div className="mt-8">
+              <Link href="/sign-up">
+                <Button className="h-12 rounded-full bg-[#5B6EF5] px-8 text-sm font-bold text-white shadow-lg shadow-[#5B6EF5]/25 hover:bg-[#7B8FF7]">
+                  🚀 Create your workspace
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="border-t border-white/10 bg-[#07080F] px-4 py-6 text-white/60 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 sm:flex-row">
+          <div className="flex items-center gap-2 text-white">
+            <div className="flex h-6 w-6 items-center justify-center rounded bg-gradient-to-br from-[#5B6EF5] to-[#2ECFB5]" />
             <span className="text-sm font-semibold">Project Nexus</span>
           </div>
-          <p className="text-xs sm:text-sm text-muted-foreground text-center">&copy; {new Date().getFullYear()} Project Nexus. Built with ❤️ for creators.</p>
+          <p className="text-xs sm:text-sm">&copy; {new Date().getFullYear()} Project Nexus. Built with love for creators.</p>
         </div>
       </footer>
     </div>
