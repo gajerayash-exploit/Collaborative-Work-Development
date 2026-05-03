@@ -83,35 +83,24 @@ function RoleHierarchy() {
 function RoleIcon({ role }: { role: "admin" | "editor" | "viewer" }) {
   if (role === "admin") {
     return (
-      <svg viewBox="0 0 64 64" className="h-11 w-11 shrink-0">
-        <path d="M16 22l16-8 16 8-16 8-16-8z" fill="#f59e0b" />
-        <path d="M16 22l16 8v18L16 40V22z" fill="#d97706" />
-        <path d="M32 30l16-8v18L32 48V30z" fill="#b45309" />
-        <path d="M22 18l10-5 10 5-10 5-10-5z" fill="#fde68a" />
-        <circle cx="32" cy="18" r="4" fill="#fff7ed" />
+      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-amber-500" fill="currentColor" aria-hidden="true">
+        <path d="M3 8l4.5 3.5L12 5l4.5 6.5L21 8v8H3V8zm0 10h18v2H3v-2z" />
       </svg>
     );
   }
 
   if (role === "editor") {
     return (
-      <svg viewBox="0 0 64 64" className="h-11 w-11 shrink-0">
-        <path d="M16 22l16-8 16 8-16 8-16-8z" fill="#8b5cf6" />
-        <path d="M16 22l16 8v18L16 40V22z" fill="#7c3aed" />
-        <path d="M32 30l16-8v18L32 48V30z" fill="#5b21b6" />
-        <path d="M22 18l10-5 10 5-10 5-10-5z" fill="#c4b5fd" />
-        <path d="M26 28l8-8 6 6-8 8-6-6z" fill="#f8fafc" />
+      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-violet-500" fill="currentColor" aria-hidden="true">
+        <path d="M3 17.2V21h3.8l11-11-3.8-3.8-11 11z" />
+        <path d="M17.7 5.3a1 1 0 0 0 0-1.4L16.1 2.3a1 1 0 0 0-1.4 0l-1.2 1.2 3.8 3.8 1.4-1.4z" />
       </svg>
     );
   }
 
   return (
-    <svg viewBox="0 0 64 64" className="h-11 w-11 shrink-0">
-      <path d="M16 22l16-8 16 8-16 8-16-8z" fill="#94a3b8" />
-      <path d="M16 22l16 8v18L16 40V22z" fill="#64748b" />
-      <path d="M32 30l16-8v18L32 48V30z" fill="#475569" />
-      <path d="M22 18l10-5 10 5-10 5-10-5z" fill="#cbd5e1" />
-      <circle cx="32" cy="26" r="5" fill="#e2e8f0" />
+    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-slate-500" fill="currentColor" aria-hidden="true">
+      <path d="M12 5a7 7 0 0 0-7 7v1c0 .8-.5 1.5-1.2 1.8l-.8.4v1.8h18v-1.8l-.8-.4c-.7-.3-1.2-1-1.2-1.8v-1a7 7 0 0 0-7-7zm0 3a4 4 0 0 1 4 4v1h-8v-1a4 4 0 0 1 4-4zm-1 10a1 1 0 0 0 2 0h-2z" />
     </svg>
   );
 }
