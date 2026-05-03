@@ -189,4 +189,52 @@ router.delete("/workspaces/:workspaceId/messages/:messageId", requireAuth, async
   }
 });
 
+router.patch("/workspaces/:workspaceId/messages/:messageId", requireAuth, async (req: any, res): Promise<void> => {
+  try {
+    const clerkUserId = req.clerkUserId;
+    const { workspaceId, messageId } = req.params;
+    const { content } = req.body;
+
+    if (!content?.trim()) { res.status(400).json({ error: "Content is required" }); return; }
+
+    const user = await db.select().from(usersTable).where(eq(usersTable.clerkId, clerkUserId)).limit(1);
+    if (!user[0]) { res.status(404).json({ error: "User not found" }); return; }
+
+    const membership = await db.select().from(workspaceMembersTable)
+      .where(and(eq(workspaceMembersTable.workspaceId, workspaceId), eq(workspaceMembersTable.userId, user[0].id)))
+      .limit(1);
+    if (!membership[0]) { res.status(403).json({ error: "Access denied" }); return; }
+
+    const msg = await db.select().from(messagesTable)
+      .where(and(eq(messagesTable.id, messageId), eq(messagesTable.workspaceId, workspaceId)))
+      .limit(1);
+    if (!msg[0]) { res.status(404).json({ error: "Message not found" }); return; }
+
+    const isOwner = msg[0].senderId === user[0].id;
+    const isAdmin = membership[0].role === "admin";
+    if (!isOwner && !isAdmin) { res.status(403).json({ error: "Only the sender or an admin can edit this message" }); return; }
+
+    const [updated] = await db.update(messagesTable)
+      .set({ content: content.trim() })
+      .where(eq(messagesTable.id, messageId))
+      .returning();
+
+    const outMsg = {
+      ...updated,
+      senderName: user[0].name,
+      senderAvatarUrl: user[0].avatarUrl,
+      reactions: [],
+      isPinned: false,
+      replyCount: 0,
+      readByCount: 0,
+    };
+
+    res.json(outMsg);
+    broadcastToWorkspace(workspaceId, { type: "message_edited", workspaceId, message: outMsg }, user[0].id);
+  } catch (err) {
+    req.log.error({ err }, "Failed to edit message");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 export default router;

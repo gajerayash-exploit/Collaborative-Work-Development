@@ -7,6 +7,7 @@ import {
   usePinMessage,
   useUnpinMessage,
   useDeleteMessage,
+  useEditMessage,
   useListWorkspaceMembers,
   useMarkMessagesRead,
   useGetTypingUsers,
@@ -24,7 +25,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Send, Loader2, MessageSquare, Pin, PinOff,
   ChevronDown, ChevronUp, X, MessageCircle,
-  Check, CheckCheck, Trash2,
+  Check, CheckCheck, Trash2, Pencil,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { MentionInput, toRawFormat } from "./mention-input";
@@ -173,6 +174,8 @@ export function ChatTab({
   const [showCatchUp, setShowCatchUp] = useState(false);
   const [hoveredMsgId, setHoveredMsgId] = useState<string | null>(null);
   const [pickerMsgId, setPickerMsgId] = useState<string | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState("");
   const [threadMessage, setThreadMessage] = useState<{
     id: string; content: string; senderName: string;
     senderAvatarUrl?: string | null; createdAt: string; replyCount: number;
@@ -195,6 +198,7 @@ export function ChatTab({
   const pinMessage = usePinMessage();
   const unpinMessage = useUnpinMessage();
   const deleteMessage = useDeleteMessage();
+  const editMessage = useEditMessage();
   const markRead = useMarkMessagesRead();
   const sendTypingRest = useSendTypingIndicator();
   // Use WS-based typing users when available (live), fall back to REST polling
@@ -261,6 +265,26 @@ export function ChatTab({
   const handleDelete = (messageId: string) => {
     if (!confirm("Delete this message? This cannot be undone.")) return;
     deleteMessage.mutate({ workspaceId, messageId }, { onSuccess: invalidateMessages });
+  };
+
+  const startEditing = (messageId: string, content: string) => {
+    setEditingMessageId(messageId);
+    setEditingContent(content);
+    setThreadMessage(null);
+    setPickerMsgId(null);
+  };
+
+  const cancelEditing = () => {
+    setEditingMessageId(null);
+    setEditingContent("");
+  };
+
+  const handleEdit = (messageId: string) => {
+    if (!editingContent.trim()) return;
+    editMessage.mutate(
+      { workspaceId, messageId, data: { content: editingContent.trim() } },
+      { onSuccess: () => { invalidateMessages(); cancelEditing(); } }
+    );
   };
 
   useEffect(() => {
@@ -332,6 +356,7 @@ export function ChatTab({
                 const mentionsMePattern = new RegExp(`@\\[[^\\]|]+\\|${currentUserId}\\]`);
                 const mentionsMe = currentUserId && mentionsMePattern.test(msg.content);
                 const isThreadOpen = threadMessage?.id === msg.id;
+                const isEditing = editingMessageId === msg.id;
 
                 return (
                   <div
@@ -389,6 +414,15 @@ export function ChatTab({
                                 >
                                   <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
                                 </button>
+                                {(isMe || role === "admin") && (
+                                  <button
+                                    onClick={() => startEditing(msg.id, msg.content)}
+                                    className="opacity-0 group-hover:opacity-100 transition-all bg-card border rounded-full w-7 h-7 flex items-center justify-center shadow-sm hover:border-primary/40"
+                                    title="Edit message"
+                                  >
+                                    <Pencil className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
+                                  </button>
+                                )}
                                 {canPin && (
                                   <button
                                     onClick={() => msg.isPinned ? handleUnpin(msg.id) : handlePin(msg.id)}
@@ -416,20 +450,42 @@ export function ChatTab({
                           </div>
                         )}
 
-                        <div
-                          className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed cursor-pointer shadow-sm transition-transform duration-150 hover:-translate-y-[1px] ${
-                            msg.isPinned
-                              ? isMe
-                                ? "bg-primary text-primary-foreground rounded-tr-sm ring-1 ring-amber-400/50"
-                                : "bg-muted text-foreground rounded-tl-sm ring-1 ring-amber-400/50"
-                              : isMe
-                              ? "bg-primary text-primary-foreground rounded-tr-sm"
-                              : "bg-muted text-foreground rounded-tl-sm"
-                          }`}
-                          onClick={() => setThreadMessage(isThreadOpen ? null : msg)}
-                        >
-                          <MentionText content={msg.content} currentUserId={currentUserId} isMe={isMe} />
-                        </div>
+                        {isEditing ? (
+                          <div className="space-y-2">
+                            <textarea
+                              value={editingContent}
+                              onChange={(e) => setEditingContent(e.target.value)}
+                              className="min-h-24 w-full resize-none rounded-2xl border bg-background px-4 py-3 text-sm shadow-sm outline-none ring-0 focus-visible:ring-2 focus-visible:ring-primary"
+                            />
+                            <div className="flex items-center justify-end gap-2">
+                              <Button variant="ghost" size="sm" onClick={cancelEditing}>
+                                Cancel
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleEdit(msg.id)}
+                                disabled={!editingContent.trim() || editMessage.isPending}
+                              >
+                                Save
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div
+                            className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed cursor-pointer shadow-sm transition-transform duration-150 hover:-translate-y-[1px] ${
+                              msg.isPinned
+                                ? isMe
+                                  ? "bg-primary text-primary-foreground rounded-tr-sm ring-1 ring-amber-400/50"
+                                  : "bg-muted text-foreground rounded-tl-sm ring-1 ring-amber-400/50"
+                                : isMe
+                                ? "bg-primary text-primary-foreground rounded-tr-sm"
+                                : "bg-muted text-foreground rounded-tl-sm"
+                            }`}
+                            onClick={() => setThreadMessage(isThreadOpen ? null : msg)}
+                          >
+                            <MentionText content={msg.content} currentUserId={currentUserId} isMe={isMe} />
+                          </div>
+                        )}
                       </div>
 
                       {/* Read receipt tick — only on my messages */}

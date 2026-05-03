@@ -440,6 +440,40 @@ paths:
                 $ref: "#/components/schemas/Message"
 
   /workspaces/{workspaceId}/messages/{messageId}:
+    patch:
+      operationId: editMessage
+      tags: [messages]
+      summary: Edit a message (sender or admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EditMessageBody"
+      responses:
+        "200":
+          description: Message updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "403":
+          description: Forbidden
+        "404":
+          description: Message not found
     delete:
       operationId: deleteMessage
       tags: [messages]
@@ -1853,6 +1887,14 @@ components:
         - messageIds
 
     SendMessageBody:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+        - content
+
+    EditMessageBody:
       type: object
       properties:
         content:

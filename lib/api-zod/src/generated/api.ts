@@ -352,6 +352,38 @@ export const SendMessageBody = zod.object({
 });
 
 /**
+ * @summary Edit a message (sender or admin only)
+ */
+export const EditMessageParams = zod.object({
+  workspaceId: zod.coerce.string(),
+  messageId: zod.coerce.string(),
+});
+
+export const EditMessageBody = zod.object({
+  content: zod.string(),
+});
+
+export const EditMessageResponse = zod.object({
+  id: zod.string(),
+  workspaceId: zod.string(),
+  content: zod.string(),
+  senderId: zod.string(),
+  senderName: zod.string(),
+  senderAvatarUrl: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  reactions: zod.array(
+    zod.object({
+      emoji: zod.string(),
+      count: zod.number(),
+      userIds: zod.array(zod.string()),
+    }),
+  ),
+  isPinned: zod.boolean(),
+  replyCount: zod.number(),
+  readByCount: zod.number(),
+});
+
+/**
  * @summary Delete a message (sender or admin only)
  */
 export const DeleteMessageParams = zod.object({

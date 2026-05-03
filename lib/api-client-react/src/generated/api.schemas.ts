@@ -249,6 +249,10 @@ export interface SendMessageBody {
   content: string;
 }
 
+export interface EditMessageBody {
+  content: string;
+}
+
 export interface PinnedMessage {
   id: string;
   workspaceId: string;

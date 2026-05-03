@@ -26,6 +26,7 @@ import type {
   CreateTaskBody,
   CreateWorkspaceBody,
   DeleteTask200,
+  EditMessageBody,
   GetBurndownAnalyticsParams,
   GetWorkspaceActivityParams,
   HealthStatus,
@@ -1662,6 +1663,94 @@ export const useSendMessage = <
   TContext
 > => {
   return useMutation(getSendMessageMutationOptions(options));
+};
+
+/**
+ * @summary Edit a message (sender or admin only)
+ */
+export const getEditMessageUrl = (workspaceId: string, messageId: string) => {
+  return `/api/workspaces/${workspaceId}/messages/${messageId}`;
+};
+
+export const editMessage = async (
+  workspaceId: string,
+  messageId: string,
+  editMessageBody: EditMessageBody,
+  options?: RequestInit,
+): Promise<Message> => {
+  return customFetch<Message>(getEditMessageUrl(workspaceId, messageId), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(editMessageBody),
+  });
+};
+
+export const getEditMessageMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof editMessage>>,
+    TError,
+    { workspaceId: string; messageId: string; data: BodyType<EditMessageBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof editMessage>>,
+  TError,
+  { workspaceId: string; messageId: string; data: BodyType<EditMessageBody> },
+  TContext
+> => {
+  const mutationKey = ["editMessage"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof editMessage>>,
+    { workspaceId: string; messageId: string; data: BodyType<EditMessageBody> }
+  > = (props) => {
+    const { workspaceId, messageId, data } = props ?? {};
+
+    return editMessage(workspaceId, messageId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type EditMessageMutationResult = NonNullable<
+  Awaited<ReturnType<typeof editMessage>>
+>;
+export type EditMessageMutationBody = BodyType<EditMessageBody>;
+export type EditMessageMutationError = ErrorType<void>;
+
+/**
+ * @summary Edit a message (sender or admin only)
+ */
+export const useEditMessage = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof editMessage>>,
+    TError,
+    { workspaceId: string; messageId: string; data: BodyType<EditMessageBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof editMessage>>,
+  TError,
+  { workspaceId: string; messageId: string; data: BodyType<EditMessageBody> },
+  TContext
+> => {
+  return useMutation(getEditMessageMutationOptions(options));
 };
 
 /**
