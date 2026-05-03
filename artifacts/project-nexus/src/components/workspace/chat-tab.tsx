@@ -29,6 +29,7 @@ import { formatDistanceToNow } from "date-fns";
 import { MentionInput } from "./mention-input";
 import { MentionText } from "./mention-text";
 import { ThreadPanel } from "./thread-panel";
+import { CatchUpButton, CatchUpPanel } from "./catch-up-panel";
 
 const QUICK_EMOJIS = ["👍", "❤️", "😂", "🎉", "😮", "👀"];
 
@@ -161,6 +162,7 @@ export function ChatTab({
   onTyping?: () => void;
 }) {
   const [content, setContent] = useState("");
+  const [showCatchUp, setShowCatchUp] = useState(false);
   const [hoveredMsgId, setHoveredMsgId] = useState<string | null>(null);
   const [pickerMsgId, setPickerMsgId] = useState<string | null>(null);
   const [threadMessage, setThreadMessage] = useState<{
@@ -276,6 +278,17 @@ export function ChatTab({
       {/* Main chat area */}
       <div className="flex flex-col flex-1 min-w-0">
         <PinnedBanner workspaceId={workspaceId} canPin={canPin} onUnpin={handleUnpin} />
+
+        {/* Catch-up toolbar */}
+        {!showCatchUp && (
+          <div className="flex items-center justify-end px-3 py-1 border-b bg-muted/20">
+            <CatchUpButton onClick={() => setShowCatchUp(true)} />
+          </div>
+        )}
+
+        {showCatchUp && (
+          <CatchUpPanel workspaceId={workspaceId} onClose={() => setShowCatchUp(false)} />
+        )}
 
         <ScrollArea ref={scrollRef} className="flex-1 p-4">
           {isLoading ? (

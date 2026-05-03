@@ -24,6 +24,7 @@ import branchesRouter from "./branches";
 import syncRouter from "./sync";
 import huddleRouter from "./huddle";
 import sandboxesRouter from "./sandboxes";
+import catchupRouter from "./catchup";
 
 const router: IRouter = Router();
 
@@ -52,5 +53,6 @@ router.use(branchesRouter);
 router.use(syncRouter);
 router.use(huddleRouter);
 router.use(sandboxesRouter);
+router.use(catchupRouter);
 
 export default router;
