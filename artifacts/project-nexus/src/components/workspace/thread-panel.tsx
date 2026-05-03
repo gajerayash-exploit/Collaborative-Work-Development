@@ -132,7 +132,7 @@ export function ThreadPanel({ workspaceId, message, currentUserId, members, onCl
               return (
                 <div key={reply.id} className={`flex gap-3 group ${isMe ? "justify-end" : ""}`}>
                   {!isMe && (
-                    <Avatar className="h-6 w-6 border flex-shrink-0 mt-0.5 ring-2 ring-background">
+                    <Avatar className="h-5 w-5 border flex-shrink-0 mt-0.5 ring-2 ring-background">
                       <AvatarImage src={reply.senderAvatarUrl ?? undefined} />
                       <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
                         {reply.senderName.substring(0, 2).toUpperCase()}
@@ -157,7 +157,7 @@ export function ThreadPanel({ workspaceId, message, currentUserId, members, onCl
                     </div>
                   </div>
                   {isMe && (
-                    <Avatar className="h-6 w-6 border flex-shrink-0 mt-0.5 ring-2 ring-background">
+                    <Avatar className="h-5 w-5 border flex-shrink-0 mt-0.5 ring-2 ring-background">
                       <AvatarImage src={reply.senderAvatarUrl ?? undefined} />
                       <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
                         {reply.senderName.substring(0, 2).toUpperCase()}
