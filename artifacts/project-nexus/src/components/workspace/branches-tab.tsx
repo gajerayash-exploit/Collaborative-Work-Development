@@ -83,25 +83,31 @@ function RoleHierarchy() {
 function RoleIcon({ role }: { role: "admin" | "editor" | "viewer" }) {
   if (role === "admin") {
     return (
-      <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-amber-500" fill="currentColor" aria-hidden="true">
-        <path d="M4 8l3 2.5L12 5l5 5.5L20 8v8H4V8zm0 10h16v2H4v-2z" />
-      </svg>
+      <div className="h-6 w-6 flex items-center justify-center rounded-full bg-amber-500/10 text-amber-500">
+        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true">
+          <path d="M3 7.5l4 3 5-5 5 5 4-3V16H3V7.5zm0 10h18v2H3v-2z" />
+        </svg>
+      </div>
     );
   }
 
   if (role === "editor") {
     return (
-      <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-rose-500" fill="currentColor" aria-hidden="true">
-        <path d="M3 17.5V21h3.5l10.2-10.2-3.5-3.5L3 17.5z" />
-        <path d="M17.9 5.1a.9.9 0 0 0 0-1.3L16.2 2.1a.9.9 0 0 0-1.3 0l-1.1 1.1 3.5 3.5 1.6-1.6z" />
-      </svg>
+      <div className="h-6 w-6 flex items-center justify-center rounded-full bg-rose-500/10 text-rose-500">
+        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true">
+          <path d="M3 17.25V21h3.75l11-11-3.75-3.75-11 11z" />
+          <path d="M17.92 5.08a1 1 0 0 0 0-1.41L16.33 2.08a1 1 0 0 0-1.41 0l-1.15 1.15 3.75 3.75 1.4-1.4z" />
+        </svg>
+      </div>
     );
   }
 
   return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-slate-500" fill="currentColor" aria-hidden="true">
-      <path d="M12 5a6 6 0 0 0-6 6v1c0 .7-.4 1.3-1 1.6l-.5.2V15h15v-1.2l-.5-.2c-.6-.3-1-1-1-1.6v-1a6 6 0 0 0-6-6zm0 2.5A3.5 3.5 0 0 1 15.5 11v1h-7v-1A3.5 3.5 0 0 1 12 7.5zm-1 9.5a1 1 0 0 0 2 0h-2z" />
-    </svg>
+    <div className="h-6 w-6 flex items-center justify-center rounded-full bg-slate-500/10 text-slate-500">
+      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true">
+        <path d="M12 5a6 6 0 0 0-6 6v1c0 .7-.4 1.3-1 1.6l-.5.2V15h15v-1.2l-.5-.2c-.6-.3-1-1-1-1.6v-1a6 6 0 0 0-6-6zm0 2.5A3.5 3.5 0 0 1 15.5 11v1h-7v-1A3.5 3.5 0 0 1 12 7.5zm-1 9.5a1 1 0 0 0 2 0h-2z" />
+      </svg>
+    </div>
   );
 }
 
