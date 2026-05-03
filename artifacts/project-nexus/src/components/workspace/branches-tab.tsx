@@ -83,31 +83,34 @@ function RoleHierarchy() {
 function RoleIcon({ role }: { role: "admin" | "editor" | "viewer" }) {
   if (role === "admin") {
     return (
-      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/10 text-amber-500">
-        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true">
-          <path d="M3 7l4.5 3.5L12 5l4.5 5.5L21 7v9H3V7zm0 10h18v2H3v-2z" />
-        </svg>
-      </div>
+      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-amber-500" fill="none" aria-hidden="true">
+        <path d="M4 14.5L7 8l5 4 3-6 5 8.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M5 18h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <path d="M6.5 18l1-4 4.5 2 4.5-2 1 4" fill="currentColor" opacity="0.22" />
+        <circle cx="7" cy="8" r="1" fill="currentColor" />
+        <circle cx="12" cy="12" r="1" fill="currentColor" />
+        <circle cx="16" cy="8" r="1" fill="currentColor" />
+      </svg>
     );
   }
 
   if (role === "editor") {
     return (
-      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-500/10 text-rose-500">
-        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true">
-          <path d="M3 17.25V21h3.75l11-11-3.75-3.75-11 11z" />
-          <path d="M14.75 4.5l1.75-1.75a1 1 0 0 1 1.41 0l1.34 1.34a1 1 0 0 1 0 1.41l-1.75 1.75-2.75-2.75z" />
-        </svg>
-      </div>
+      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-fuchsia-500" fill="none" aria-hidden="true">
+        <path d="M4 16.5 16.5 4l3.5 3.5L7.5 20H4v-3.5z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+        <path d="M14 6l4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <path d="M6 18l1.5-1.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
+      </svg>
     );
   }
 
   return (
-    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-500/10 text-slate-500">
-      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true">
-        <path d="M12 5a7 7 0 0 0-7 7v1c0 .8-.5 1.5-1.2 1.8L3 15v1h18v-1l-.8-.2c-.7-.3-1.2-1-1.2-1.8v-1a7 7 0 0 0-7-7zm0 2a5 5 0 0 1 5 5v1H7v-1a5 5 0 0 1 5-5zm-1 9a1 1 0 0 0 2 0h-2z" />
-      </svg>
-    </div>
+    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-sky-500" fill="none" aria-hidden="true">
+      <path d="M12 5.5c3.8 0 7 2.8 7 6.5 0 1.7-.7 3.3-1.9 4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M20 12s-3 5-8 5-8-5-8-5 3-5 8-5 8 5 8 5z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="2.2" fill="currentColor" />
+      <path d="M4 19l3-3M17 19l3-3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
+    </svg>
   );
 }
 
