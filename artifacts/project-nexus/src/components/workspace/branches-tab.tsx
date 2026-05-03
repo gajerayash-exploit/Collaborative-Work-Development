@@ -57,22 +57,78 @@ function RoleHierarchy() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {(["admin", "editor", "viewer"] as const).map((role) => {
           const cfg = ROLE_CONFIG[role];
-          const Icon = cfg.icon;
           return (
             <div
               key={role}
-              className={`relative rounded-xl border bg-gradient-to-br p-4 ${cfg.color} backdrop-blur-sm`}
+              className="relative rounded-2xl border bg-card p-4 shadow-sm overflow-hidden"
             >
-              <div className="flex items-center gap-2 mb-2">
-                <div className={`w-2 h-2 rounded-full ${cfg.dot}`} />
-                <span className="font-semibold text-foreground text-sm">{cfg.label}</span>
-                <Icon className="h-3.5 w-3.5 text-muted-foreground ml-auto" />
+              <div className="flex items-center gap-3 mb-3">
+                <RoleBadge role={role} />
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-foreground text-sm">{cfg.label}</span>
+                    <div className={`w-2 h-2 rounded-full ${cfg.dot}`} />
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{cfg.desc}</p>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">{cfg.desc}</p>
             </div>
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function RoleBadge({ role }: { role: "admin" | "editor" | "viewer" }) {
+  const svg =
+    role === "admin" ? (
+      <svg viewBox="0 0 72 72" className="h-12 w-12 shrink-0">
+        <defs>
+          <linearGradient id="adminTop" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#fde68a" />
+            <stop offset="100%" stopColor="#f59e0b" />
+          </linearGradient>
+        </defs>
+        <path d="M14 24l22-10 22 10-22 10-22-10z" fill="#fbbf24" />
+        <path d="M14 24l22 10v22L14 46V24z" fill="#d97706" />
+        <path d="M36 34l22-10v22L36 56V34z" fill="#b45309" />
+        <path d="M22 20l14-6 14 6-14 6-14-6z" fill="url(#adminTop)" />
+        <circle cx="36" cy="20" r="4" fill="#fff7ed" />
+      </svg>
+    ) : role === "editor" ? (
+      <svg viewBox="0 0 72 72" className="h-12 w-12 shrink-0">
+        <defs>
+          <linearGradient id="editorTop" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#c4b5fd" />
+            <stop offset="100%" stopColor="#8b5cf6" />
+          </linearGradient>
+        </defs>
+        <path d="M14 24l22-10 22 10-22 10-22-10z" fill="#a855f7" />
+        <path d="M14 24l22 10v22L14 46V24z" fill="#7c3aed" />
+        <path d="M36 34l22-10v22L36 56V34z" fill="#5b21b6" />
+        <path d="M22 20l14-6 14 6-14 6-14-6z" fill="url(#editorTop)" />
+        <path d="M26 29l9-9 7 7-9 9-7-7z" fill="#f8fafc" opacity="0.95" />
+      </svg>
+    ) : (
+      <svg viewBox="0 0 72 72" className="h-12 w-12 shrink-0">
+        <defs>
+          <linearGradient id="viewerTop" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#cbd5e1" />
+            <stop offset="100%" stopColor="#64748b" />
+          </linearGradient>
+        </defs>
+        <path d="M14 24l22-10 22 10-22 10-22-10z" fill="#94a3b8" />
+        <path d="M14 24l22 10v22L14 46V24z" fill="#475569" />
+        <path d="M36 34l22-10v22L36 56V34z" fill="#334155" />
+        <path d="M22 20l14-6 14 6-14 6-14-6z" fill="url(#viewerTop)" />
+        <circle cx="36" cy="28" r="6" fill="#e2e8f0" />
+      </svg>
+    );
+
+  return (
+    <div className="rounded-2xl bg-gradient-to-br from-background to-muted/20 border p-2 shadow-inner">
+      {svg}
     </div>
   );
 }
