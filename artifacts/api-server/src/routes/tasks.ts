@@ -1,10 +1,26 @@
 import { Router, type IRouter } from "express";
-import { db, tasksTable, usersTable, workspaceMembersTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { db, tasksTable, usersTable, workspaceMembersTable, notificationsTable } from "@workspace/db";
+import { eq, and, lt, ne, isNotNull } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
 import { recordActivity } from "../lib/recordActivity";
 
 const router: IRouter = Router();
+
+async function createAssignmentNotification(opts: {
+  workspaceId: string;
+  assigneeId: string;
+  taskId: string;
+  taskTitle: string;
+  assignerName: string;
+}) {
+  await db.insert(notificationsTable).values({
+    userId: opts.assigneeId,
+    workspaceId: opts.workspaceId,
+    type: "task_assigned",
+    title: `New task assigned`,
+    body: `${opts.assignerName} assigned you to "${opts.taskTitle}"`,
+  });
+}
 
 router.get("/workspaces/:workspaceId/tasks", requireAuth, async (req: any, res): Promise<void> => {
   try {
@@ -90,6 +106,16 @@ router.post("/workspaces/:workspaceId/tasks", requireAuth, async (req: any, res)
     res.status(201).json({ ...task, assignee, creator: { id: user[0].id, name: user[0].name, avatarUrl: user[0].avatarUrl, email: user[0].email } });
 
     recordActivity({ workspaceId, userId: user[0].id, type: "task_created", payload: { taskId: task.id, taskTitle: task.title, status: task.status } }).catch(() => {});
+
+    if (task.assigneeId && task.assigneeId !== user[0].id) {
+      createAssignmentNotification({
+        workspaceId,
+        assigneeId: task.assigneeId,
+        taskId: task.id,
+        taskTitle: task.title,
+        assignerName: user[0].name,
+      }).catch(() => {});
+    }
   } catch (err) {
     req.log.error({ err }, "Failed to create task");
     res.status(500).json({ error: "Internal server error" });
@@ -110,7 +136,6 @@ router.patch("/workspaces/:workspaceId/tasks/:taskId", requireAuth, async (req: 
 
     const { title, description, status, priority, assigneeId, dueDate } = req.body;
 
-    // Read current state to detect what changed
     const existing = await db.select().from(tasksTable).where(and(eq(tasksTable.id, taskId), eq(tasksTable.workspaceId, workspaceId))).limit(1);
     if (!existing[0]) { res.status(404).json({ error: "Task not found" }); return; }
     const before = existing[0];
@@ -139,15 +164,23 @@ router.patch("/workspaces/:workspaceId/tasks/:taskId", requireAuth, async (req: 
 
     res.json({ ...updated, assignee, creator: creator[0] ?? null });
 
-    // Fire-and-forget activity events for each changed field
     if (status !== undefined && status !== before.status) {
       recordActivity({ workspaceId, userId: user[0].id, type: "task_status_changed", payload: { taskId: updated.id, taskTitle: updated.title, oldStatus: before.status, newStatus: status } }).catch(() => {});
     }
     if (priority !== undefined && priority !== before.priority) {
       recordActivity({ workspaceId, userId: user[0].id, type: "task_priority_changed", payload: { taskId: updated.id, taskTitle: updated.title, oldPriority: before.priority, newPriority: priority } }).catch(() => {});
     }
-    if (assigneeId !== undefined && assigneeId !== before.assigneeId && assignee) {
+    if (assigneeId !== undefined && assigneeId !== before.assigneeId && assigneeId && assignee) {
       recordActivity({ workspaceId, userId: user[0].id, type: "task_assigned", payload: { taskId: updated.id, taskTitle: updated.title, assigneeName: assignee.name } }).catch(() => {});
+      if (assigneeId !== user[0].id) {
+        createAssignmentNotification({
+          workspaceId,
+          assigneeId,
+          taskId: updated.id,
+          taskTitle: updated.title,
+          assignerName: user[0].name,
+        }).catch(() => {});
+      }
     }
   } catch (err) {
     req.log.error({ err }, "Failed to update task");
@@ -178,6 +211,77 @@ router.delete("/workspaces/:workspaceId/tasks/:taskId", requireAuth, async (req:
     res.json({ success: true });
   } catch (err) {
     req.log.error({ err }, "Failed to delete task");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/workspaces/:workspaceId/tasks/check-overdue", requireAuth, async (req: any, res): Promise<void> => {
+  try {
+    const clerkUserId = req.clerkUserId;
+    const { workspaceId } = req.params;
+    const user = await db.select().from(usersTable).where(eq(usersTable.clerkId, clerkUserId)).limit(1);
+    if (!user[0]) { res.status(404).json({ error: "User not found" }); return; }
+
+    const membership = await db.select().from(workspaceMembersTable)
+      .where(and(eq(workspaceMembersTable.workspaceId, workspaceId), eq(workspaceMembersTable.userId, user[0].id)))
+      .limit(1);
+    if (!membership[0]) { res.status(403).json({ error: "Access denied" }); return; }
+
+    const now = new Date();
+
+    const overdueTasks = await db.select({
+      id: tasksTable.id,
+      title: tasksTable.title,
+      dueDate: tasksTable.dueDate,
+    })
+      .from(tasksTable)
+      .where(
+        and(
+          eq(tasksTable.workspaceId, workspaceId),
+          eq(tasksTable.assigneeId, user[0].id),
+          isNotNull(tasksTable.dueDate),
+          lt(tasksTable.dueDate, now),
+          ne(tasksTable.status, "done"),
+        )
+      );
+
+    const existingOverdue = await db.select({ body: notificationsTable.body })
+      .from(notificationsTable)
+      .where(
+        and(
+          eq(notificationsTable.userId, user[0].id),
+          eq(notificationsTable.workspaceId, workspaceId),
+          eq(notificationsTable.type, "task_overdue"),
+          eq(notificationsTable.isRead, false),
+        )
+      );
+
+    const alreadyNotified = new Set(
+      existingOverdue.map(n => {
+        const match = n.body.match(/\[([^\]]+)\]/);
+        return match ? match[1] : null;
+      }).filter(Boolean)
+    );
+
+    let created = 0;
+    for (const task of overdueTasks) {
+      if (alreadyNotified.has(task.id)) continue;
+      const dueStr = task.dueDate
+        ? new Date(task.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+        : "unknown";
+      await db.insert(notificationsTable).values({
+        userId: user[0].id,
+        workspaceId,
+        type: "task_overdue",
+        title: "Task overdue",
+        body: `[${task.id}] "${task.title}" was due on ${dueStr}`,
+      });
+      created++;
+    }
+
+    res.json({ checked: overdueTasks.length, created });
+  } catch (err) {
+    req.log.error({ err }, "Failed to check overdue tasks");
     res.status(500).json({ error: "Internal server error" });
   }
 });

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@clerk/react";
 import {
   useListTasks,
   useCreateTask,
@@ -35,7 +36,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Plus,
-  Loader2,
   MoreVertical,
   Trash2,
   Pencil,
@@ -49,8 +49,8 @@ import {
   Minus,
   ArrowDown,
   Calendar,
-  User,
   Save,
+  AlertCircle,
 } from "lucide-react";
 import { useListWorkspaceMembers } from "@workspace/api-client-react";
 import { type LucideIcon } from "lucide-react";
@@ -131,12 +131,19 @@ function TaskCard({
               <span className="text-xs text-muted-foreground">{task.assignee.name}</span>
             </div>
           )}
-          {task.dueDate && (
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <Calendar className={`h-3 w-3 ${CHARCOAL}`} />
-              {new Date(task.dueDate).toLocaleDateString()}
-            </span>
-          )}
+          {task.dueDate && (() => {
+            const overdue = task.status !== "done" && new Date(task.dueDate) < new Date();
+            return (
+              <span className={`text-xs flex items-center gap-1 ${overdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                {overdue
+                  ? <AlertCircle className="h-3 w-3" />
+                  : <Calendar className={`h-3 w-3 ${CHARCOAL}`} />
+                }
+                {overdue ? "Overdue · " : ""}
+                {new Date(task.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+              </span>
+            );
+          })()}
           <span className="text-xs text-muted-foreground">
             by {task.creator?.name ?? "Unknown"}
           </span>
@@ -278,6 +285,21 @@ function TaskFormDialog({
 
 export function TasksTab({ workspaceId, role }: { workspaceId: string; role: string }) {
   const queryClient = useQueryClient();
+  const { getToken } = useAuth();
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = await getToken();
+        await fetch(`/api/workspaces/${workspaceId}/tasks/check-overdue`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      } catch {}
+    })();
+  }, [workspaceId]);
+
   const { data: tasks = [], isLoading } = useListTasks(workspaceId, {
     query: { queryKey: getListTasksQueryKey(workspaceId) },
   });

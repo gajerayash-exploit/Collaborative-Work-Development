@@ -156,11 +156,20 @@ function KanbanCard({
               <Badge variant={priority.badge} className="text-[10px] px-1.5 py-0 h-4">
                 {priority.label}
               </Badge>
+              {task.dueDate && task.status !== "done" && new Date(task.dueDate) < new Date() && (
+                <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4 gap-0.5">
+                  Overdue
+                </Badge>
+              )}
             </div>
 
             <div className="flex items-center gap-2">
               {task.dueDate && (
-                <span className="text-[10px] text-muted-foreground">
+                <span className={`text-[10px] flex items-center gap-0.5 ${
+                  task.status !== "done" && new Date(task.dueDate) < new Date()
+                    ? "text-destructive font-medium"
+                    : "text-muted-foreground"
+                }`}>
                   {new Date(task.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                 </span>
               )}
