@@ -10,9 +10,11 @@ import {
   useMarkMessagesRead,
   useGetTypingUsers,
   useSendTypingIndicator,
+  useUploadFile,
   getListMessagesQueryKey,
   getListPinnedMessagesQueryKey,
   getGetTypingUsersQueryKey,
+  getListFilesQueryKey,
 } from "@workspace/api-client-react";
 import type { TypingUser } from "@/hooks/use-workspace-socket";
 import { useQueryClient } from "@tanstack/react-query";
@@ -64,6 +66,13 @@ function ReactionBar({
       })}
     </div>
   );
+}
+
+function hasSameSenderAsNext(messages: { senderId: string; createdAt: string }[], index: number) {
+  const current = messages[index];
+  const next = messages[index + 1];
+  if (!current || !next) return false;
+  return current.senderId === next.senderId && new Date(next.createdAt).getTime() - new Date(current.createdAt).getTime() < 5 * 60 * 1000;
 }
 
 function EmojiPicker({ onPick }: { onPick: (emoji: string) => void }) {
@@ -188,6 +197,7 @@ export function ChatTab({
   const unpinMessage = useUnpinMessage();
   const markRead = useMarkMessagesRead();
   const sendTypingRest = useSendTypingIndicator();
+  const uploadFile = useUploadFile();
   // Use WS-based typing users when available (live), fall back to REST polling
   const { data: polledTypingUsers = [] } = useGetTypingUsers(workspaceId, {
     query: {
@@ -209,6 +219,7 @@ export function ChatTab({
 
   // Debounced typing signal — fires once per keystroke burst, stops after 4s idle
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dropCountRef = useRef(0);
   const handleContentChange = (val: string) => {
     setContent(val);
     if (!val.trim()) return;
@@ -234,6 +245,45 @@ export function ChatTab({
       { onSuccess: () => { setContent(""); invalidateMessages(); } }
     );
   };
+
+  const uploadDroppedFile = useCallback(
+    (file: File) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        uploadFile.mutate(
+          {
+            workspaceId,
+            data: {
+              name: file.name,
+              size: file.size,
+              mimeType: file.type || "application/octet-stream",
+              url: result,
+            },
+          },
+          {
+            onSuccess: () => {
+              queryClient.invalidateQueries({ queryKey: getListFilesQueryKey(workspaceId) });
+              queryClient.invalidateQueries({ queryKey: getListMessagesQueryKey(workspaceId) });
+            },
+          }
+        );
+      };
+      reader.readAsDataURL(file);
+    },
+    [queryClient, uploadFile, workspaceId]
+  );
+
+  const handleChatDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      dropCountRef.current = 0;
+      const file = e.dataTransfer.files?.[0];
+      if (!file || role === "viewer") return;
+      uploadDroppedFile(file);
+    },
+    [role, uploadDroppedFile]
+  );
 
   const handleReaction = (messageId: string, emoji: string) => {
     toggleReaction.mutate({ workspaceId, messageId, data: { emoji } }, { onSuccess: invalidateMessages });
@@ -275,7 +325,15 @@ export function ChatTab({
   }, [messages?.length, currentUserId, workspaceId]);
 
   return (
-    <div className="flex h-[calc(100vh-14rem)] bg-card border rounded-2xl overflow-hidden shadow-lg ring-1 ring-border/60">
+    <div
+      className="flex h-[calc(100vh-14rem)] bg-card border rounded-2xl overflow-hidden shadow-lg ring-1 ring-border/60"
+      onDragOver={(e) => {
+        if (role === "viewer") return;
+        e.preventDefault();
+        dropCountRef.current += 1;
+      }}
+      onDrop={handleChatDrop}
+    >
       {/* Main chat area */}
       <div className="flex flex-col flex-1 min-w-0">
         <PinnedBanner workspaceId={workspaceId} canPin={canPin} onUnpin={handleUnpin} />
@@ -461,6 +519,14 @@ export function ChatTab({
             </div>
           )}
         </ScrollArea>
+
+        {role !== "viewer" && (
+          <div className="px-4 pb-3">
+            <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 px-4 py-3 text-center text-sm text-muted-foreground">
+              Drag and drop files into this chat to upload them.
+            </div>
+          </div>
+        )}
 
         <div className="border-t bg-card flex-shrink-0">
           {/* Typing indicator */}
