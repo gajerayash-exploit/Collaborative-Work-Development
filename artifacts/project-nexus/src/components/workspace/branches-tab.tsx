@@ -83,24 +83,24 @@ function RoleHierarchy() {
 function RoleIcon({ role }: { role: "admin" | "editor" | "viewer" }) {
   if (role === "admin") {
     return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-amber-500" fill="currentColor" aria-hidden="true">
-        <path d="M3 8l4.5 3.5L12 5l4.5 6.5L21 8v8H3V8zm0 10h18v2H3v-2z" />
+      <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-amber-500" fill="currentColor" aria-hidden="true">
+        <path d="M4 8l3 2.5L12 5l5 5.5L20 8v8H4V8zm0 10h16v2H4v-2z" />
       </svg>
     );
   }
 
   if (role === "editor") {
     return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-violet-500" fill="currentColor" aria-hidden="true">
-        <path d="M3 17.2V21h3.8l11-11-3.8-3.8-11 11z" />
-        <path d="M17.7 5.3a1 1 0 0 0 0-1.4L16.1 2.3a1 1 0 0 0-1.4 0l-1.2 1.2 3.8 3.8 1.4-1.4z" />
+      <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-rose-500" fill="currentColor" aria-hidden="true">
+        <path d="M3 17.5V21h3.5l10.2-10.2-3.5-3.5L3 17.5z" />
+        <path d="M17.9 5.1a.9.9 0 0 0 0-1.3L16.2 2.1a.9.9 0 0 0-1.3 0l-1.1 1.1 3.5 3.5 1.6-1.6z" />
       </svg>
     );
   }
 
   return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-slate-500" fill="currentColor" aria-hidden="true">
-      <path d="M12 5a7 7 0 0 0-7 7v1c0 .8-.5 1.5-1.2 1.8l-.8.4v1.8h18v-1.8l-.8-.4c-.7-.3-1.2-1-1.2-1.8v-1a7 7 0 0 0-7-7zm0 3a4 4 0 0 1 4 4v1h-8v-1a4 4 0 0 1 4-4zm-1 10a1 1 0 0 0 2 0h-2z" />
+    <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-slate-500" fill="currentColor" aria-hidden="true">
+      <path d="M12 5a6 6 0 0 0-6 6v1c0 .7-.4 1.3-1 1.6l-.5.2V15h15v-1.2l-.5-.2c-.6-.3-1-1-1-1.6v-1a6 6 0 0 0-6-6zm0 2.5A3.5 3.5 0 0 1 15.5 11v1h-7v-1A3.5 3.5 0 0 1 12 7.5zm-1 9.5a1 1 0 0 0 2 0h-2z" />
     </svg>
   );
 }
