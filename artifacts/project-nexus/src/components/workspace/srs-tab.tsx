@@ -849,10 +849,10 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
           >
             <div style={{ padding: "12px 14px", borderBottom: neo ? "2px solid #000" : `1px solid ${VIOLET_DIM}`, flexShrink: 0 }}>
               <div style={{ fontWeight: 800, fontSize: 11, color: neo ? "#000" : VIOLET, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10 }}>
-                SRS Engine
+                SRS Workspace
               </div>
               {/* Mode tabs */}
-              <div style={{ display: "flex", gap: 4 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 4 }}>
                 {([["galaxy", GitBranch], ["radar", Target], ["sunburst", Layers], ["audit", ShieldAlert]] as const).map(([m, Icon]) => {
                   const isAudit = m === "audit";
                   const badgeCount = isAudit ? auditIssues.length : 0;
@@ -862,7 +862,7 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
                       onClick={() => setMode(m as typeof mode)}
                       title={m.charAt(0).toUpperCase() + m.slice(1)}
                       style={{
-                        flex: 1, padding: "5px 0", border: neo ? "2px solid #000" : `1px solid ${VIOLET_DIM}`,
+                        width: "100%", padding: "8px 0", border: neo ? "2px solid #000" : `1px solid ${VIOLET_DIM}`,
                         background: mode === m ? (neo ? "#000" : isAudit && badgeCount > 0 ? "#ef4444" : VIOLET) : "transparent",
                         color: mode === m ? "#fff" : (neo ? "#000" : "rgba(255,255,255,0.5)"),
                         borderRadius: neo ? 0 : 6, cursor: "pointer", display: "flex", justifyContent: "center", alignItems: "center", gap: 3,
@@ -890,7 +890,7 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
               {mode === "galaxy" && (
                 <div>
                   <div style={{ fontSize: 10, fontWeight: 700, color: neo ? "#000" : VIOLET, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
-                    Mermaid Engine
+                    Visual Graph Builder
                   </div>
                   <Textarea
                     value={mermaid}
@@ -1071,7 +1071,7 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
                     <div style={{ marginTop: 16 }}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                         <div style={{ fontSize: 10, fontWeight: 700, color: neo ? "#000" : VIOLET, textTransform: "uppercase", letterSpacing: 1, display: "flex", alignItems: "center", gap: 5 }}>
-                          <Sparkles size={11} /> AI Suggestions
+                          <Sparkles size={11} /> Real-time AI Suggestions
                         </div>
                         <button
                           onClick={fetchSuggestions}
@@ -1085,13 +1085,21 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
                           }}
                         >
                           {suggestLoading ? <RefreshCw size={9} className="srs-spin" /> : <Sparkles size={9} />}
-                          {suggestLoading ? "Thinking…" : "Analyze"}
+                          {suggestLoading ? "Analyzing…" : "Refresh"}
                         </button>
                       </div>
 
                       {suggestions.length === 0 && !suggestLoading && (
-                        <div style={{ fontSize: 9, color: neo ? "#777" : "rgba(255,255,255,0.3)", textAlign: "center", padding: "10px 0" }}>
-                          Click Analyze to get AI-powered connection recommendations.
+                        <div style={{
+                          fontSize: 9,
+                          color: neo ? "#777" : "rgba(255,255,255,0.3)",
+                          textAlign: "center",
+                          padding: "10px 12px",
+                          border: neo ? "1px dashed #ccc" : `1px dashed ${VIOLET_DIM}`,
+                          borderRadius: neo ? 2 : 8,
+                          background: neo ? "#fff" : "rgba(139,92,246,0.04)",
+                        }}>
+                          Refresh anytime to get live AI-powered connection recommendations.
                         </div>
                       )}
 
@@ -1105,10 +1113,11 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
                             <div
                               key={key}
                               style={{
-                                marginBottom: 7, padding: "8px 10px",
-                                background: neo ? "#fff" : "rgba(139,92,246,0.06)",
+                                marginBottom: 7, padding: "10px 10px",
+                                background: neo ? "#fff" : "rgba(139,92,246,0.08)",
                                 border: neo ? "2px solid #000" : `1px solid ${VIOLET_DIM}`,
-                                borderRadius: neo ? 2 : 7,
+                                borderRadius: neo ? 2 : 10,
+                                boxShadow: neo ? "none" : "0 8px 20px rgba(0,0,0,0.08)",
                               }}
                             >
                               <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4, flexWrap: "wrap" }}>
