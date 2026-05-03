@@ -26,6 +26,17 @@ function getFileEmoji(mimeType: string) {
   return "📎";
 }
 
+function FilePreviewIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true" fill="none">
+      <rect x="4" y="4.5" width="16" height="15" rx="3" fill="#f8fafc" stroke="#94a3b8" strokeWidth="1.2" />
+      <path d="M12 15V8" stroke="#64748b" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M9.5 10.5 12 8l2.5 2.5" stroke="#64748b" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M7 17h10" stroke="#64748b" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function getActivityLabel(type: string) {
   if (type === "task_created") return "task";
   if (type === "task_status_changed") return "status";
@@ -193,8 +204,8 @@ export function OverviewTab({ workspaceId }: { workspaceId: string }) {
                 <div className="divide-y">
                   {stats.recentFiles.map((file) => (
                     <div key={file.id} className="flex items-center gap-3 px-6 py-3 hover:bg-muted/30 transition-colors">
-                      <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 text-lg">
-                        {getFileEmoji(file.mimeType)}
+                      <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                        <FilePreviewIcon />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{file.name}</p>
