@@ -155,7 +155,12 @@ export function FilesTab({ workspaceId, role }: { workspaceId: string, role: Wor
               : "border-muted-foreground/20 hover:border-primary/40 hover:bg-muted/20"
           }`}
         >
-          <div className="text-4xl mb-2">{dragOver ? "📂" : "📤"}</div>
+          <svg viewBox="0 0 24 24" className="mb-2 h-10 w-10" aria-hidden="true" fill="none">
+            <rect x="4" y="4.5" width="16" height="15" rx="3" fill={dragOver ? "#eef2ff" : "#f8fafc"} stroke={dragOver ? "#6366f1" : "#94a3b8"} strokeWidth="1.2" />
+            <path d="M12 15V8" stroke={dragOver ? "#4f46e5" : "#64748b"} strokeWidth="1.4" strokeLinecap="round" />
+            <path d="M9.5 10.5 12 8l2.5 2.5" stroke={dragOver ? "#4f46e5" : "#64748b"} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M7 17h10" stroke={dragOver ? "#4f46e5" : "#64748b"} strokeWidth="1.4" strokeLinecap="round" />
+          </svg>
           <p className="text-sm font-medium">{dragOver ? "Drop to upload" : "Drag & drop files here"}</p>
           <p className="text-xs text-muted-foreground mt-1">or click to browse</p>
         </div>
