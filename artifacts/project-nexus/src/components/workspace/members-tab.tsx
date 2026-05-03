@@ -137,9 +137,24 @@ export function MembersTab({ workspaceId, role }: { workspaceId: string, role: W
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="admin">👑 Admin</SelectItem>
-                          <SelectItem value="editor">✏️ Editor</SelectItem>
-                          <SelectItem value="viewer">👁️ Viewer</SelectItem>
+                          <SelectItem value="admin">
+                            <span className="flex items-center gap-2">
+                              <RoleMemberIcon role="admin" />
+                              Admin
+                            </span>
+                          </SelectItem>
+                          <SelectItem value="editor">
+                            <span className="flex items-center gap-2">
+                              <RoleMemberIcon role="editor" />
+                              Editor
+                            </span>
+                          </SelectItem>
+                          <SelectItem value="viewer">
+                            <span className="flex items-center gap-2">
+                              <RoleMemberIcon role="viewer" />
+                              Viewer
+                            </span>
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     ) : null}
@@ -167,6 +182,36 @@ export function MembersTab({ workspaceId, role }: { workspaceId: string, role: W
         </div>
       </div>
     </div>
+  );
+}
+
+function RoleMemberIcon({ role }: { role: "admin" | "editor" | "viewer" }) {
+  if (role === "admin") {
+    return (
+      <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" aria-hidden="true" fill="none">
+        <path d="M4.5 7.5 7.8 10 12 5.8l4.2 4.2 3.3-2.5V17H4.5V7.5Z" fill="#f59e0b" />
+        <path d="M6 16.2h12" stroke="#c2410c" strokeWidth="1.2" strokeLinecap="round" />
+        <path d="M7.5 8.7h9" stroke="#fed7aa" strokeWidth="1.1" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (role === "editor") {
+    return (
+      <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" aria-hidden="true" fill="none">
+        <path d="M4.8 15.8 15.7 4.9l3.4 3.4L8.2 18.4H4.8v-2.6Z" fill="#7c3aed" />
+        <path d="M15.2 5.4 17 3.6l3.4 3.4-1.8 1.8" fill="#a78bfa" />
+        <path d="M7.2 10.2h4.5" stroke="#ddd6fe" strokeWidth="1.1" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" aria-hidden="true" fill="none">
+      <path d="M5 12c1.3-2.6 3.6-4.4 7-4.4s5.7 1.8 7 4.4c-1.3 2.6-3.6 4.4-7 4.4S6.3 14.6 5 12Z" fill="#2563eb" />
+      <circle cx="12" cy="12" r="1.3" fill="#ffffff" />
+      <path d="M8 8.7h3.6" stroke="#bfdbfe" strokeWidth="1.1" strokeLinecap="round" />
+    </svg>
   );
 }
 
