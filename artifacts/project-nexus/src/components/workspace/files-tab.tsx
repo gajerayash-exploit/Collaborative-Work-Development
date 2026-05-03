@@ -169,7 +169,7 @@ export function FilesTab({ workspaceId, role }: { workspaceId: string, role: Wor
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/30">
-              <TableHead className="w-[40%] font-semibold">📎 Name</TableHead>
+              <TableHead className="w-[40%] font-semibold">Name</TableHead>
               <TableHead className="font-semibold">Size</TableHead>
               <TableHead className="font-semibold">Uploaded by</TableHead>
               <TableHead className="font-semibold">Date</TableHead>
@@ -202,9 +202,11 @@ export function FilesTab({ workspaceId, role }: { workspaceId: string, role: Wor
                 <TableRow key={file.id} className="hover:bg-muted/20 transition-colors">
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-3">
-                      <div className={`h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0 text-lg ${getFileBg(file.mimeType)}`}>
-                        {getFileEmoji(file.mimeType)}
-                      </div>
+                      <img
+                        src="@assets/image_1777790929735.png"
+                        alt=""
+                        className={`h-9 w-9 rounded-lg object-cover flex-shrink-0 ${getFileBg(file.mimeType)}`}
+                      />
                       <span className="truncate max-w-[180px] text-sm" title={file.name}>{file.name}</span>
                     </div>
                   </TableCell>
