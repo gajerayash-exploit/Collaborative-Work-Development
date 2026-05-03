@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, syncEventsTable, workspaceMembersTable, usersTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
+import { requireAuthOrToken } from "../middlewares/requireAuthOrToken";
 import { broadcastToWorkspace } from "../lib/ws-manager";
 
 const router: IRouter = Router();
@@ -38,7 +39,7 @@ router.get("/workspaces/:workspaceId/sync/events", requireAuth, async (req: any,
   }
 });
 
-router.post("/workspaces/:workspaceId/sync/push", requireAuth, async (req: any, res): Promise<void> => {
+router.post("/workspaces/:workspaceId/sync/push", requireAuthOrToken, async (req: any, res): Promise<void> => {
   try {
     const { workspaceId } = req.params;
     const user = await db.select().from(usersTable).where(eq(usersTable.clerkId, req.clerkUserId)).limit(1);

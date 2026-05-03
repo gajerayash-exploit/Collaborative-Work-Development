@@ -55,6 +55,9 @@ export function useHuddleRtc({
   mutedRef.current = muted;
   const joinedRef = useRef(false);
   const cleanupScheduledRef = useRef(false);
+  const stopLocalDetectionRef = useRef<(() => void) | null>(null);
+  const latestMutedRef = useRef(muted);
+  latestMutedRef.current = muted;
 
   /** Create or update the speaking flag for a peer, auto-clearing after silence */
   const markSpeaking = useCallback((userId: string, active: boolean) => {
@@ -76,7 +79,7 @@ export function useHuddleRtc({
   }, []);
 
   /** Attach Web Audio speaking detection to a MediaStream */
-  function startSpeakingDetection(stream: MediaStream, userId: string): () => void {
+  const startSpeakingDetection = useCallback((stream: MediaStream, userId: string): () => void => {
     let ctx: AudioContext | null = null;
     let interval: ReturnType<typeof setInterval> | null = null;
     try {
@@ -96,10 +99,10 @@ export function useHuddleRtc({
       if (interval) clearInterval(interval);
       ctx?.close().catch(() => {});
     };
-  }
+  }, [markSpeaking]);
 
   /** Build an RTCPeerConnection to a target peer */
-  function createPeer(targetUserId: string): RTCPeerConnection {
+  const createPeer = useCallback((targetUserId: string): RTCPeerConnection => {
     const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
 
     // Add local tracks
@@ -152,7 +155,7 @@ export function useHuddleRtc({
 
     peersRef.current.set(targetUserId, pc);
     return pc;
-  }
+  }, [startSpeakingDetection]);
 
   /** Drain any queued ICE candidates for a peer once remoteDescription is set */
   async function drainCandidateQueue(pc: RTCPeerConnection, fromUserId: string) {
@@ -243,7 +246,6 @@ export function useHuddleRtc({
     if (!isInHuddle || !myDbUserId) return;
 
     let active = true;
-    let stopLocalDetection: (() => void) | null = null;
     cleanupScheduledRef.current = false;
 
     (async () => {
@@ -256,7 +258,7 @@ export function useHuddleRtc({
         joinedRef.current = true;
 
         // Start local speaking detection
-        stopLocalDetection = startSpeakingDetection(stream, myDbUserId);
+        stopLocalDetectionRef.current = startSpeakingDetection(stream, myDbUserId);
 
         // Tell peers we've joined and are ready for offers
         sendMessageRef.current({ type: "rtc_join" });
@@ -294,7 +296,8 @@ export function useHuddleRtc({
       setMuted(false);
 
       // Stop local speaking detection
-      if (stopLocalDetection) stopLocalDetection();
+      if (stopLocalDetectionRef.current) stopLocalDetectionRef.current();
+      stopLocalDetectionRef.current = null;
       if (localAnalyserRef.current) {
         clearInterval(localAnalyserRef.current.interval);
         localAnalyserRef.current.ctx.close().catch(() => {});
@@ -308,15 +311,6 @@ export function useHuddleRtc({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isInHuddle, myDbUserId]);
-
-  // Apply mute state to local tracks whenever it changes
-  useEffect(() => {
-    const stream = localStreamRef.current;
-    if (!stream) return;
-    for (const track of stream.getAudioTracks()) {
-      track.enabled = !muted;
-    }
-  }, [muted]);
 
   const toggleMute = useCallback(() => setMuted((m) => !m), []);
 

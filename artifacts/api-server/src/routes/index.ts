@@ -25,6 +25,7 @@ import syncRouter from "./sync";
 import huddleRouter from "./huddle";
 import sandboxesRouter from "./sandboxes";
 import catchupRouter from "./catchup";
+import apiTokensRouter from "./api-tokens";
 
 const router: IRouter = Router();
 
@@ -54,5 +55,6 @@ router.use(syncRouter);
 router.use(huddleRouter);
 router.use(sandboxesRouter);
 router.use(catchupRouter);
+router.use(apiTokensRouter);
 
 export default router;

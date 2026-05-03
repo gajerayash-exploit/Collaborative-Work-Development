@@ -81,6 +81,63 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserProfile"
 
+  /user/tokens:
+    get:
+      operationId: listApiTokens
+      tags: [user]
+      summary: List API tokens for current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of API tokens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiToken"
+    post:
+      operationId: createApiToken
+      tags: [user]
+      summary: Create a new API token
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateApiTokenBody"
+      responses:
+        "201":
+          description: Created API token (includes full token value, only shown once)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedApiToken"
+
+  /user/tokens/{tokenId}:
+    delete:
+      operationId: deleteApiToken
+      tags: [user]
+      summary: Revoke an API token
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tokenId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Token revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
   /workspaces:
     get:
       operationId: listWorkspaces

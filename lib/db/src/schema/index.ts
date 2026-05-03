@@ -16,3 +16,4 @@ export * from "./branches";
 export * from "./sync-events";
 export * from "./huddle-sessions";
 export * from "./sandboxes";
+export * from "./api-tokens";
