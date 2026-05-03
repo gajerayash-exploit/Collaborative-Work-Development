@@ -53,6 +53,8 @@ export function useHuddleRtc({
   myDbUserIdRef.current = myDbUserId;
   const mutedRef = useRef(muted);
   mutedRef.current = muted;
+  const joinedRef = useRef(false);
+  const cleanupScheduledRef = useRef(false);
 
   /** Create or update the speaking flag for a peer, auto-clearing after silence */
   const markSpeaking = useCallback((userId: string, active: boolean) => {
@@ -242,6 +244,7 @@ export function useHuddleRtc({
 
     let active = true;
     let stopLocalDetection: (() => void) | null = null;
+    cleanupScheduledRef.current = false;
 
     (async () => {
       try {
@@ -250,6 +253,7 @@ export function useHuddleRtc({
         localStreamRef.current = stream;
         setHasAudio(true);
         setAudioError(null);
+        joinedRef.current = true;
 
         // Start local speaking detection
         stopLocalDetection = startSpeakingDetection(stream, myDbUserId);
@@ -264,8 +268,12 @@ export function useHuddleRtc({
 
     return () => {
       active = false;
-      // Signal departure before cleaning up
-      sendMessageRef.current({ type: "rtc_leave" });
+      if (cleanupScheduledRef.current) return;
+      cleanupScheduledRef.current = true;
+      if (joinedRef.current) {
+        sendMessageRef.current({ type: "rtc_leave" });
+        joinedRef.current = false;
+      }
 
       // Close all peer connections
       for (const pc of peersRef.current.values()) pc.close();
