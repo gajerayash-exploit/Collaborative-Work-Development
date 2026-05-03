@@ -83,9 +83,9 @@ function RoleHierarchy() {
 function RoleIcon({ role }: { role: "admin" | "editor" | "viewer" }) {
   if (role === "admin") {
     return (
-      <div className="h-6 w-6 flex items-center justify-center rounded-full bg-amber-500/10 text-amber-500">
+      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/10 text-amber-500">
         <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true">
-          <path d="M3 7.5l4 3 5-5 5 5 4-3V16H3V7.5zm0 10h18v2H3v-2z" />
+          <path d="M3 7l4.5 3.5L12 5l4.5 5.5L21 7v9H3V7zm0 10h18v2H3v-2z" />
         </svg>
       </div>
     );
@@ -93,19 +93,19 @@ function RoleIcon({ role }: { role: "admin" | "editor" | "viewer" }) {
 
   if (role === "editor") {
     return (
-      <div className="h-6 w-6 flex items-center justify-center rounded-full bg-rose-500/10 text-rose-500">
+      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-500/10 text-rose-500">
         <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true">
           <path d="M3 17.25V21h3.75l11-11-3.75-3.75-11 11z" />
-          <path d="M17.92 5.08a1 1 0 0 0 0-1.41L16.33 2.08a1 1 0 0 0-1.41 0l-1.15 1.15 3.75 3.75 1.4-1.4z" />
+          <path d="M14.75 4.5l1.75-1.75a1 1 0 0 1 1.41 0l1.34 1.34a1 1 0 0 1 0 1.41l-1.75 1.75-2.75-2.75z" />
         </svg>
       </div>
     );
   }
 
   return (
-    <div className="h-6 w-6 flex items-center justify-center rounded-full bg-slate-500/10 text-slate-500">
+    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-500/10 text-slate-500">
       <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true">
-        <path d="M12 5a6 6 0 0 0-6 6v1c0 .7-.4 1.3-1 1.6l-.5.2V15h15v-1.2l-.5-.2c-.6-.3-1-1-1-1.6v-1a6 6 0 0 0-6-6zm0 2.5A3.5 3.5 0 0 1 15.5 11v1h-7v-1A3.5 3.5 0 0 1 12 7.5zm-1 9.5a1 1 0 0 0 2 0h-2z" />
+        <path d="M12 5a7 7 0 0 0-7 7v1c0 .8-.5 1.5-1.2 1.8L3 15v1h18v-1l-.8-.2c-.7-.3-1.2-1-1.2-1.8v-1a7 7 0 0 0-7-7zm0 2a5 5 0 0 1 5 5v1H7v-1a5 5 0 0 1 5-5zm-1 9a1 1 0 0 0 2 0h-2z" />
       </svg>
     </div>
   );
