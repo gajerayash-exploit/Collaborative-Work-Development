@@ -30,7 +30,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { UserPlus, MoreHorizontal, Trash2 } from "lucide-react";
+import { Mail, MoreHorizontal, Send, ShieldCheck, Trash2, UserPlus } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import {
   DropdownMenu,
@@ -246,14 +246,20 @@ function InviteMemberDialog({ workspaceId }: { workspaceId: string }) {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">🎉 Invite Member</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <UserPlus className="h-5 w-5 text-primary" />
+            Invite Member
+          </DialogTitle>
           <DialogDescription>
             Invite a teammate to collaborate in this workspace.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleInvite} className="space-y-4 pt-4">
           <div className="space-y-2">
-            <Label htmlFor="email">📧 Email address</Label>
+            <Label htmlFor="email" className="flex items-center gap-2">
+              <Mail className="h-4 w-4 text-muted-foreground" />
+              Email Address
+            </Label>
             <Input
               id="email"
               type="email"
@@ -264,21 +270,25 @@ function InviteMemberDialog({ workspaceId }: { workspaceId: string }) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="role">🎭 Role</Label>
+            <Label htmlFor="role" className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+              Role
+            </Label>
             <Select value={role} onValueChange={(val: "editor" | "viewer") => setRole(val)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="editor">✏️ Editor — can upload files and chat</SelectItem>
-                <SelectItem value="viewer">👁️ Viewer — read-only access</SelectItem>
+                <SelectItem value="editor">Editor — can upload files and chat</SelectItem>
+                <SelectItem value="viewer">Viewer — read-only access</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
             <Button type="submit" disabled={!email || inviteMember.isPending} className="gap-2">
-              {inviteMember.isPending ? "Sending..." : "🚀 Send Invite"}
+              <Send className="h-4 w-4" />
+              {inviteMember.isPending ? "Sending..." : "Send Invite"}
             </Button>
           </DialogFooter>
         </form>
