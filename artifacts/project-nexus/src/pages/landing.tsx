@@ -3,30 +3,12 @@ import { Button } from "@/components/ui/button";
 import { ReadmeButton } from "@/components/readme-modal";
 
 const FEATURES = [
-  {
-    title: "Real-time Chat",
-    desc: "Threaded conversations, reactions, and live typing indicators keep your team in sync.",
-  },
-  {
-    title: "Kanban Tasks",
-    desc: "Drag-and-drop boards with priority flags, assignees, and due dates.",
-  },
-  {
-    title: "Shared Files",
-    desc: "Upload and share any file type. Every asset lives inside the workspace.",
-  },
-  {
-    title: "Secrets Vault",
-    desc: "Store API keys with AES-256-GCM encryption. Only teammates can reveal values.",
-  },
-  {
-    title: "Role-based Access",
-    desc: "Admins, editors, and viewers — granular permissions for every team setup.",
-  },
-  {
-    title: "Smart Notifications",
-    desc: "Get pinged only when it matters. Mark read, dismiss, and stay focused.",
-  },
+  { title: "Real-time Chat", desc: "Threaded conversations, reactions, and live typing indicators keep your team in sync." },
+  { title: "Kanban Tasks", desc: "Drag-and-drop boards with priority flags, assignees, and due dates." },
+  { title: "Shared Files", desc: "Upload and share any file type. Every asset lives inside the workspace." },
+  { title: "Secrets Vault", desc: "Store API keys with AES-256-GCM encryption. Only teammates can reveal values." },
+  { title: "Role-based Access", desc: "Admins, editors, and viewers — granular permissions for every team setup." },
+  { title: "Smart Notifications", desc: "Get pinged only when it matters. Mark read, dismiss, and stay focused." },
 ];
 
 const STATS = [
@@ -79,7 +61,6 @@ export default function LandingPage() {
           </div>
         </div>
       </header>
-
       <main>
         <section className="relative overflow-hidden bg-[radial-gradient(circle_at_top,rgba(91,110,245,0.22),transparent_35%),linear-gradient(180deg,#07080F_0%,#0D0F1C_100%)]">
           <div className="mx-auto max-w-7xl px-4 pb-16 pt-16 sm:px-6 sm:pb-24 sm:pt-24 lg:px-8">
@@ -107,24 +88,19 @@ export default function LandingPage() {
                 </Link>
               </div>
             </div>
-
             <div className="mx-auto mt-14 max-w-6xl rounded-3xl border border-white/10 bg-white/5 p-3 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-4">
               <div className="rounded-2xl border border-white/10 bg-[#111425] p-3 sm:p-4">
                 <div className="mb-3 flex items-center gap-2 border-b border-white/10 pb-3 text-xs text-white/50">
                   <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
                   <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
                   <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-                  <div className="ml-2 truncate rounded-md border border-white/10 bg-white/5 px-3 py-1.5">
-                    app.projectnexus.dev/workspaces/my-team
-                  </div>
+                  <div className="ml-2 truncate rounded-md border border-white/10 bg-white/5 px-3 py-1.5">app.projectnexus.dev/workspaces/my-team</div>
                 </div>
                 <div className="grid gap-3 lg:grid-cols-[220px_1fr]">
                   <div className="hidden rounded-2xl border border-white/10 bg-white/5 p-3 lg:block">
-                    <div className="mb-3 rounded-xl border border-[#5B6EF5]/20 bg-[#5B6EF5]/10 px-3 py-2 text-sm font-semibold text-white">
-                      My Team
-                    </div>
+                    <div className="mb-3 rounded-xl border border-[#5B6EF5]/20 bg-[#5B6EF5]/10 px-3 py-2 text-sm font-semibold text-white">My Team</div>
                     <div className="space-y-1 text-sm text-white/60">
-                      <div className="rounded-lg px-3 py-2 bg-white/5">Chat</div>
+                      <div className="rounded-lg bg-white/5 px-3 py-2">Chat</div>
                       <div className="rounded-lg px-3 py-2">Tasks</div>
                       <div className="rounded-lg px-3 py-2">Files</div>
                       <div className="rounded-lg px-3 py-2">Vault</div>
@@ -136,9 +112,7 @@ export default function LandingPage() {
                       <div className="h-3 w-28 rounded-full bg-white/15" />
                     </div>
                     {['Deploy the new API endpoint 🔥', 'Fix auth redirect bug 🐛', 'Write integration tests ✅', 'Update README docs 📝'].map((msg, i) => (
-                      <div key={msg} className={`max-w-[92%] rounded-2xl px-3 py-2 text-sm ${i === 0 ? 'bg-[#5B6EF5] text-white' : 'bg-white/8 text-white/85'}`}>
-                        {msg}
-                      </div>
+                      <div key={msg} className={`max-w-[92%] rounded-2xl px-3 py-2 text-sm ${i === 0 ? 'bg-[#5B6EF5] text-white' : 'bg-white/8 text-white/85'}`}>{msg}</div>
                     ))}
                   </div>
                 </div>
@@ -146,7 +120,6 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-
         <section className="border-y border-white/10 bg-[#0D0F1C] py-12 sm:py-14">
           <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 sm:grid-cols-4 sm:px-6 lg:px-8">
             {STATS.map((stat) => (
@@ -157,7 +130,6 @@ export default function LandingPage() {
             ))}
           </div>
         </section>
-
         <section className="bg-[#F7F6F2] px-4 py-16 text-[#111425] sm:px-6 sm:py-24 lg:px-8">
           <div className="mx-auto max-w-7xl space-y-12">
             {SECTIONS.map((section) => (
@@ -181,7 +153,6 @@ export default function LandingPage() {
             ))}
           </div>
         </section>
-
         <section className="bg-[#07080F] px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
           <div className="mx-auto max-w-7xl">
             <div className="mb-10 text-center">
@@ -199,22 +170,18 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-
         <section className="bg-[#FAFAF8] px-4 py-16 text-[#111425] sm:px-6 sm:py-24 lg:px-8">
           <div className="mx-auto max-w-4xl rounded-3xl border border-black/10 bg-white p-8 text-center shadow-xl shadow-black/5 sm:p-14">
             <h2 className="text-3xl font-black tracking-tight sm:text-5xl">Ready to build something great?</h2>
             <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[#5A607A] sm:text-lg">Create your first workspace in seconds. No credit card, no setup.</p>
             <div className="mt-8">
               <Link href="/sign-up">
-                <Button className="h-12 rounded-full bg-[#5B6EF5] px-8 text-sm font-bold text-white shadow-lg shadow-[#5B6EF5]/25 hover:bg-[#7B8FF7]">
-                  🚀 Create your workspace
-                </Button>
+                <Button className="h-12 rounded-full bg-[#5B6EF5] px-8 text-sm font-bold text-white shadow-lg shadow-[#5B6EF5]/25 hover:bg-[#7B8FF7]">🚀 Create your workspace</Button>
               </Link>
             </div>
           </div>
         </section>
       </main>
-
       <footer className="border-t border-white/10 bg-[#07080F] px-4 py-6 text-white/60 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 sm:flex-row">
           <div className="flex items-center gap-2 text-white">
