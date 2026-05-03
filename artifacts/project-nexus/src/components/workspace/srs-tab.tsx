@@ -820,7 +820,7 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      style={{ width: "100%", height: "100%", display: "flex", position: "relative" }}
+      style={{ width: "100%", height: "100%", display: "flex", position: "relative", minHeight: 0, overflow: "hidden" }}
     >
       {/* Pulse + spin animations */}
       <style>{`
@@ -845,6 +845,7 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
               flexShrink: 0, overflow: "hidden", borderRight: neo ? "3px solid #000" : `1px solid ${VIOLET_DIM}`,
               background: neo ? "#f5f5f5" : "rgba(5,2,8,0.97)",
               display: "flex", flexDirection: "column",
+              width: 260, maxWidth: "min(260px, 78vw)",
             }}
           >
             <div style={{ padding: "12px 14px", borderBottom: neo ? "2px solid #000" : `1px solid ${VIOLET_DIM}`, flexShrink: 0 }}>
@@ -1527,7 +1528,7 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
               exit={{ x: 320, opacity: 0 }}
               transition={{ type: "spring", stiffness: 340, damping: 30 }}
               style={{
-                position: "absolute", right: 0, top: 0, bottom: 0, width: 300, zIndex: 31,
+                position: "absolute", right: 0, top: 0, bottom: 0, width: 300, maxWidth: "min(300px, 92vw)", zIndex: 31,
                 background: neo ? "#f5f5f5" : "rgba(10,7,18,0.97)",
                 borderLeft: neo ? "3px solid #000" : `1px solid ${VIOLET_DIM}`,
                 display: "flex", flexDirection: "column",
@@ -1705,7 +1706,7 @@ function SRSInner({ workspaceId, role, onAuditCount }: { workspaceId: string; ro
       </AnimatePresence>
 
       {/* ───── Canvas ───── */}
-      <div style={{ flex: 1, position: "relative" }}>
+      <div style={{ flex: 1, position: "relative", minWidth: 0, minHeight: 0 }}>
         <ReactFlow
           nodes={enrichedNodes}
           edges={enrichedEdges}
