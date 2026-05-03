@@ -26,7 +26,7 @@ import {
   Check, CheckCheck,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { MentionInput } from "./mention-input";
+import { MentionInput, toRawFormat } from "./mention-input";
 import { MentionText } from "./mention-text";
 import { ThreadPanel } from "./thread-panel";
 import { CatchUpButton, CatchUpPanel } from "./catch-up-panel";
@@ -228,8 +228,9 @@ export function ChatTab({
   const handleSend = () => {
     if (!content.trim()) return;
     if (typingTimerRef.current) { clearTimeout(typingTimerRef.current); typingTimerRef.current = null; }
+    const rawContent = toRawFormat(content.trim(), members);
     sendMessage.mutate(
-      { workspaceId, data: { content: content.trim() } },
+      { workspaceId, data: { content: rawContent } },
       { onSuccess: () => { setContent(""); invalidateMessages(); } }
     );
   };

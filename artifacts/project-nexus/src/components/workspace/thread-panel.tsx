@@ -12,7 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { X, MessageSquare, Loader2, CornerDownRight, Send } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { MentionText } from "./mention-text";
-import { MentionInput } from "./mention-input";
+import { MentionInput, toRawFormat } from "./mention-input";
 
 interface Member {
   userId: string;
@@ -52,8 +52,9 @@ export function ThreadPanel({ workspaceId, message, currentUserId, members, onCl
 
   const handleSend = () => {
     if (!replyContent.trim()) return;
+    const rawContent = toRawFormat(replyContent.trim(), members);
     sendReply.mutate(
-      { workspaceId, messageId: message.id, data: { content: replyContent.trim() } },
+      { workspaceId, messageId: message.id, data: { content: rawContent } },
       {
         onSuccess: () => {
           setReplyContent("");
