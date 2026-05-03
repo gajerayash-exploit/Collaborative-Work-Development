@@ -27,6 +27,7 @@ interface SocketMessage {
     | "sync_event"
     | "huddle_update"
     | "typing"
+    | "message_read"
     | "pong";
   workspaceId?: string;
   users?: PresenceUser[];
@@ -137,6 +138,12 @@ export function useWorkspaceSocket({
             case "huddle_update":
               qc.invalidateQueries({
                 queryKey: getGetHuddleQueryKey(workspaceId),
+              });
+              break;
+
+            case "message_read":
+              qc.invalidateQueries({
+                queryKey: getListMessagesQueryKey(workspaceId),
               });
               break;
 

@@ -395,18 +395,31 @@ export function ChatTab({
                       </div>
 
                       {/* Read receipt tick — only on my messages */}
-                      {isMe && (
-                        <div
-                          className="flex items-center gap-0.5 mt-0.5 pr-1"
-                          aria-label={msg.readByCount > 0 ? `Seen by ${msg.readByCount} ${msg.readByCount === 1 ? "person" : "people"}` : "Sent"}
-                        >
-                          {msg.readByCount > 0 ? (
-                            <CheckCheck className="h-3.5 w-3.5 text-zinc-700 dark:text-zinc-300" strokeWidth={2.5} />
-                          ) : (
-                            <Check className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" strokeWidth={2.5} />
-                          )}
-                        </div>
-                      )}
+                      {isMe && (() => {
+                        const recipients = Math.max(members.length - 1, 0);
+                        const readAll = recipients > 0 && msg.readByCount >= recipients;
+                        const readSome = msg.readByCount > 0 && !readAll;
+                        const label = readAll
+                          ? `Read by everyone (${msg.readByCount})`
+                          : readSome
+                          ? `Seen by ${msg.readByCount} of ${recipients}`
+                          : "Sent";
+                        return (
+                          <div
+                            className="flex items-center gap-0.5 mt-0.5 pr-1"
+                            title={label}
+                            aria-label={label}
+                          >
+                            {readAll ? (
+                              <CheckCheck className="h-3.5 w-3.5 text-blue-500" strokeWidth={2.5} />
+                            ) : readSome ? (
+                              <CheckCheck className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" strokeWidth={2.5} />
+                            ) : (
+                              <Check className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" strokeWidth={2.5} />
+                            )}
+                          </div>
+                        );
+                      })()}
 
                       {/* Reply count badge */}
                       {msg.replyCount > 0 && (

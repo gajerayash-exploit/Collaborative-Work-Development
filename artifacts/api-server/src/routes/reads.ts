@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, messageReadsTable, usersTable, workspaceMembersTable, messagesTable } from "@workspace/db";
 import { eq, and, inArray, ne } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
+import { broadcastToWorkspace } from "../lib/ws-manager";
 
 const router: IRouter = Router();
 
@@ -42,6 +43,14 @@ router.post("/workspaces/:workspaceId/messages/mark-read", requireAuth, async (r
     await db.insert(messageReadsTable)
       .values(validMessages.map(m => ({ messageId: m.id, userId: user[0].id })))
       .onConflictDoNothing();
+
+    // Broadcast to the workspace so senders see ticks update in real time
+    broadcastToWorkspace(workspaceId, {
+      type: "message_read",
+      workspaceId,
+      messageIds: validMessages.map(m => m.id),
+      readByUserId: user[0].id,
+    });
 
     res.json({ success: true });
   } catch (err) {
