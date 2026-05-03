@@ -83,35 +83,34 @@ function RoleHierarchy() {
 function RoleIcon({ role }: { role: "admin" | "editor" | "viewer" }) {
   if (role === "admin") {
     return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true">
-        <path d="M5 8.5 12 4l7 4.5V16H5V8.5Z" fill="#f59e0b" />
-        <path d="M5 8.5 12 13v3H5V8.5Z" fill="#d97706" />
-        <path d="M12 4v9l7-4.5V16h-7V4Z" fill="#b45309" />
-        <path d="M5 16h14v2H5z" fill="#92400e" />
-        <path d="M7.5 9.5 12 7l4.5 2.5" stroke="#fff7ed" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true" fill="none">
+        <rect x="4" y="5" width="16" height="14" rx="4" fill="#fff7ed" stroke="#fdba74" strokeWidth="1.4" />
+        <circle cx="9" cy="10" r="2" fill="#f59e0b" />
+        <circle cx="15" cy="10" r="2" fill="#fb923c" />
+        <path d="M6.5 15.5c1.4-2 3.1-3 5.5-3s4.1 1 5.5 3" stroke="#c2410c" strokeWidth="1.4" strokeLinecap="round" />
+        <path d="M7 7.5h10" stroke="#ffedd5" strokeWidth="1.2" strokeLinecap="round" />
       </svg>
     );
   }
 
   if (role === "editor") {
     return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true">
-        <path d="M5 8.5 12 4l7 4.5V16H5V8.5Z" fill="#c084fc" />
-        <path d="M5 8.5 12 13v3H5V8.5Z" fill="#a855f7" />
-        <path d="M12 4v9l7-4.5V16h-7V4Z" fill="#7c3aed" />
-        <path d="M5 16h14v2H5z" fill="#6d28d9" />
-        <path d="M7.5 9.5 12 7l4.5 2.5" stroke="#f5f3ff" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true" fill="none">
+        <rect x="4" y="5" width="16" height="14" rx="4" fill="#f5f3ff" stroke="#c4b5fd" strokeWidth="1.4" />
+        <path d="M8 15.5 16.5 7" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" />
+        <path d="M15.8 7.7 16.3 7.2c.4-.4 1-.4 1.4 0l.1.1c.4.4.4 1 0 1.4l-.5.5" stroke="#a855f7" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M8.2 15.2 7 17h1.8l1.2-1.8" fill="#7c3aed" />
+        <path d="M7 9.5h4" stroke="#e9d5ff" strokeWidth="1.2" strokeLinecap="round" />
       </svg>
     );
   }
 
   return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true">
-      <path d="M5 8.5 12 4l7 4.5V16H5V8.5Z" fill="#38bdf8" />
-      <path d="M5 8.5 12 13v3H5V8.5Z" fill="#0ea5e9" />
-      <path d="M12 4v9l7-4.5V16h-7V4Z" fill="#0284c7" />
-      <path d="M5 16h14v2H5z" fill="#0369a1" />
-      <path d="M7.5 9.5 12 7l4.5 2.5" stroke="#e0f2fe" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true" fill="none">
+      <rect x="4" y="5" width="16" height="14" rx="4" fill="#eff6ff" stroke="#93c5fd" strokeWidth="1.4" />
+      <path d="M7 13.5c1.2-2.8 3.2-4.2 5-4.2s3.8 1.4 5 4.2" stroke="#2563eb" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="12" cy="12" r="1.8" fill="#60a5fa" />
+      <path d="M9.5 8.5h5" stroke="#dbeafe" strokeWidth="1.2" strokeLinecap="round" />
     </svg>
   );
 }
