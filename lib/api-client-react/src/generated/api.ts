@@ -1665,6 +1665,94 @@ export const useSendMessage = <
 };
 
 /**
+ * @summary Delete a message (sender or admin only)
+ */
+export const getDeleteMessageUrl = (workspaceId: string, messageId: string) => {
+  return `/api/workspaces/${workspaceId}/messages/${messageId}`;
+};
+
+export const deleteMessage = async (
+  workspaceId: string,
+  messageId: string,
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(
+    getDeleteMessageUrl(workspaceId, messageId),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getDeleteMessageMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteMessage>>,
+    TError,
+    { workspaceId: string; messageId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteMessage>>,
+  TError,
+  { workspaceId: string; messageId: string },
+  TContext
+> => {
+  const mutationKey = ["deleteMessage"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteMessage>>,
+    { workspaceId: string; messageId: string }
+  > = (props) => {
+    const { workspaceId, messageId } = props ?? {};
+
+    return deleteMessage(workspaceId, messageId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteMessageMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteMessage>>
+>;
+
+export type DeleteMessageMutationError = ErrorType<void>;
+
+/**
+ * @summary Delete a message (sender or admin only)
+ */
+export const useDeleteMessage = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteMessage>>,
+    TError,
+    { workspaceId: string; messageId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteMessage>>,
+  TError,
+  { workspaceId: string; messageId: string },
+  TContext
+> => {
+  return useMutation(getDeleteMessageMutationOptions(options));
+};
+
+/**
  * @summary Mark multiple messages as read
  */
 export const getMarkMessagesReadUrl = (workspaceId: string) => {

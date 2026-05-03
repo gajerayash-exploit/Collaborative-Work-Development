@@ -6,6 +6,7 @@ import {
   useListPinnedMessages,
   usePinMessage,
   useUnpinMessage,
+  useDeleteMessage,
   useListWorkspaceMembers,
   useMarkMessagesRead,
   useGetTypingUsers,
@@ -23,7 +24,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Send, Loader2, MessageSquare, Pin, PinOff,
   ChevronDown, ChevronUp, X, MessageCircle,
-  Check, CheckCheck,
+  Check, CheckCheck, Trash2,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { MentionInput, toRawFormat } from "./mention-input";
@@ -193,6 +194,7 @@ export function ChatTab({
   const toggleReaction = useToggleReaction();
   const pinMessage = usePinMessage();
   const unpinMessage = useUnpinMessage();
+  const deleteMessage = useDeleteMessage();
   const markRead = useMarkMessagesRead();
   const sendTypingRest = useSendTypingIndicator();
   // Use WS-based typing users when available (live), fall back to REST polling
@@ -254,6 +256,11 @@ export function ChatTab({
 
   const handleUnpin = (messageId: string) => {
     unpinMessage.mutate({ workspaceId, messageId }, { onSuccess: invalidatePinned });
+  };
+
+  const handleDelete = (messageId: string) => {
+    if (!confirm("Delete this message? This cannot be undone.")) return;
+    deleteMessage.mutate({ workspaceId, messageId }, { onSuccess: invalidateMessages });
   };
 
   useEffect(() => {
@@ -393,6 +400,15 @@ export function ChatTab({
                                     ) : (
                                       <Pin className="h-3.5 w-3.5 text-muted-foreground" />
                                     )}
+                                  </button>
+                                )}
+                                {(isMe || role === "admin") && (
+                                  <button
+                                    onClick={() => handleDelete(msg.id)}
+                                    className="opacity-0 group-hover:opacity-100 transition-all bg-card border rounded-full w-7 h-7 flex items-center justify-center shadow-sm hover:border-destructive/50"
+                                    title="Delete message"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
                                   </button>
                                 )}
                               </>

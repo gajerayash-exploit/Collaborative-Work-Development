@@ -352,6 +352,18 @@ export const SendMessageBody = zod.object({
 });
 
 /**
+ * @summary Delete a message (sender or admin only)
+ */
+export const DeleteMessageParams = zod.object({
+  workspaceId: zod.coerce.string(),
+  messageId: zod.coerce.string(),
+});
+
+export const DeleteMessageResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
  * @summary Mark multiple messages as read
  */
 export const MarkMessagesReadParams = zod.object({

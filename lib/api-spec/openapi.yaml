@@ -439,6 +439,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/Message"
 
+  /workspaces/{workspaceId}/messages/{messageId}:
+    delete:
+      operationId: deleteMessage
+      tags: [messages]
+      summary: Delete a message (sender or admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Message deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "403":
+          description: Forbidden
+        "404":
+          description: Message not found
+
   /workspaces/{workspaceId}/messages/mark-read:
     post:
       operationId: markMessagesRead
