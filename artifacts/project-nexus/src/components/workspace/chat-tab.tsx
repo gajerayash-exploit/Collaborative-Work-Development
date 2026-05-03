@@ -122,7 +122,7 @@ function PinnedBanner({
         <div className="px-4 pb-3 space-y-2 max-h-48 overflow-y-auto">
           {pinned.map((p) => (
             <div key={p.id} className="flex items-start gap-2 p-2 rounded-xl bg-background/60 border text-sm group shadow-sm">
-              <Avatar className="h-6 w-6 flex-shrink-0 mt-0.5">
+              <Avatar className="h-5 w-5 flex-shrink-0 mt-0.5">
                 <AvatarImage src={p.senderAvatarUrl ?? undefined} />
                 <AvatarFallback className="text-[10px] bg-primary/10 text-primary">{p.senderName.substring(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
@@ -330,7 +330,7 @@ export function ChatTab({
                   >
                     <div className="w-8 flex-shrink-0 flex items-end">
                       {!isGrouped && (
-                        <Avatar className="h-8 w-8 border ring-2 ring-background">
+                        <Avatar className="h-7 w-7 border ring-2 ring-background">
                           <AvatarImage src={msg.senderAvatarUrl ?? undefined} />
                           <AvatarFallback className="text-xs bg-primary/10 text-primary">
                             {msg.senderName.substring(0, 2).toUpperCase()}
