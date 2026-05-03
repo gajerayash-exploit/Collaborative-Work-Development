@@ -476,9 +476,11 @@ export async function exportSRSPdf(
   const leftX   = ML;
   const rightX  = ML + colW + colGap;
 
-  // Estimate panel heights
+  // Estimate panel heights (take the taller of the two sides)
   const priRows  = (["critical","high","medium","low"] as const).filter(p => (priCounts[p] ?? 0) > 0);
-  const panelH   = 14 + 10 + priRows.length * 14; // header + stacked bar + rows
+  const leftPanelH  = 14 + 9 + priRows.length * 14;         // header + bar + rows
+  const rightPanelH = 14 + 8 + activeCats.length * 10 + 4;  // header + sub-hdr + rows + pad
+  const panelH      = Math.max(leftPanelH, rightPanelH, 50); // never smaller than 50mm
 
   // ── LEFT PANEL: Priority Breakdown ─────────────────────────────────────────
   sf(doc, BG2);
@@ -819,44 +821,91 @@ export async function exportSRSPdf(
 
       pageHeader(doc, `${PRI_LABELS[n.priority]} Priority`, docTitle);
 
-      // Centred section divider layout
-      sf(doc, priRgb);
-      doc.roundedRect(ML, 90, CW, 40, 4, 4, "F");
-      const dk: RGB = [
-        Math.round(priRgb[0] * 0.4),
-        Math.round(priRgb[1] * 0.4),
-        Math.round(priRgb[2] * 0.4),
-      ];
-      sf(doc, dk);
-      doc.roundedRect(ML + 30, 90, CW - 30, 40, 4, 4, "F");
-      sf(doc, priRgb);
-      doc.rect(ML + 30, 90, 4, 40, "F");
-
-      // Icon shape (large number)
-      st(doc, WHITE);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
-      doc.text("SECTION", ML + 8, 112);
-      doc.setFontSize(28);
+      // ── Centred section-divider banner ──────────────────────────────────────
       const priCount = priCounts[n.priority] ?? 0;
-      doc.text(String(priCount), ML + 8, 125);
-      doc.setFontSize(8);
-      doc.text("REQUIREMENTS", ML + 8, 131);
-
-      st(doc, WHITE);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(22);
-      doc.text(`${PRI_LABELS[n.priority]} Priority`, ML + 38, 113);
-      st(doc, [255, 255, 255] as RGB);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8.5);
       const priDesc: Record<string, string> = {
         critical: "Must be implemented for the system to function.",
-        high:     "Important features — high business value.",
+        high:     "Important features with high business value.",
         medium:   "Significant but non-blocking requirements.",
         low:      "Nice-to-have features or minor improvements.",
       };
-      doc.text(priDesc[n.priority] ?? "", ML + 38, 122);
+
+      // Box dimensions — vertically centered in the usable page area
+      const divBH   = 72;                           // total box height
+      const divBY   = Math.round((297 - divBH) / 2); // true vertical centre
+      const leftW   = 36;                           // left accent column width
+      const lCX     = ML + leftW / 2;               // left column horizontal centre
+      const rX      = ML + leftW + 8;               // right column text start
+      const rMaxW   = CW - leftW - 12;              // right column max text width
+
+      // Darker tint for right panel
+      const dk: RGB = [
+        Math.round(priRgb[0] * 0.30),
+        Math.round(priRgb[1] * 0.30),
+        Math.round(priRgb[2] * 0.30),
+      ];
+
+      // Full box (violet)
+      sf(doc, priRgb);
+      doc.roundedRect(ML, divBY, CW, divBH, 5, 5, "F");
+
+      // Right-panel dark overlay
+      sf(doc, dk);
+      doc.roundedRect(ML + leftW, divBY, CW - leftW, divBH, 5, 5, "F");
+
+      // Bridge strip (fills the rounded corner gap between left & right panels)
+      sf(doc, priRgb);
+      doc.rect(ML + leftW - 1, divBY, 5, divBH, "F");
+
+      // ── Left panel content (all positioned relative to divBY) ──────────────
+      st(doc, WHITE);
+      doc.setFont("helvetica", "bold");
+
+      // "SECTION" label — 11mm from box top
+      doc.setFontSize(7);
+      doc.text("SECTION", lCX, divBY + 11, { align: "center" });
+
+      // Large count number — centred at 40% of box height
+      doc.setFontSize(32);
+      doc.text(String(priCount), lCX, divBY + 38, { align: "center" });
+
+      // "REQUIREMENTS" — 10mm from box bottom
+      doc.setFontSize(6.5);
+      doc.text("REQUIREMENTS", lCX, divBY + divBH - 8, { align: "center" });
+
+      // ── Right panel content ─────────────────────────────────────────────────
+      // Priority badge pill — 12mm from box top
+      sf(doc, priRgb);
+      doc.roundedRect(rX, divBY + 12, 28, 7, 2, 2, "F");
+      st(doc, WHITE);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7);
+      doc.text(PRI_LABELS[n.priority].toUpperCase(), rX + 14, divBY + 17, { align: "center" });
+
+      // Large priority title — 35mm from box top
+      st(doc, WHITE);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(24);
+      doc.text(`${PRI_LABELS[n.priority]} Priority`, rX, divBY + 36);
+
+      // Requirement count — 46mm from box top
+      st(doc, WHITE);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(`${priCount} requirement${priCount !== 1 ? "s" : ""}`, rX, divBY + 47);
+
+      // Description — 57mm from box top (10mm above box bottom)
+      st(doc, [210, 200, 240] as RGB);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      const descWrapped = doc.splitTextToSize(priDesc[n.priority] ?? "", rMaxW);
+      doc.text(descWrapped[0], rX, divBY + 57);
+
+      // Thin priority bar along box bottom
+      sf(doc, [255, 255, 255] as RGB);
+      doc.setGState(new (doc as any).GState({ opacity: 0.15 }));
+      doc.roundedRect(ML, divBY + divBH - 3, CW, 3, 2, 2, "F");
+      doc.setGState(new (doc as any).GState({ opacity: 1 }));
 
       pageFooter(doc, doc.getNumberOfPages(), 99, docTitle, dateShort);
     }
