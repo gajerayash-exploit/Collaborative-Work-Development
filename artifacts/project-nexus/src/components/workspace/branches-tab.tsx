@@ -83,12 +83,8 @@ function RoleHierarchy() {
 function RoleIcon({ role }: { role: "admin" | "editor" | "viewer" }) {
   if (role === "admin") {
     return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true">
-        <path d="M5 9l3 2 4-5 4 5 3-2v7H5V9z" fill="#f59e0b" />
-        <path d="M5 9l3 2 4-5v11L5 16V9z" fill="#d97706" />
-        <path d="M12 6l4 5 3-2-3 7H12V6z" fill="#b45309" />
-        <path d="M5 16h14v2H5z" fill="#92400e" />
-        <path d="M8 9l4-5 4 5" stroke="#fef3c7" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" opacity="0.9" />
+      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true" fill="currentColor">
+        <path d="M12 2.5c-1.1 0-2 .9-2 2 0 .25.05.49.14.71L6.6 8.9 3.9 6.2 3 7.1l2 8.7h14l2-8.7-.9-.9-2.7 2.7-3.54-3.69c.09-.22.14-.46.14-.71 0-1.1-.9-2-2-2Zm0 3.25c.69 0 1.25-.56 1.25-1.25S12.69 3.25 12 3.25 10.75 3.81 10.75 4.5 11.31 5.75 12 5.75Zm-5.15 3.8 2.47 2.58 2.63-3.92 2.63 3.92 2.47-2.58L18 15H6l.85-5.45Zm-1.35 8.7h13v2h-13v-2Z" />
       </svg>
     );
   }
