@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/react";
 import {
@@ -13,14 +13,29 @@ export interface PresenceUser {
   avatarUrl: string | null;
 }
 
+export interface TypingUser {
+  userId: string;
+  name: string | null;
+  avatarUrl: string | null;
+}
+
 interface SocketMessage {
-  type: "connected" | "presence" | "new_message" | "sync_event" | "huddle_update" | "pong";
+  type:
+    | "connected"
+    | "presence"
+    | "new_message"
+    | "sync_event"
+    | "huddle_update"
+    | "typing"
+    | "pong";
   workspaceId?: string;
   users?: PresenceUser[];
   message?: unknown;
   event?: unknown;
   state?: unknown;
   userId?: string;
+  name?: string | null;
+  avatarUrl?: string | null;
 }
 
 interface UseWorkspaceSocketOptions {
@@ -29,8 +44,14 @@ interface UseWorkspaceSocketOptions {
   enabled?: boolean;
 }
 
+interface UseWorkspaceSocketResult {
+  typingUsers: TypingUser[];
+  sendTyping: () => void;
+}
+
 const BASE_DELAY = 1000;
 const MAX_DELAY = 30000;
+const TYPING_TTL = 4000;
 
 function getWsUrl(token: string, workspaceId: string): string {
   const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -42,7 +63,7 @@ export function useWorkspaceSocket({
   workspaceId,
   onPresence,
   enabled = true,
-}: UseWorkspaceSocketOptions) {
+}: UseWorkspaceSocketOptions): UseWorkspaceSocketResult {
   const { getToken } = useAuth();
   const qc = useQueryClient();
   const wsRef = useRef<WebSocket | null>(null);
@@ -51,6 +72,31 @@ export function useWorkspaceSocket({
   const unmountedRef = useRef(false);
   const onPresenceRef = useRef(onPresence);
   onPresenceRef.current = onPresence;
+
+  const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
+  // Map of userId → expiry timer
+  const typingTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  const removeTypist = useCallback((userId: string) => {
+    setTypingUsers((prev) => prev.filter((u) => u.userId !== userId));
+    typingTimersRef.current.delete(userId);
+  }, []);
+
+  const handleTypingEvent = useCallback(
+    (userId: string, name: string | null, avatarUrl: string | null) => {
+      setTypingUsers((prev) => {
+        const exists = prev.find((u) => u.userId === userId);
+        if (exists) return prev;
+        return [...prev, { userId, name, avatarUrl }];
+      });
+      // Reset expiry timer
+      const existing = typingTimersRef.current.get(userId);
+      if (existing) clearTimeout(existing);
+      const timer = setTimeout(() => removeTypist(userId), TYPING_TTL);
+      typingTimersRef.current.set(userId, timer);
+    },
+    [removeTypist],
+  );
 
   const connect = useCallback(async () => {
     if (unmountedRef.current || !enabled) return;
@@ -93,6 +139,16 @@ export function useWorkspaceSocket({
                 queryKey: getGetHuddleQueryKey(workspaceId),
               });
               break;
+
+            case "typing":
+              if (msg.userId) {
+                handleTypingEvent(
+                  msg.userId,
+                  msg.name ?? null,
+                  msg.avatarUrl ?? null,
+                );
+              }
+              break;
           }
         } catch {}
       };
@@ -112,7 +168,7 @@ export function useWorkspaceSocket({
 
       ws.onerror = () => {};
     } catch {}
-  }, [workspaceId, enabled, getToken, qc]);
+  }, [workspaceId, enabled, getToken, qc, handleTypingEvent]);
 
   useEffect(() => {
     unmountedRef.current = false;
@@ -126,6 +182,18 @@ export function useWorkspaceSocket({
         wsRef.current.close();
         wsRef.current = null;
       }
+      // Clear all typing timers
+      for (const t of typingTimersRef.current.values()) clearTimeout(t);
+      typingTimersRef.current.clear();
     };
   }, [connect, enabled]);
+
+  const sendTyping = useCallback(() => {
+    const ws = wsRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: "typing", workspaceId }));
+    }
+  }, [workspaceId]);
+
+  return { typingUsers, sendTyping };
 }

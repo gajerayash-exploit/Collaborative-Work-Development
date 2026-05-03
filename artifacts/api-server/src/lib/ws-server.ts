@@ -4,7 +4,7 @@ import { IncomingMessage } from "node:http";
 import { db, usersTable, workspaceMembersTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { logger } from "./logger";
-import { joinRoom, leaveRoom, WsClient } from "./ws-manager";
+import { joinRoom, leaveRoom, broadcastToWorkspace, WsClient } from "./ws-manager";
 import { URL } from "node:url";
 
 export function setupWsServer(wss: WebSocketServer): void {
@@ -81,7 +81,20 @@ export function setupWsServer(wss: WebSocketServer): void {
       ws.on("message", (data) => {
         try {
           const msg = JSON.parse(data.toString());
-          if (msg.type === "ping") ws.send(JSON.stringify({ type: "pong" }));
+          if (msg.type === "ping") {
+            ws.send(JSON.stringify({ type: "pong" }));
+          } else if (msg.type === "typing" && client) {
+            broadcastToWorkspace(
+              client.workspaceId,
+              {
+                type: "typing",
+                userId: client.dbUserId,
+                name: client.name,
+                avatarUrl: client.avatarUrl,
+              },
+              client.dbUserId,
+            );
+          }
         } catch {}
       });
 

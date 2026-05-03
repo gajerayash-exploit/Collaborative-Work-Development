@@ -14,6 +14,7 @@ import {
   getListPinnedMessagesQueryKey,
   getGetTypingUsersQueryKey,
 } from "@workspace/api-client-react";
+import type { TypingUser } from "@/hooks/use-workspace-socket";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGetUserProfile } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
@@ -148,7 +149,17 @@ function PinnedBanner({
   );
 }
 
-export function ChatTab({ workspaceId, role }: { workspaceId: string; role: string }) {
+export function ChatTab({
+  workspaceId,
+  role,
+  wsTypingUsers,
+  onTyping,
+}: {
+  workspaceId: string;
+  role: string;
+  wsTypingUsers?: TypingUser[];
+  onTyping?: () => void;
+}) {
   const [content, setContent] = useState("");
   const [hoveredMsgId, setHoveredMsgId] = useState<string | null>(null);
   const [pickerMsgId, setPickerMsgId] = useState<string | null>(null);
@@ -174,10 +185,16 @@ export function ChatTab({ workspaceId, role }: { workspaceId: string; role: stri
   const pinMessage = usePinMessage();
   const unpinMessage = useUnpinMessage();
   const markRead = useMarkMessagesRead();
-  const sendTyping = useSendTypingIndicator();
-  const { data: typingUsers = [] } = useGetTypingUsers(workspaceId, {
-    query: { queryKey: getGetTypingUsersQueryKey(workspaceId), refetchInterval: 2000 },
+  const sendTypingRest = useSendTypingIndicator();
+  // Use WS-based typing users when available (live), fall back to REST polling
+  const { data: polledTypingUsers = [] } = useGetTypingUsers(workspaceId, {
+    query: {
+      queryKey: getGetTypingUsersQueryKey(workspaceId),
+      refetchInterval: wsTypingUsers ? false : 2000,
+      enabled: !wsTypingUsers,
+    },
   });
+  const typingUsers = wsTypingUsers ?? polledTypingUsers;
 
   const invalidateMessages = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: getListMessagesQueryKey(workspaceId) });
@@ -193,9 +210,17 @@ export function ChatTab({ workspaceId, role }: { workspaceId: string; role: stri
   const handleContentChange = (val: string) => {
     setContent(val);
     if (!val.trim()) return;
-    sendTyping.mutate({ workspaceId });
-    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
-    typingTimerRef.current = setTimeout(() => { typingTimerRef.current = null; }, 4000);
+    if (onTyping) {
+      // WS path: client sends typing over the socket directly
+      if (!typingTimerRef.current) onTyping();
+      if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+      typingTimerRef.current = setTimeout(() => { typingTimerRef.current = null; }, 3000);
+    } else {
+      // Fallback: REST ping
+      sendTypingRest.mutate({ workspaceId });
+      if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+      typingTimerRef.current = setTimeout(() => { typingTimerRef.current = null; }, 4000);
+    }
   };
 
   const handleSend = () => {
