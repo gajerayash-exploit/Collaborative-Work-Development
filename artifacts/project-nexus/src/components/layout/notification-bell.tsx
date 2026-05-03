@@ -52,7 +52,6 @@ export function NotificationBell() {
       const data = await res.json();
       setNotifications(data);
     } catch {
-      // silently fail
     }
   }, []);
 
@@ -91,19 +90,18 @@ export function NotificationBell() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative h-8 w-8">
           <Bell className="h-4 w-4" />
-          {/* Main unread badge */}
           {allUnread > 0 && (
             <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px] font-bold bg-red-500 text-white border-0 min-w-[16px]">
               {allUnread > 9 ? "9+" : allUnread}
             </Badge>
           )}
-          {/* Mention dot indicator (shows when mentions exist and no other badge is shown) */}
-          {allUnread === 0 && mentionUnread === 0 && false && null}
+          {allUnread === 0 && mentionUnread > 0 && (
+            <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-amber-500 border border-background" />
+          )}
         </Button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-96 p-0" sideOffset={8}>
-        {/* Header with tab switcher */}
         <div className="flex items-center justify-between px-4 pt-3 pb-2">
           <span className="text-sm font-semibold">Notifications</span>
           {filteredUnread > 0 && (
@@ -119,7 +117,6 @@ export function NotificationBell() {
           )}
         </div>
 
-        {/* Tab strip */}
         <div className="flex gap-1 px-4 pb-2">
           <button
             onClick={() => setActiveTab("all")}
