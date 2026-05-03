@@ -313,7 +313,7 @@ export function ChatTab({
   }, [messages?.length, currentUserId, workspaceId]);
 
   return (
-    <div className="flex h-[calc(100vh-14rem)] bg-card border rounded-2xl overflow-hidden shadow-lg ring-1 ring-border/60">
+    <div className="flex h-[calc(100vh-14rem)] bg-[#efeae2] dark:bg-[#111b21] border rounded-2xl overflow-hidden shadow-lg ring-1 ring-border/60">
       {/* Main chat area */}
       <div className="flex flex-col flex-1 min-w-0">
         <PinnedBanner workspaceId={workspaceId} canPin={canPin} onUnpin={handleUnpin} />
@@ -329,7 +329,7 @@ export function ChatTab({
           <CatchUpPanel workspaceId={workspaceId} onClose={() => setShowCatchUp(false)} />
         )}
 
-        <ScrollArea ref={scrollRef} className="flex-1 p-4 md:p-5">
+        <ScrollArea ref={scrollRef} className="flex-1 p-4 md:p-5 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.55),_transparent_38%),linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0.04))] dark:bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.04),_transparent_38%),linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))]">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -345,7 +345,7 @@ export function ChatTab({
               </p>
             </div>
           ) : (
-            <div className="space-y-2 pb-2">
+            <div className="space-y-1.5 pb-2">
               {messages.map((msg, i) => {
                 const isMe = msg.senderId === currentUserId;
                 const prevMsg = messages[i - 1];
@@ -361,7 +361,7 @@ export function ChatTab({
                 return (
                   <div
                     key={`${msg.id}-${msg.createdAt}`}
-                    className={`group flex gap-3 ${isMe ? "flex-row-reverse" : ""} ${isGrouped ? "mt-0" : "mt-3"} ${
+                    className={`group flex gap-3 ${isMe ? "flex-row-reverse" : ""} ${isGrouped ? "mt-0" : "mt-2.5"} ${
                       mentionsMe ? "px-2 -mx-2 rounded-xl bg-amber-50/60 dark:bg-amber-950/10 ring-1 ring-amber-300/20" : ""
                     } ${isThreadOpen ? "px-2 -mx-2 rounded-xl ring-1 ring-primary/20 bg-primary/5" : ""}`}
                     onMouseEnter={() => setHoveredMsgId(msg.id)}
@@ -381,7 +381,7 @@ export function ChatTab({
                     <div className={`flex flex-col ${isMe ? "items-end" : "items-start"} max-w-[78%] relative`}>
                       {!isGrouped && (
                         <div className={`flex items-baseline gap-2 mb-1 ${isMe ? "flex-row-reverse" : ""}`}>
-                          <span className="text-xs font-semibold">{msg.senderName}</span>
+                          <span className="text-xs font-semibold text-foreground/90">{msg.senderName}</span>
                           <span className="text-[10px] text-muted-foreground">
                             {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
                           </span>
@@ -472,14 +472,14 @@ export function ChatTab({
                           </div>
                         ) : (
                           <div
-                            className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed cursor-pointer shadow-sm transition-transform duration-150 hover:-translate-y-[1px] ${
+                            className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed cursor-pointer shadow-sm transition-transform duration-150 hover:-translate-y-[1px] max-w-[100%] break-words ${
                               msg.isPinned
                                 ? isMe
-                                  ? "bg-primary text-primary-foreground rounded-tr-sm ring-1 ring-amber-400/50"
-                                  : "bg-muted text-foreground rounded-tl-sm ring-1 ring-amber-400/50"
+                                  ? "bg-[#d9fdd3] text-[#111b21] rounded-tr-sm ring-1 ring-emerald-300/50"
+                                  : "bg-white text-[#111b21] rounded-tl-sm ring-1 ring-emerald-300/50 dark:bg-[#202c33] dark:text-[#e9edef]"
                                 : isMe
-                                ? "bg-primary text-primary-foreground rounded-tr-sm"
-                                : "bg-muted text-foreground rounded-tl-sm"
+                                ? "bg-[#d9fdd3] text-[#111b21] rounded-tr-sm"
+                                : "bg-white text-[#111b21] rounded-tl-sm dark:bg-[#202c33] dark:text-[#e9edef]"
                             }`}
                             onClick={() => setThreadMessage(isThreadOpen ? null : msg)}
                           >
@@ -559,19 +559,19 @@ export function ChatTab({
               </span>
             </div>
           )}
-          <div className="p-3 flex gap-2 items-end">
+          <div className="p-3 flex gap-2 items-end bg-background/70 backdrop-blur-md border-t">
             <MentionInput
               value={content}
               onChange={handleContentChange}
               onSubmit={handleSend}
               members={members}
               disabled={sendMessage.isPending}
-              placeholder="Type a message… use @ to mention"
+              placeholder="Type a message…"
             />
             <Button
               onClick={handleSend}
               size="icon"
-              className="h-11 w-11 rounded-full flex-shrink-0 shadow-sm"
+              className="h-11 w-11 rounded-full flex-shrink-0 shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white"
               disabled={!content.trim() || sendMessage.isPending}
             >
               {sendMessage.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
