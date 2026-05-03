@@ -174,7 +174,7 @@ export function NotificationBell() {
             <div className="py-1">
               {filtered.map((n) => (
                 <DropdownMenuItem
-                  key={n.id}
+                  key={`${n.id}-${n.createdAt}`}
                   className={`flex items-start gap-3 px-4 py-3 cursor-pointer focus:bg-accent rounded-none ${
                     !n.isRead
                       ? n.type === "mention"
