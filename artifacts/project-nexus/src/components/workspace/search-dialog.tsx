@@ -43,6 +43,44 @@ function timeAgo(dateStr: string) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
+/** Strip @[Name|userId] mention syntax → @Name */
+function stripMentions(text: string): string {
+  return text.replace(/@\[([^\]|]+)\|[^\]]+\]/g, "@$1");
+}
+
+/** Extract a ~120-char snippet centred around the first match */
+function extractSnippet(text: string, query: string, window = 60): string {
+  const lower = text.toLowerCase();
+  const idx = lower.indexOf(query.toLowerCase());
+  if (idx === -1) return text.slice(0, 120);
+  const start = Math.max(0, idx - window);
+  const end = Math.min(text.length, idx + query.length + window);
+  return (start > 0 ? "…" : "") + text.slice(start, end) + (end < text.length ? "…" : "");
+}
+
+/** Render text with every occurrence of `query` wrapped in a yellow highlight span */
+function HighlightText({ text, query, className }: { text: string; query: string; className?: string }) {
+  if (!query.trim()) return <span className={className}>{text}</span>;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const parts = text.split(new RegExp(`(${escaped})`, "gi"));
+  return (
+    <span className={className}>
+      {parts.map((part, i) =>
+        part.toLowerCase() === query.toLowerCase() ? (
+          <mark
+            key={i}
+            className="bg-yellow-200 dark:bg-yellow-800/60 text-foreground rounded-sm px-px not-italic"
+          >
+            {part}
+          </mark>
+        ) : (
+          part
+        ),
+      )}
+    </span>
+  );
+}
+
 const STATUS_LABELS: Record<string, string> = { todo: "To Do", in_progress: "In Progress", done: "Done" };
 const PRIORITY_COLORS: Record<string, string> = { high: "destructive", medium: "secondary", low: "outline" };
 
@@ -91,7 +129,6 @@ export function SearchDialog({
   useEffect(() => { if (!open) { setQuery(""); setResults(null); setActiveIndex(0); } }, [open]);
   useEffect(() => { setActiveIndex(0); }, [debouncedQuery, results]);
 
-  // Build flat navigable item list
   const flatItems: FlatItem[] = query.trim()
     ? [
         ...(results?.tasks.map(t => ({ kind: "task" as const, ...t })) ?? []),
@@ -122,7 +159,6 @@ export function SearchDialog({
     }
   }, [flatItems, activeIndex, handleSelect]);
 
-  // Scroll active item into view
   useEffect(() => {
     const el = listRef.current?.querySelector(`[data-index="${activeIndex}"]`);
     el?.scrollIntoView({ block: "nearest" });
@@ -132,7 +168,6 @@ export function SearchDialog({
     ? results.messages.length + results.files.length + results.tasks.length + results.members.length
     : 0;
 
-  // Group labels and their section starting indices
   const sections: Array<{ label: string; icon: React.ReactNode; items: FlatItem[]; startIndex: number }> = [];
   if (query.trim() && results) {
     let idx = 0;
@@ -168,7 +203,7 @@ export function SearchDialog({
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search or jump to..."
+            placeholder="Search messages, files, tasks, members…"
             className="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground/60"
           />
           {query && (
@@ -224,9 +259,10 @@ export function SearchDialog({
           {/* Search results by section */}
           {sections.map(section => (
             <div key={section.label}>
-              <div className="px-4 py-2 border-b bg-muted/30 sticky top-0">
+              <div className="px-4 py-2 border-b bg-muted/30 sticky top-0 z-10">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                   {section.icon} {section.label}
+                  <span className="ml-1 font-normal normal-case opacity-60">({section.items.length})</span>
                 </span>
               </div>
               {section.items.map((item, localI) => {
@@ -246,8 +282,8 @@ export function SearchDialog({
                     {item.kind === "task" && (
                       <div className="flex items-center gap-3">
                         <CheckSquare className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        <span className={cn("text-sm font-medium flex-1 truncate", item.status === "done" && "line-through text-muted-foreground")}>
-                          {item.title}
+                        <span className={cn("text-sm font-medium flex-1 min-w-0", item.status === "done" && "line-through text-muted-foreground")}>
+                          <HighlightText text={item.title} query={debouncedQuery} />
                         </span>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <Badge variant={(PRIORITY_COLORS[item.priority] ?? "secondary") as any} className="text-xs capitalize">
@@ -264,8 +300,12 @@ export function SearchDialog({
                           <AvatarFallback className="text-xs">{item.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{item.name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{item.email}</p>
+                          <p className="text-sm font-medium truncate">
+                            <HighlightText text={item.name} query={debouncedQuery} />
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            <HighlightText text={item.email} query={debouncedQuery} />
+                          </p>
                         </div>
                         <Badge variant="outline" className="text-xs capitalize flex-shrink-0">{item.role}</Badge>
                       </div>
@@ -274,20 +314,31 @@ export function SearchDialog({
                       <div className="flex items-center gap-3">
                         <File className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{item.name}</p>
+                          <p className="text-sm font-medium truncate">
+                            <HighlightText text={item.name} query={debouncedQuery} />
+                          </p>
                           <p className="text-xs text-muted-foreground">by {item.uploaderName} · {timeAgo(item.createdAt)}</p>
                         </div>
                       </div>
                     )}
-                    {item.kind === "message" && (
-                      <div className="flex items-start gap-3">
-                        <MessageSquare className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-muted-foreground mb-0.5">{item.senderName} · {timeAgo(item.createdAt)}</p>
-                          <p className="text-sm truncate">{item.content}</p>
+                    {item.kind === "message" && (() => {
+                      const plain = stripMentions(item.content);
+                      const snippet = extractSnippet(plain, debouncedQuery);
+                      return (
+                        <div className="flex items-start gap-3">
+                          <MessageSquare className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-muted-foreground mb-1">
+                              <HighlightText text={item.senderName} query={debouncedQuery} />
+                              <span className="font-normal ml-1">· {timeAgo(item.createdAt)}</span>
+                            </p>
+                            <p className="text-sm leading-relaxed break-words">
+                              <HighlightText text={snippet} query={debouncedQuery} />
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
                   </button>
                 );
               })}
@@ -306,7 +357,7 @@ export function SearchDialog({
           )}
           <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1"><kbd className="bg-muted border rounded px-1">↑↓</kbd> navigate</span>
-            <span className="flex items-center gap-1"><kbd className="bg-muted border rounded px-1">↵</kbd> select</span>
+            <span className="flex items-center gap-1"><kbd className="bg-muted border rounded px-1">↵</kbd> open</span>
           </div>
         </div>
       </DialogContent>
