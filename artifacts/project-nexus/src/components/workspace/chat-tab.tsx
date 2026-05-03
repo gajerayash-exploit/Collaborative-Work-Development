@@ -7,6 +7,7 @@ import {
   usePinMessage,
   useUnpinMessage,
   useDeleteMessage,
+  useEditMessage,
   useListWorkspaceMembers,
   useMarkMessagesRead,
   useGetTypingUsers,
@@ -370,7 +371,7 @@ export function ChatTab({
 
                 return (
                   <div
-                    key={`${msg.id}-${msg.createdAt}`}
+                    key={msg.id}
                     className={`group flex gap-3 ${isMe ? "flex-row-reverse" : ""} ${isGrouped ? "mt-0" : "mt-2.5"} ${
                       mentionsMe ? "px-2 -mx-2 rounded-xl bg-amber-50/60 dark:bg-amber-950/10 ring-1 ring-amber-300/20" : ""
                     } ${isThreadOpen ? "px-2 -mx-2 rounded-xl ring-1 ring-primary/20 bg-primary/5" : ""}`}
@@ -590,7 +591,7 @@ export function ChatTab({
               onSubmit={handleSend}
               members={members}
               disabled={sendMessage.isPending}
-              placeholder={replyingTo ? `Reply to ${replyingTo.senderName}…` : "Type a message…"}
+              placeholder={replyingTo ? `Reply to ${replyingTo.senderName}…` : editingMessageId ? "Edit message…" : "Type a message…"}
             />
             <Button
               onClick={handleSend}
@@ -601,14 +602,22 @@ export function ChatTab({
               {sendMessage.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </div>
-          {replyingTo && (
+          {replyingTo && !editingMessageId && (
             <div className="px-3 pb-3">
-              <button
-                onClick={() => setReplyingTo(null)}
-                className="text-xs text-muted-foreground hover:text-foreground"
-              >
-                Cancel reply
-              </button>
+              <div className="rounded-2xl border bg-muted/30 px-3 py-2 text-xs">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium text-muted-foreground">Replying to {replyingTo.senderName}</p>
+                    <p className="truncate text-muted-foreground/80">{replyingTo.content}</p>
+                  </div>
+                  <button
+                    onClick={() => setReplyingTo(null)}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
