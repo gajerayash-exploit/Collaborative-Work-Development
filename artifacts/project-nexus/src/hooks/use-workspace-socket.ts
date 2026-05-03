@@ -67,6 +67,8 @@ interface UseWorkspaceSocketResult {
 const BASE_DELAY = 1000;
 const MAX_DELAY = 30000;
 const TYPING_TTL = 4000;
+const HEARTBEAT_INTERVAL = 15000;
+const HEARTBEAT_TIMEOUT = 10000;
 
 function getWsUrl(token: string, workspaceId: string): string {
   const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -85,6 +87,8 @@ export function useWorkspaceSocket({
   const wsRef = useRef<WebSocket | null>(null);
   const retryRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heartbeatTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heartbeatDeadlineRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const unmountedRef = useRef(false);
   const onPresenceRef = useRef(onPresence);
   onPresenceRef.current = onPresence;
@@ -120,6 +124,13 @@ export function useWorkspaceSocket({
   const connect = useCallback(async () => {
     if (unmountedRef.current || !enabled) return;
 
+    const clearHeartbeat = () => {
+      if (heartbeatTimerRef.current) clearTimeout(heartbeatTimerRef.current);
+      if (heartbeatDeadlineRef.current) clearTimeout(heartbeatDeadlineRef.current);
+      heartbeatTimerRef.current = null;
+      heartbeatDeadlineRef.current = null;
+    };
+
     try {
       const token = await getToken();
       if (!token || unmountedRef.current) return;
@@ -130,6 +141,19 @@ export function useWorkspaceSocket({
 
       ws.onopen = () => {
         retryRef.current = 0;
+        clearHeartbeat();
+        const sendHeartbeat = () => {
+          if (ws.readyState !== WebSocket.OPEN) return;
+          ws.send(JSON.stringify({ type: "ping" }));
+          if (heartbeatDeadlineRef.current) clearTimeout(heartbeatDeadlineRef.current);
+          heartbeatDeadlineRef.current = setTimeout(() => {
+            try {
+              ws.close();
+            } catch {}
+          }, HEARTBEAT_TIMEOUT);
+          heartbeatTimerRef.current = setTimeout(sendHeartbeat, HEARTBEAT_INTERVAL);
+        };
+        sendHeartbeat();
       };
 
       ws.onmessage = (event) => {
@@ -187,6 +211,7 @@ export function useWorkspaceSocket({
 
       ws.onclose = (ev) => {
         wsRef.current = null;
+        clearHeartbeat();
         if (unmountedRef.current) return;
         if (ev.code === 4001 || ev.code === 4003 || ev.code === 4004) return;
 
@@ -206,6 +231,8 @@ export function useWorkspaceSocket({
     return () => {
       unmountedRef.current = true;
       if (timerRef.current) clearTimeout(timerRef.current);
+      if (heartbeatTimerRef.current) clearTimeout(heartbeatTimerRef.current);
+      if (heartbeatDeadlineRef.current) clearTimeout(heartbeatDeadlineRef.current);
       if (wsRef.current) {
         wsRef.current.onclose = null;
         wsRef.current.close();
