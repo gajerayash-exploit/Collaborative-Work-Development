@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import React from "react";
 import {
   useGetBurndownAnalytics,
@@ -108,6 +108,175 @@ function StatRing({ label, value, total, icon: Icon, color }: { label: string; v
     </div>
   );
 }
+
+// ─── 3D Bar helpers ────────────────────────────────────────────────────────
+
+interface Bar3DProps {
+  x: number; bottomY: number; w: number; h: number;
+  dx: number; dy: number;
+  front: string; top: string; side: string;
+}
+
+function Bar3D({ x, bottomY, w, h, dx, dy, front, top, side }: Bar3DProps) {
+  if (h <= 0) return null;
+  const topY = bottomY - h;
+  const fp = `${x},${bottomY} ${x},${topY} ${x + w},${topY} ${x + w},${bottomY}`;
+  const tp = `${x},${topY} ${x + dx},${topY + dy} ${x + w + dx},${topY + dy} ${x + w},${topY}`;
+  const sp = `${x + w},${topY} ${x + w + dx},${topY + dy} ${x + w + dx},${bottomY + dy} ${x + w},${bottomY}`;
+  return (
+    <g>
+      <polygon points={fp} fill={front} fillOpacity={0.88} />
+      <polygon points={tp} fill={top} />
+      <polygon points={sp} fill={side} fillOpacity={0.92} />
+    </g>
+  );
+}
+
+interface DailyActivity3DChartProps {
+  data: { date: string; created: number; completed: number }[];
+  days: number;
+  tickInterval: number;
+}
+
+function DailyActivity3DChart({ data, days, tickInterval }: DailyActivity3DChartProps) {
+  const VW = 700; const VH = 200;
+  const PL = 32; const PR = 16; const PT = 16; const PB = 34;
+  const CW = VW - PL - PR;
+  const CH = VH - PT - PB;
+  const DX = 9; const DY = -5;
+
+  const maxVal = Math.max(...data.map(d => Math.max(d.created || 0, d.completed || 0)), 1);
+  const toY = (v: number) => CH - (v / maxVal) * CH;
+  const bottomY = PT + CH;
+
+  const groupW = CW / Math.max(data.length, 1);
+  const bw = days > 20 ? Math.max(groupW * 0.33, 3) : Math.max(groupW * 0.28, 7);
+  const gap = Math.max(groupW * 0.06, 1.5);
+
+  const yTickCount = 4;
+  const yTicks = Array.from({ length: yTickCount + 1 }, (_, i) =>
+    Math.round((maxVal / yTickCount) * i)
+  );
+
+  const labelEvery = tickInterval + 1;
+
+  const [tooltip, setTooltip] = useState<{ svgX: number; svgY: number; d: typeof data[0] } | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  const toSvgCoords = (clientX: number, clientY: number) => {
+    if (!svgRef.current) return { x: 0, y: 0 };
+    const rect = svgRef.current.getBoundingClientRect();
+    return {
+      x: ((clientX - rect.left) / rect.width) * VW,
+      y: ((clientY - rect.top) / rect.height) * VH,
+    };
+  };
+
+  return (
+    <div className="relative select-none">
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${VW} ${VH}`}
+        className="w-full"
+        style={{ height: 200, overflow: "visible" }}
+        onMouseLeave={() => setTooltip(null)}
+      >
+        {/* grid + y-axis labels */}
+        {yTicks.map((tick) => {
+          const y = PT + toY(tick);
+          return (
+            <g key={tick}>
+              <line x1={PL} y1={y} x2={VW - PR} y2={y}
+                stroke="hsl(var(--border))" strokeDasharray="3 3" strokeWidth={0.8} />
+              <text x={PL - 5} y={y + 3.5} textAnchor="end" fontSize={9}
+                fill="hsl(var(--muted-foreground))">{tick}</text>
+            </g>
+          );
+        })}
+
+        {/* bars */}
+        {data.map((d, i) => {
+          const gx = PL + i * groupW;
+          const cx = gx + groupW / 2;
+          const createdX = cx - bw - gap / 2;
+          const completedX = cx + gap / 2;
+          const cH = (d.created / maxVal) * CH;
+          const doneH = (d.completed / maxVal) * CH;
+          const showLabel = i % labelEvery === 0;
+
+          return (
+            <g
+              key={i}
+              onMouseMove={(e) => {
+                const { x, y } = toSvgCoords(e.clientX, e.clientY);
+                setTooltip({ svgX: x, svgY: y, d });
+              }}
+              style={{ cursor: "default" }}
+            >
+              {/* hover hit area */}
+              <rect x={gx} y={PT} width={groupW} height={CH} fill="transparent" />
+
+              <Bar3D x={createdX} bottomY={bottomY} w={bw} h={cH}
+                dx={DX} dy={DY}
+                front="#6366f1" top="#a5b4fc" side="#3730a3" />
+              <Bar3D x={completedX} bottomY={bottomY} w={bw} h={doneH}
+                dx={DX} dy={DY}
+                front="#22c55e" top="#86efac" side="#15803d" />
+
+              {showLabel && (
+                <text x={cx} y={bottomY + 15} textAnchor="middle" fontSize={9}
+                  fill="hsl(var(--muted-foreground))">{d.date}</text>
+              )}
+            </g>
+          );
+        })}
+
+        {/* x-axis baseline */}
+        <line x1={PL} y1={bottomY} x2={VW - PR + DX} y2={bottomY}
+          stroke="hsl(var(--border))" strokeWidth={0.8} />
+      </svg>
+
+      {/* floating tooltip */}
+      {tooltip && (
+        <div
+          className="pointer-events-none absolute z-20 rounded-xl border bg-card shadow-lg px-3 py-2 text-xs"
+          style={{
+            left: `${(tooltip.svgX / VW) * 100}%`,
+            top: `${(tooltip.svgY / VH) * 100}%`,
+            transform: "translate(-50%, calc(-100% - 8px))",
+            minWidth: 130,
+          }}
+        >
+          <p className="font-semibold mb-1.5">{tooltip.d.date}</p>
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ background: "#6366f1" }} />
+            <span className="text-muted-foreground">Created:</span>
+            <span className="font-bold ml-auto">{tooltip.d.created}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ background: "#22c55e" }} />
+            <span className="text-muted-foreground">Completed:</span>
+            <span className="font-bold ml-auto">{tooltip.d.completed}</span>
+          </div>
+        </div>
+      )}
+
+      {/* legend */}
+      <div className="flex items-center justify-center gap-5 mt-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-sm flex-shrink-0" style={{ background: "#6366f1" }} />
+          Created
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-sm flex-shrink-0" style={{ background: "#22c55e" }} />
+          Completed
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────────────
 
 const CUSTOM_TOOLTIP = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
@@ -507,13 +676,13 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
         </Card>
       </div>
 
-      {/* Daily activity bar chart */}
+      {/* Daily activity 3D bar chart */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
             <CalendarDays className="h-4 w-4 text-[#2b2b2b] dark:text-[#d4d4d4]" /> Daily Activity
           </CardTitle>
-          <CardDescription>Tasks created and completed each day</CardDescription>
+          <CardDescription>Tasks created and completed each day — 3D view</CardDescription>
         </CardHeader>
         <CardContent>
           {summary.total === 0 ? (
@@ -521,28 +690,7 @@ export function BurndownTab({ workspaceId }: { workspaceId: string }) {
               <p className="text-sm text-muted-foreground">No activity in this period</p>
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={dailyData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }} barSize={days > 20 ? 6 : 14} barGap={2}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                  interval={tickInterval}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                />
-                <Tooltip content={<CUSTOM_TOOLTIP />} />
-                <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} iconType="circle" iconSize={8} />
-                <Bar dataKey="created" name="Created" fill="#6366f1" fillOpacity={0.7} radius={[3, 3, 0, 0]} />
-                <Bar dataKey="completed" name="Completed" fill="#22c55e" fillOpacity={0.8} radius={[3, 3, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <DailyActivity3DChart data={dailyData} days={days} tickInterval={tickInterval} />
           )}
         </CardContent>
       </Card>
