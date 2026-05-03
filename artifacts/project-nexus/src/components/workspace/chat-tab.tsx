@@ -7,7 +7,6 @@ import {
   usePinMessage,
   useUnpinMessage,
   useDeleteMessage,
-  useEditMessage,
   useListWorkspaceMembers,
   useMarkMessagesRead,
   useGetTypingUsers,
@@ -180,6 +179,11 @@ export function ChatTab({
     id: string; content: string; senderName: string;
     senderAvatarUrl?: string | null; createdAt: string; replyCount: number;
   } | null>(null);
+  const [replyingTo, setReplyingTo] = useState<{
+    id: string;
+    senderName: string;
+    content: string;
+  } | null>(null);
 
   const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -242,9 +246,10 @@ export function ChatTab({
     if (!content.trim()) return;
     if (typingTimerRef.current) { clearTimeout(typingTimerRef.current); typingTimerRef.current = null; }
     const rawContent = toRawFormat(content.trim(), members);
+    const targetThreadId = replyingTo?.id ?? null;
     sendMessage.mutate(
       { workspaceId, data: { content: rawContent } },
-      { onSuccess: () => { setContent(""); invalidateMessages(); } }
+      { onSuccess: () => { setContent(""); setReplyingTo(null); invalidateMessages(); } }
     );
   };
 
@@ -265,6 +270,11 @@ export function ChatTab({
   const handleDelete = (messageId: string) => {
     if (!confirm("Delete this message? This cannot be undone.")) return;
     deleteMessage.mutate({ workspaceId, messageId }, { onSuccess: invalidateMessages });
+  };
+
+  const startReply = (message: { id: string; senderName: string; content: string }) => {
+    setReplyingTo(message);
+    setThreadMessage(message as never);
   };
 
   const startEditing = (messageId: string, content: string) => {
@@ -483,6 +493,11 @@ export function ChatTab({
                             }`}
                             onClick={() => setThreadMessage(isThreadOpen ? null : msg)}
                           >
+                            {replyingTo?.id === msg.id && (
+                              <div className="mb-2 rounded-xl border border-emerald-200 bg-emerald-50/80 dark:bg-emerald-950/20 px-3 py-2 text-xs text-emerald-900 dark:text-emerald-100">
+                                Replying to this message
+                              </div>
+                            )}
                             <MentionText content={msg.content} currentUserId={currentUserId} isMe={isMe} />
                           </div>
                         )}
@@ -516,7 +531,16 @@ export function ChatTab({
                       })()}
 
                       {/* Reply count badge */}
-                      {msg.replyCount > 0 && (
+                        <button
+                          onClick={() => startReply({ id: msg.id, senderName: msg.senderName, content: msg.content })}
+                          className={`flex items-center gap-1.5 mt-1.5 text-xs font-medium transition-colors hover:underline ${
+                            isThreadOpen ? "text-primary" : "text-muted-foreground hover:text-primary"
+                          }`}
+                        >
+                          <MessageCircle className="h-3 w-3" />
+                          Reply
+                        </button>
+                        {msg.replyCount > 0 && (
                         <button
                           onClick={() => setThreadMessage(isThreadOpen ? null : msg)}
                           className={`flex items-center gap-1.5 mt-1.5 text-xs font-medium transition-colors hover:underline ${
@@ -566,7 +590,7 @@ export function ChatTab({
               onSubmit={handleSend}
               members={members}
               disabled={sendMessage.isPending}
-              placeholder="Type a message…"
+              placeholder={replyingTo ? `Reply to ${replyingTo.senderName}…` : "Type a message…"}
             />
             <Button
               onClick={handleSend}
@@ -577,6 +601,16 @@ export function ChatTab({
               {sendMessage.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </div>
+          {replyingTo && (
+            <div className="px-3 pb-3">
+              <button
+                onClick={() => setReplyingTo(null)}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Cancel reply
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, messagesTable, usersTable, workspaceMembersTable, messageReactionsTable, pinnedMessagesTable, messageReadsTable } from "@workspace/db";
-import { eq, and, desc, inArray, isNull, sql } from "drizzle-orm";
+import { eq, and, desc, inArray, isNull, sql, ne } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
 import { notifyWorkspaceMembers, notifySpecificUsers, extractMentionedUserIds } from "../lib/notify";
 import { broadcastToWorkspace, getPresenceUserIds } from "../lib/ws-manager";
