@@ -60,12 +60,19 @@ export function FilesTab({ workspaceId, role }: { workspaceId: string, role: Wor
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const processFile = (file: File) => {
+    setUploadError(null);
     setIsUploading(true);
     const reader = new FileReader();
     reader.onloadend = () => {
-      const result = reader.result as string;
+      const result = reader.result;
+      if (typeof result !== "string") {
+        setIsUploading(false);
+        setUploadError("Could not read the selected file.");
+        return;
+      }
       uploadFile.mutate({
         workspaceId,
         data: {
@@ -80,8 +87,15 @@ export function FilesTab({ workspaceId, role }: { workspaceId: string, role: Wor
           if (fileInputRef.current) fileInputRef.current.value = "";
           setIsUploading(false);
         },
-        onError: () => setIsUploading(false),
+        onError: () => {
+          setIsUploading(false);
+          setUploadError("Upload failed. Please try again.");
+        },
       });
+    };
+    reader.onerror = () => {
+      setIsUploading(false);
+      setUploadError("Could not read the selected file.");
     };
     reader.readAsDataURL(file);
   };
@@ -89,6 +103,7 @@ export function FilesTab({ workspaceId, role }: { workspaceId: string, role: Wor
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) processFile(file);
+    e.target.value = "";
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -154,6 +169,9 @@ export function FilesTab({ workspaceId, role }: { workspaceId: string, role: Wor
           <p className="text-sm font-medium">{dragOver ? "Drop to upload" : "Drag & drop files here"}</p>
           <p className="text-xs text-muted-foreground mt-1">or click to browse</p>
         </div>
+      )}
+      {uploadError && (
+        <p className="text-sm text-destructive">{uploadError}</p>
       )}
 
       {/* File table */}
