@@ -1,0 +1,378 @@
+You are a world-class senior UI/UX designer and frontend product strategist specializing in premium SaaS platforms.
+
+I am designing the UI of my most advanced project yet: a **Collaborative Work Development platform**. The UI must feel elite, modern, premium, and deeply polished, inspired by the visual clarity, structure, and enterprise-grade confidence of Slack’s public website experience, but without copying it directly.
+
+Your task is to create the **complete UI direction, design system, page structure, and component philosophy** for this product so it looks like a high-end SaaS platform.
+
+---
+
+## CORE DESIGN GOAL
+
+Build a UI that feels:
+
+* Premium
+* Glassmorphic
+* Clean
+* Professional
+* Trustworthy
+* Minimal but rich
+* Modern SaaS-level
+* Elegant under dark/light surfaces
+* Fast to scan and easy to use
+
+The design should not feel overdone.
+No unnecessary neon overload.
+No clutter.
+No excessive shadows.
+No noisy animations.
+Everything should feel intentional.
+
+---
+
+## REFERENCE DIRECTION
+
+Use the current public visual language of Slack’s website as a structural reference:
+
+* strong top navigation
+* bold hero section
+* clean content hierarchy
+* modular feature blocks
+* polished spacing
+* enterprise-ready tone
+* premium CTA treatment
+* trust-first layout
+* simple but powerful presentation
+
+Do not copy Slack’s branding, assets, layout pixel-for-pixel, or exact colors.
+Instead, extract the design logic and adapt it into a fresh identity for my product.
+
+---
+
+## PRODUCT CONTEXT
+
+This app is for collaborative work development, meaning users should be able to:
+
+* create and join workspaces
+* communicate with team members
+* manage project files
+* document work
+* collaborate in real time
+* eventually work like a complete team operating system
+
+The UI must make collaboration feel effortless, structured, and intelligent.
+
+---
+
+## DESIGN PRINCIPLES
+
+### 1. Glassmorphism
+
+Use subtle glassmorphism in panels, cards, modals, sidebars, and overlays:
+
+* translucent surfaces
+* blur effects
+* soft borders
+* layered depth
+* controlled brightness
+
+Avoid heavy opacity that hurts readability.
+
+### 2. Border Strategy
+
+Use fine, elegant border lines:
+
+* 1px neutral borders
+* soft edge definition
+* minimal border emphasis
+* borders that support hierarchy, not dominate it
+
+### 3. Hover Effects
+
+Use minimal hover effects only:
+
+* slight background shift
+* tiny elevation change
+* subtle border glow
+* gentle icon movement if needed
+
+No bouncing, scaling too much, or flashy effects.
+
+### 4. Typography
+
+Use a highly readable premium font stack.
+Recommended direction:
+
+* modern sans-serif
+* strong heading presence
+* clean body text
+* excellent spacing between lines
+* clear hierarchy
+
+### 5. Layout
+
+Design should rely on:
+
+* generous whitespace
+* balanced grid structure
+* strong alignment
+* modular sections
+* clear visual grouping
+* excellent information hierarchy
+
+---
+
+## RECOMMENDED COLOR DIRECTION
+
+Use a premium glassmorphic palette inspired by modern SaaS products.
+
+### Base Palette
+
+* Deep charcoal / slate background
+* Soft off-white text
+* Muted neutral surfaces
+* Transparent layered panels
+
+### Accent Palette
+
+Choose 1 primary accent and 1–2 secondary accents:
+
+* Indigo
+* Electric violet
+* Cyan
+* Soft blue
+* Mint for success states
+
+### Best-fit recommendation for this project
+
+* Background: deep slate / near-black
+* Surface: smoky glass gray
+* Primary accent: cool indigo
+* Secondary accent: muted cyan
+* Highlight accent: soft violet
+* Borders: translucent white / gray
+
+This should feel expensive, calm, and futuristic.
+
+---
+
+## UI SYSTEM TO DESIGN
+
+Design the complete UI system for the whole product:
+
+### 1. Top Navigation
+
+* clean logo area
+* features menu
+* solutions menu
+* enterprise menu
+* resources menu
+* pricing
+* sign in
+* request demo
+* get started
+
+The nav should feel crisp, premium, and highly usable.
+
+### 2. Hero Section
+
+* powerful headline
+* short supporting text
+* primary CTA
+* secondary CTA
+* product preview visual
+* trust indicators
+
+The hero should communicate confidence immediately.
+
+### 3. Feature Sections
+
+Design modular feature blocks with:
+
+* cards
+* icons
+* short titles
+* concise descriptions
+* visual hierarchy
+* subtle motion
+
+### 4. Workspace UI
+
+The app interface must include:
+
+* left sidebar
+* main work area
+* right-side collaboration panel
+* workspace selector
+* file/document navigation
+* member presence
+* activity indicators
+
+### 5. Collaboration UI
+
+Include:
+
+* chat panel
+* threaded messages
+* mentions
+* reactions
+* file previews
+* status indicators
+* roles and permissions visibility
+
+### 6. Documentation / SRS UI
+
+Design a premium editor experience:
+
+* clean writing surface
+* structured sections
+* side outline
+* progress indicators
+* visual blocks
+* markdown-friendly support
+* calm reading mode
+
+### 7. Dashboard UI
+
+* workspace overview
+* recent activity
+* project progress
+* team status
+* quick actions
+* clean cards and metrics
+
+### 8. Settings / Admin UI
+
+* role management
+* permission controls
+* branding settings
+* workspace settings
+* notification preferences
+
+---
+
+## VISUAL STYLE REQUIREMENTS
+
+The UI should feel like:
+
+* enterprise SaaS
+* modern product
+* polished startup
+* soft futuristic workspace
+* high-end collaboration platform
+
+Avoid:
+
+* childish colors
+* oversaturated gradients
+* excessive glass blur
+* heavy shadows
+* decorative clutter
+* gimmicky effects
+
+---
+
+## INTERACTION REQUIREMENTS
+
+Use refined interaction design:
+
+* smooth but subtle transitions
+* micro-feedback on buttons
+* soft focus states
+* clean active states
+* subtle loading skeletons
+* polished empty states
+* intuitive responsive behavior
+
+---
+
+## RESPONSIVE BEHAVIOR
+
+Design for:
+
+* desktop first
+* tablet friendly
+* mobile collapsible layouts
+* sidebar compression
+* stacked panels on small screens
+
+The mobile UI should remain elegant and functional, not cramped.
+
+---
+
+## COMPONENT LANGUAGE
+
+Create a consistent set of reusable UI components:
+
+* buttons
+* pills
+* cards
+* tabs
+* dropdowns
+* modals
+* sidebars
+* headers
+* metrics tiles
+* chat bubbles
+* document blocks
+* file cards
+* permission tags
+* status chips
+* charts and indicators
+
+All components should match the same design language.
+
+---
+
+## CHARTS AND VISUALS
+
+Where useful, include:
+
+* progress charts
+* task completion indicators
+* project health cards
+* collaboration activity graphs
+* role distribution views
+* workspace analytics
+
+These visuals should be elegant, not dashboard-noisy.
+
+---
+
+## OUTPUT FORMAT I WANT FROM YOU
+
+When responding, give me:
+
+1. Complete UI direction
+2. Design system
+3. Color palette
+4. Typography recommendations
+5. Component library strategy
+6. Screen-by-screen layout plan
+7. Premium glassmorphism styling guidance
+8. Hover/focus interaction rules
+9. Responsive behavior rules
+10. Suggested implementation approach for Next.js + Tailwind
+
+---
+
+## IMPORTANT RULES
+
+* Keep everything minimal and premium
+* Make it visually catchy but not overdone
+* Focus on real productivity
+* Make the UI feel trustworthy and enterprise-ready
+* Keep spacing elegant
+* Prioritize readability
+* Make the product feel like a serious platform, not a student project
+
+---
+
+## START NOW
+
+Begin by giving me:
+
+1. The full design system
+2. The best color palette for this product
+3. The main layout structure
+4. The UI direction for the homepage and workspace interface
+5. A clean component strategy for implementation
