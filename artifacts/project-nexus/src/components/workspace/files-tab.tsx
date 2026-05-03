@@ -65,39 +65,29 @@ export function FilesTab({ workspaceId, role }: { workspaceId: string, role: Wor
   const processFile = (file: File) => {
     setUploadError(null);
     setIsUploading(true);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const result = reader.result;
-      if (typeof result !== "string") {
-        setIsUploading(false);
-        setUploadError("Could not read the selected file.");
-        return;
+    const objectUrl = URL.createObjectURL(file);
+    uploadFile.mutate({
+      workspaceId,
+      data: {
+        name: file.name,
+        size: file.size,
+        mimeType: file.type || "application/octet-stream",
+        url: objectUrl,
       }
-      uploadFile.mutate({
-        workspaceId,
-        data: {
-          name: file.name,
-          size: file.size,
-          mimeType: file.type || "application/octet-stream",
-          url: result,
-        }
-      }, {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListFilesQueryKey(workspaceId) });
-          if (fileInputRef.current) fileInputRef.current.value = "";
-          setIsUploading(false);
-        },
-        onError: () => {
-          setIsUploading(false);
-          setUploadError("Upload failed. Please try again.");
-        },
-      });
-    };
-    reader.onerror = () => {
-      setIsUploading(false);
-      setUploadError("Could not read the selected file.");
-    };
-    reader.readAsDataURL(file);
+    }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListFilesQueryKey(workspaceId) });
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        setIsUploading(false);
+      },
+      onError: () => {
+        setIsUploading(false);
+        setUploadError("Upload failed. Please try again.");
+      },
+      onSettled: () => {
+        URL.revokeObjectURL(objectUrl);
+      },
+    });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
