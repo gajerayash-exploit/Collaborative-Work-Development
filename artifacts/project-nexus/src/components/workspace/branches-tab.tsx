@@ -83,33 +83,34 @@ function RoleHierarchy() {
 function RoleIcon({ role }: { role: "admin" | "editor" | "viewer" }) {
   if (role === "admin") {
     return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-amber-500" fill="none" aria-hidden="true">
-        <path d="M4 14.5L7 8l5 4 3-6 5 8.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M5 18h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        <path d="M6.5 18l1-4 4.5 2 4.5-2 1 4" fill="currentColor" opacity="0.22" />
-        <circle cx="7" cy="8" r="1" fill="currentColor" />
-        <circle cx="12" cy="12" r="1" fill="currentColor" />
-        <circle cx="16" cy="8" r="1" fill="currentColor" />
+      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true">
+        <path d="M5 9l3 2 4-5 4 5 3-2v7H5V9z" fill="#f59e0b" />
+        <path d="M5 9l3 2 4-5v11L5 16V9z" fill="#d97706" />
+        <path d="M12 6l4 5 3-2-3 7H12V6z" fill="#b45309" />
+        <path d="M5 16h14v2H5z" fill="#92400e" />
+        <path d="M8 9l4-5 4 5" stroke="#fef3c7" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" opacity="0.9" />
       </svg>
     );
   }
 
   if (role === "editor") {
     return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-fuchsia-500" fill="none" aria-hidden="true">
-        <path d="M4 16.5 16.5 4l3.5 3.5L7.5 20H4v-3.5z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-        <path d="M14 6l4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        <path d="M6 18l1.5-1.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
+      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true">
+        <path d="M4 16.5 15.5 5l4.5 4.5L8.5 21H4v-4.5z" fill="#ec4899" />
+        <path d="M4 16.5 15.5 5v11.5L8.5 21H4v-4.5z" fill="#db2777" />
+        <path d="M15.5 5L20 9.5l-2 2L13.5 7l2-2z" fill="#9d174d" />
+        <path d="M5.5 18.5H8" stroke="#fce7f3" strokeWidth="1.5" strokeLinecap="round" opacity="0.9" />
       </svg>
     );
   }
 
   return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-sky-500" fill="none" aria-hidden="true">
-      <path d="M12 5.5c3.8 0 7 2.8 7 6.5 0 1.7-.7 3.3-1.9 4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M20 12s-3 5-8 5-8-5-8-5 3-5 8-5 8 5 8 5z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-      <circle cx="12" cy="12" r="2.2" fill="currentColor" />
-      <path d="M4 19l3-3M17 19l3-3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
+    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true">
+      <path d="M12 5c4.5 0 8 3.1 8 7s-3.5 7-8 7-8-3.1-8-7 3.5-7 8-7z" fill="#38bdf8" />
+      <path d="M7.5 7.5A7.5 7.5 0 0 1 16.5 16.5" fill="#0ea5e9" opacity="0.85" />
+      <path d="M12 7.5c2.5 0 4.5 2 4.5 4.5S14.5 16.5 12 16.5 7.5 14.5 7.5 12 9.5 7.5 12 7.5z" fill="#e0f2fe" opacity="0.95" />
+      <circle cx="12" cy="12" r="1.4" fill="#0369a1" />
+      <path d="M6 18l2.2-2.2M15.8 18L18 15.8" stroke="#075985" strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
     </svg>
   );
 }
