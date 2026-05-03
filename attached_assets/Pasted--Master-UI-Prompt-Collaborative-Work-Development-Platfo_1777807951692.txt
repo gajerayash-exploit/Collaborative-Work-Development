@@ -1,0 +1,441 @@
+# 🧊 Master UI Prompt — Collaborative Work Development Platform
+### Glassmorphic SaaS Premium Design System
+*Extracted & Elevated from Slack.com Design Language — Enhanced with Custom Color Intelligence*
+
+---
+
+## 🎯 Project Brief
+
+Build a **premium Collaborative Work Development Platform** landing page and UI system. The visual DNA is extracted from Slack.com's 2025 redesign — clean sectioning, bold hero statements, alternating dark/light content zones, product UI previews, stat counters, and a trust-building content flow. Elevate it with **glassmorphism** throughout, custom color accents, and SaaS-grade refinement.
+
+---
+
+## 🎨 Color System
+
+### Base Palette (Extracted from Slack + Enhanced)
+
+```css
+:root {
+  /* === BACKGROUNDS === */
+  --bg-void:        #07080F;   /* Near-black deep space — primary dark bg */
+  --bg-deep:        #0D0F1C;   /* Section dark backgrounds */
+  --bg-surface:     #111425;   /* Card/panel base */
+  --bg-light:       #F7F6F2;   /* Warm off-white — Slack's light sections */
+  --bg-warm:        #FAFAF8;   /* Alt light background */
+
+  /* === GLASS LAYERS === */
+  --glass-white:    rgba(255, 255, 255, 0.06);
+  --glass-white-md: rgba(255, 255, 255, 0.10);
+  --glass-white-lg: rgba(255, 255, 255, 0.15);
+  --glass-dark:     rgba(7, 8, 15, 0.55);
+  --glass-border:   rgba(255, 255, 255, 0.10);
+  --glass-border-md:rgba(255, 255, 255, 0.18);
+
+  /* === BRAND ACCENTS (My Recommendation — Cool + Distinct) === */
+  --accent-primary:   #5B6EF5;  /* Electric indigo — primary CTA */
+  --accent-glow:      #7B8FF7;  /* Lighter indigo for glow states */
+  --accent-secondary: #2ECFB5;  /* Teal-mint — secondary highlights */
+  --accent-tertiary:  #A78BFA;  /* Soft violet — decorative / tags */
+  --accent-warm:      #F59E67;  /* Amber — stat callouts / badges */
+  --accent-danger:    #F4627D;  /* Coral — alerts / destructive */
+
+  /* === TEXT === */
+  --text-primary:   #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.65);
+  --text-muted:     rgba(255, 255, 255, 0.35);
+  --text-dark:      #111425;
+  --text-dark-muted:#5A607A;
+
+  /* === BORDERS === */
+  --border-subtle:  rgba(255, 255, 255, 0.07);
+  --border-default: rgba(255, 255, 255, 0.12);
+  --border-strong:  rgba(255, 255, 255, 0.22);
+  --border-accent:  rgba(91, 110, 245, 0.45);
+
+  /* === GRADIENTS === */
+  --grad-hero:      linear-gradient(135deg, #0D0F1C 0%, #131829 50%, #0A0C18 100%);
+  --grad-accent:    linear-gradient(135deg, #5B6EF5, #2ECFB5);
+  --grad-violet:    linear-gradient(135deg, #5B6EF5, #A78BFA);
+  --grad-warm:      linear-gradient(135deg, #F59E67, #F4627D);
+  --grad-section:   linear-gradient(180deg, #07080F 0%, #0D1020 100%);
+}
+```
+
+### Slack-Extracted Color References
+- **Slack's nav dark bg:** `#1D1C1D` (near-black purple-charcoal) → our `--bg-void`
+- **Slack's off-white sections:** `#F7F6F2` (warm cream) → our `--bg-light`
+- **Slack's brand purple:** `#611F69` → we elevate to `#5B6EF5` (modern electric indigo)
+- **Slack's CTA green:** `#2BAC76` → our `--accent-secondary` `#2ECFB5`
+- **Slack's link blue:** `#1264A3` → merged into our accent system
+
+---
+
+## 🔤 Typography System
+
+```css
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --font-display: 'Syne', sans-serif;       /* Hero headings — geometric, bold */
+  --font-body:    'DM Sans', sans-serif;    /* Body copy — clean, warm, readable */
+  --font-mono:    'DM Mono', monospace;     /* Code snippets, stat numbers */
+}
+```
+
+### Type Scale
+```css
+--text-xs:   0.75rem;    /* 12px — labels, captions */
+--text-sm:   0.875rem;   /* 14px — secondary body */
+--text-base: 1rem;       /* 16px — primary body */
+--text-lg:   1.125rem;   /* 18px — lead paragraphs */
+--text-xl:   1.25rem;    /* 20px — card headings */
+--text-2xl:  1.5rem;     /* 24px — section sub-heads */
+--text-3xl:  1.875rem;   /* 30px — section headings */
+--text-4xl:  2.5rem;     /* 40px — feature titles */
+--text-5xl:  3.5rem;     /* 56px — hero heading */
+--text-6xl:  4.5rem;     /* 72px — hero display (desktop) */
+
+/* Font weights */
+--fw-light:   300;
+--fw-regular: 400;
+--fw-medium:  500;
+--fw-semi:    600;
+--fw-bold:    700;
+--fw-extra:   800;
+```
+
+---
+
+## 🧊 Glassmorphism Component System
+
+### Core Glass Card
+```css
+.glass-card {
+  background: var(--glass-white);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.glass-card:hover {
+  border-color: var(--glass-border-md);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: all 0.3s ease;
+}
+```
+
+### Glass Nav (Slack-style sticky)
+```css
+.glass-nav {
+  background: rgba(7, 8, 15, 0.75);
+  backdrop-filter: blur(24px) saturate(200%);
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+```
+
+### Glass Modal / Panel
+```css
+.glass-panel {
+  background: rgba(17, 20, 37, 0.80);
+  backdrop-filter: blur(32px);
+  border: 1px solid var(--border-default);
+  border-radius: 20px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.06) inset;
+}
+```
+
+### Accent Border Line (Slack's section dividers — elevated)
+```css
+.accent-line {
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--accent-primary) 30%,
+    var(--accent-secondary) 70%,
+    transparent 100%
+  );
+  opacity: 0.4;
+}
+```
+
+---
+
+## 🏗️ Page Structure (Slack-Inspired Layout Architecture)
+
+Slack's page is built in clear **vertical zones**, alternating between dark and light. Replicate this rhythm:
+
+```
+[1] NAV BAR         — sticky, transparent → glass on scroll
+[2] HERO SECTION    — dark bg, large headline, dual CTA, tab switcher with product previews
+[3] TRUST BAR       — logo strip of trusted companies (light bg)
+[4] DARK FEATURE    — "Reimagine with AI" — dark section, UI carousel left + text right
+[5] KNOWLEDGE       — alternating text/image, stat callout, 4 sub-sections
+[6] PEOPLE          — connection / collaboration features with quote
+[7] PROCESS         — workflow automation, stat badge, 3-column
+[8] PLATFORM        — integrations, security, open platform features
+[9] SOCIAL PROOF    — video testimonial cards (Slack: MrBeast, Box, etc.)
+[10] STATS STRIP    — 4 large animated number stats, dark bg
+[11] AWARDS ROW     — G2 badge-style icons in a horizontal scroll
+[12] RESOURCES      — 4-column article/event cards
+[13] CTA FOOTER     — bold final CTA + full footer nav
+```
+
+---
+
+## 🎛️ Component Specifications
+
+### Navigation Bar
+- **Height:** 64px
+- **Logo:** left-aligned, 28px height, white version on dark
+- **Links:** `DM Sans` 500 weight, `--text-sm`, `--text-secondary` color
+- **Hover:** `--text-primary` color + 0.2s transition, NO underline
+- **Dropdowns:** Glass panel `backdrop-filter: blur(24px)`, border `--border-default`, border-radius `12px`
+- **CTA buttons:**
+  - "Sign In" → ghost, border `--border-default`
+  - "Request Demo" → filled `--accent-primary`
+  - "Get Started" → filled gradient `--grad-accent`
+
+### Hero Section
+- **Background:** `--grad-hero` + subtle radial gradient glow behind headline
+- **Headline:** `Syne` 800, `--text-6xl` (desktop), color `--text-primary`
+- **Subtext:** `DM Sans` 300, `--text-lg`, `--text-secondary`, max-width 560px
+- **Tab strip:** pill-shaped tabs for "Plan launches / Run projects / Chat / Automate" — glass active state
+- **Product preview frame:** Glass panel with inner padding, rounded 20px corners, subtle `--border-accent` glow
+- **CTA row:** primary filled button + ghost button, 8px gap
+
+### Feature Section Cards (Dark Zone)
+```
+┌─────────────────────────────────────────────────────┐
+│  glass-card (backdrop-filter: blur 20px)            │
+│  ┌──────────────────────────────────────────────┐   │
+│  │  [icon — 32px, accent color]                 │   │
+│  │  Card Title — Syne 600 text-xl               │   │
+│  │  Description — DM Sans 400 text-sm muted     │   │
+│  └──────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────┘
+```
+
+### Stats Strip
+- Background: `--bg-deep`
+- Numbers: `DM Mono` 800, `--text-5xl`, `--accent-glow` color
+- Labels: `DM Sans` 400, `--text-sm`, `--text-muted`
+- Separator: `1px solid --border-subtle` vertical between stats
+
+### CTA Buttons — Full Spec
+```css
+/* Primary */
+.btn-primary {
+  background: var(--accent-primary);
+  color: white;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+.btn-primary:hover {
+  background: var(--accent-glow);
+  transform: translateY(-1px);
+}
+
+/* Ghost */
+.btn-ghost {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  padding: 12px 24px;
+  border-radius: 8px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.btn-ghost:hover {
+  border-color: var(--border-strong);
+  background: var(--glass-white);
+}
+
+/* Gradient (hero/footer CTA) */
+.btn-gradient {
+  background: var(--grad-accent);
+  color: white;
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+```
+
+---
+
+## ✨ Hover Effects (Minimal — Not Over)
+
+Use only these hover patterns, applied sparingly:
+
+| Element | Effect |
+|---|---|
+| Nav links | Color shift `--text-secondary` → `--text-primary` (0.2s ease) |
+| Glass cards | `border-color` slightly stronger, box-shadow slightly deeper (0.25s ease) |
+| Feature tabs | bg fills with `--glass-white-md`, slight border glow |
+| CTA buttons | translateY(-1px) + slight color shift |
+| Logo strip items | opacity 0.5 → 1.0 (0.2s) |
+| Resource cards | `transform: translateY(-2px)` + shadow deepens |
+| Social proof cards | border brightens to `--border-strong` |
+
+**No scale transforms above 1.02. No heavy glow blobs. No color explosions.**
+
+---
+
+## 🌊 Background Decorations
+
+### Hero glow (Slack uses a subtle radial behind the headline)
+```css
+.hero-glow {
+  position: absolute;
+  width: 700px;
+  height: 500px;
+  background: radial-gradient(ellipse,
+    rgba(91, 110, 245, 0.18) 0%,
+    rgba(46, 207, 181, 0.06) 50%,
+    transparent 75%
+  );
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  filter: blur(40px);
+}
+```
+
+### Dark section mesh
+```css
+.section-mesh {
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(91,110,245,0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(167,139,250,0.06) 0%, transparent 40%);
+}
+```
+
+---
+
+## 📐 Spacing & Layout
+
+```css
+/* Container */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+
+/* Section padding (Slack uses generous vertical breathing) */
+--section-py: 96px;     /* desktop */
+--section-py-md: 72px;  /* tablet */
+--section-py-sm: 56px;  /* mobile */
+
+/* Component spacing */
+--gap-xs: 8px;
+--gap-sm: 16px;
+--gap-md: 24px;
+--gap-lg: 40px;
+--gap-xl: 64px;
+
+/* Border radius */
+--radius-sm: 6px;
+--radius-md: 12px;
+--radius-lg: 16px;
+--radius-xl: 20px;
+--radius-pill: 9999px;
+```
+
+---
+
+## 🧩 Section-by-Section Design Notes
+
+### Hero
+- Left-aligned or centered headline (Slack uses center)
+- Rotating tab strip below headline showing different use cases (Plan launches, Run projects, etc.)
+- Product screenshot below in a glass-framed device mockup
+- Subtle animated gradient background mesh
+
+### Trust Bar (Logo Strip)
+- Light section `--bg-light`
+- "Trusted by top teams" in `--text-dark-muted` uppercase `--text-xs` letter-spacing 0.1em
+- 6 company logos, grayscale at 40% opacity, hover → 80% opacity
+
+### AI Features Section (Dark)
+- Use left tab list + right product UI preview panel
+- Panel has `--glass-dark` background with `--border-accent` glow
+- Each tab item: icon + bold label + short description
+- Active tab: `--accent-primary` left border indicator
+
+### Knowledge / People / Process / Platform (Alternating)
+- Use 2-column grid, alternating text-left/image-right
+- Stat badge: glass pill with large `DM Mono` number + description
+- Section label: uppercase `--text-xs`, `--accent-secondary`, letter-spacing 0.15em
+
+### Stats Strip
+- 4 stats in a row, dark section
+- Animated count-up on scroll
+- Dividers between
+
+### Resource Cards
+- 4-column grid on desktop
+- Glass cards with category tag (Event / Webinar / Blog / Guide)
+- Tag colors: Event `--accent-secondary`, Blog `--accent-tertiary`, etc.
+
+### Footer CTA
+- Large bold headline, `Syne` 800
+- Two buttons side by side
+- Then full 6-column footer links (Product / Why / Features / Solutions / Resources / Company)
+
+---
+
+## 🚫 What NOT to Do (Slack's Restraint — Keep It)
+
+- No drop shadows heavier than `0 20px 60px rgba(0,0,0,0.5)`
+- No more than 2 accent colors visible in any single section
+- No font sizes above 72px
+- No border-radius above 24px on cards
+- No backdrop-filter blur above 32px
+- No gradients with more than 3 stops
+- No glow effects on text (only on backgrounds/decorations)
+- No more than ONE animated element per section
+- Never use white backgrounds on the dark hero/feature sections
+
+---
+
+## ✅ Recommended Tech Stack
+
+| Layer | Choice |
+|---|---|
+| Framework | React + Tailwind CSS |
+| Fonts | Google Fonts (Syne + DM Sans + DM Mono) |
+| Icons | Lucide React or Phosphor Icons |
+| Animations | Framer Motion (subtle scroll triggers) |
+| Glassmorphism | Pure CSS `backdrop-filter` |
+| Illustrations | Custom SVG product UI mockups |
+
+---
+
+## 📋 Quick Copy — Page Title & Hero
+
+```
+Headline:   "Your team's intelligence, amplified."
+Sub:        "Bring people, projects and AI together in one place — built for teams who move fast and build with clarity."
+CTA 1:      "Get started free"
+CTA 2:      "See it in action"
+Tabs:       Plan sprints · Review code · Ship features · Automate standups · Chat with clients
+```
+
+---
+
+*Master Prompt v1.0 — Crafted for Collaborative Work Development Platform*
+*Reference: slack.com/intl/en-in | Design elevation: Glassmorphic SaaS Premium*
