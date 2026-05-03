@@ -327,6 +327,18 @@ export function ChatTab({
     <div className="flex h-[calc(100vh-14rem)] bg-[#efeae2] dark:bg-[#111b21] border rounded-2xl overflow-hidden shadow-lg ring-1 ring-border/60">
       {/* Main chat area */}
       <div className="flex flex-col flex-1 min-w-0">
+        <div className="flex items-center justify-between px-4 py-3 border-b bg-card/80 backdrop-blur-md flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <MessageSquare className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold leading-none">Chat</p>
+              <p className="text-xs text-muted-foreground">Workspace conversation</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2" />
+        </div>
         <PinnedBanner workspaceId={workspaceId} canPin={canPin} onUnpin={handleUnpin} />
 
         {/* Catch-up toolbar */}

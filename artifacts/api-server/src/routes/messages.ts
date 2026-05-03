@@ -205,6 +205,30 @@ router.delete("/workspaces/:workspaceId/messages/:messageId", requireAuth, async
   }
 });
 
+router.delete("/workspaces/:workspaceId/messages", requireAuth, async (req: any, res): Promise<void> => {
+  try {
+    const clerkUserId = req.clerkUserId;
+    const { workspaceId } = req.params;
+
+    const user = await db.select().from(usersTable).where(eq(usersTable.clerkId, clerkUserId)).limit(1);
+    if (!user[0]) { res.status(404).json({ error: "User not found" }); return; }
+
+    const membership = await db.select().from(workspaceMembersTable)
+      .where(and(eq(workspaceMembersTable.workspaceId, workspaceId), eq(workspaceMembersTable.userId, user[0].id)))
+      .limit(1);
+    if (!membership[0]) { res.status(403).json({ error: "Access denied" }); return; }
+    if (membership[0].role !== "admin") { res.status(403).json({ error: "Only admins can clear chat" }); return; }
+
+    await db.delete(messagesTable).where(and(eq(messagesTable.workspaceId, workspaceId), isNull(messagesTable.parentMessageId)));
+
+    res.json({ success: true });
+    broadcastToWorkspace(workspaceId, { type: "chat_cleared", workspaceId }, user[0].id);
+  } catch (err) {
+    req.log.error({ err }, "Failed to clear chat");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.patch("/workspaces/:workspaceId/messages/:messageId", requireAuth, async (req: any, res): Promise<void> => {
   try {
     const clerkUserId = req.clerkUserId;

@@ -49,6 +49,10 @@ export function ThreadPanel({ workspaceId, message, currentUserId, members, onCl
   });
 
   const sendReply = useSendReply();
+  const safeDate = (value: string) => {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  };
 
   const handleSend = () => {
     if (!replyContent.trim()) return;
@@ -98,7 +102,7 @@ export function ThreadPanel({ workspaceId, message, currentUserId, members, onCl
             <div className="flex items-baseline gap-2 mb-1">
               <span className="text-sm font-semibold">{message.senderName}</span>
               <span className="text-[10px] text-muted-foreground">
-                {format(new Date(message.createdAt), "MMM d, h:mm a")}
+                {safeDate(message.createdAt) ? format(safeDate(message.createdAt)!, "MMM d, h:mm a") : "Unknown time"}
               </span>
             </div>
             <p className="text-sm leading-relaxed text-foreground break-words">
@@ -145,7 +149,7 @@ export function ThreadPanel({ workspaceId, message, currentUserId, members, onCl
                         {isMe ? "You" : reply.senderName}
                       </span>
                       <span className="text-[10px] text-muted-foreground">
-                        {formatDistanceToNow(new Date(reply.createdAt), { addSuffix: true })}
+                        {safeDate(reply.createdAt) ? formatDistanceToNow(safeDate(reply.createdAt)!, { addSuffix: true }) : "Unknown time"}
                       </span>
                     </div>
                     <div className={`rounded-2xl px-3 py-2 text-sm leading-relaxed break-words shadow-sm ${
