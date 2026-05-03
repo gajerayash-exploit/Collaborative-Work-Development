@@ -60,13 +60,10 @@ function RoleHierarchy() {
           return (
             <div
               key={role}
-              className="relative rounded-2xl border bg-card p-4 shadow-sm overflow-hidden"
+              className="rounded-xl border bg-card p-4 shadow-sm"
             >
-              <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${cfg.color}`} />
-              <div className="flex items-center gap-3 mb-3 mt-1">
-                <div className={`h-10 w-10 rounded-xl border bg-gradient-to-br ${cfg.color} flex items-center justify-center shadow-sm`}>
-                  <div className="h-6 w-6 rounded-lg bg-white/75 dark:bg-white/10 backdrop-blur-sm border border-white/40 dark:border-white/10" />
-                </div>
+              <div className="flex items-center gap-3">
+                <RoleIcon role={role} />
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-foreground text-sm">{cfg.label}</span>
@@ -80,6 +77,42 @@ function RoleHierarchy() {
         })}
       </div>
     </div>
+  );
+}
+
+function RoleIcon({ role }: { role: "admin" | "editor" | "viewer" }) {
+  if (role === "admin") {
+    return (
+      <svg viewBox="0 0 64 64" className="h-11 w-11 shrink-0">
+        <path d="M16 22l16-8 16 8-16 8-16-8z" fill="#f59e0b" />
+        <path d="M16 22l16 8v18L16 40V22z" fill="#d97706" />
+        <path d="M32 30l16-8v18L32 48V30z" fill="#b45309" />
+        <path d="M22 18l10-5 10 5-10 5-10-5z" fill="#fde68a" />
+        <circle cx="32" cy="18" r="4" fill="#fff7ed" />
+      </svg>
+    );
+  }
+
+  if (role === "editor") {
+    return (
+      <svg viewBox="0 0 64 64" className="h-11 w-11 shrink-0">
+        <path d="M16 22l16-8 16 8-16 8-16-8z" fill="#8b5cf6" />
+        <path d="M16 22l16 8v18L16 40V22z" fill="#7c3aed" />
+        <path d="M32 30l16-8v18L32 48V30z" fill="#5b21b6" />
+        <path d="M22 18l10-5 10 5-10 5-10-5z" fill="#c4b5fd" />
+        <path d="M26 28l8-8 6 6-8 8-6-6z" fill="#f8fafc" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 64 64" className="h-11 w-11 shrink-0">
+      <path d="M16 22l16-8 16 8-16 8-16-8z" fill="#94a3b8" />
+      <path d="M16 22l16 8v18L16 40V22z" fill="#64748b" />
+      <path d="M32 30l16-8v18L32 48V30z" fill="#475569" />
+      <path d="M22 18l10-5 10 5-10 5-10-5z" fill="#cbd5e1" />
+      <circle cx="32" cy="26" r="5" fill="#e2e8f0" />
+    </svg>
   );
 }
 
