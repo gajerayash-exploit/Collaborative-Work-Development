@@ -81,3 +81,9 @@ export function getPresence(workspaceId: string) {
     avatarUrl: c.avatarUrl,
   }));
 }
+
+export function getPresenceUserIds(workspaceId: string): string[] {
+  const room = rooms.get(workspaceId);
+  if (!room) return [];
+  return Array.from(room).map((c) => c.dbUserId);
+}

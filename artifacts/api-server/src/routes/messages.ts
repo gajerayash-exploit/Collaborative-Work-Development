@@ -3,7 +3,7 @@ import { db, messagesTable, usersTable, workspaceMembersTable, messageReactionsT
 import { eq, and, desc, inArray, isNull, sql } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
 import { notifyWorkspaceMembers, notifySpecificUsers, extractMentionedUserIds } from "../lib/notify";
-import { broadcastToWorkspace } from "../lib/ws-manager";
+import { broadcastToWorkspace, getPresenceUserIds } from "../lib/ws-manager";
 
 const router: IRouter = Router();
 
@@ -133,14 +133,30 @@ router.post("/workspaces/:workspaceId/messages", requireAuth, async (req: any, r
 
     const trimmed = content.trim();
     const mentionedIds = extractMentionedUserIds(trimmed).filter(id => id !== user[0].id);
+    const onlineUserIds = getPresenceUserIds(workspaceId);
+    const onlineRecipientRows = await db.select({ userId: workspaceMembersTable.userId })
+      .from(workspaceMembersTable)
+      .where(
+        and(
+          eq(workspaceMembersTable.workspaceId, workspaceId),
+          inArray(workspaceMembersTable.userId, onlineUserIds),
+        )
+      );
+    const onlineIds = new Set(onlineRecipientRows.map(r => r.userId));
+    const recipientIds = await db.select({ userId: workspaceMembersTable.userId })
+      .from(workspaceMembersTable)
+      .where(and(eq(workspaceMembersTable.workspaceId, workspaceId), ne(workspaceMembersTable.userId, user[0].id)));
+    const offlineIds = recipientIds.map(r => r.userId).filter((id) => !onlineIds.has(id));
 
-    notifyWorkspaceMembers({
-      workspaceId,
-      excludeUserId: user[0].id,
-      type: "message",
-      title: `New message from ${user[0].name}`,
-      body: trimmed.replace(/@\[([^\]|]+)\|[^\]]+\]/g, "@$1").slice(0, 80) + (trimmed.length > 80 ? "…" : ""),
-    }).catch(() => {});
+    if (offlineIds.length > 0) {
+      notifyWorkspaceMembers({
+        workspaceId,
+        excludeUserId: user[0].id,
+        type: "message",
+        title: `New message from ${user[0].name}`,
+        body: trimmed.replace(/@\[([^\]|]+)\|[^\]]+\]/g, "@$1").slice(0, 80) + (trimmed.length > 80 ? "…" : ""),
+      }).catch(() => {});
+    }
 
     if (mentionedIds.length > 0) {
       notifySpecificUsers({
