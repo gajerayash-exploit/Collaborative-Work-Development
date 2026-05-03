@@ -84,10 +84,9 @@ function RoleIcon({ role }: { role: "admin" | "editor" | "viewer" }) {
   if (role === "admin") {
     return (
       <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true" fill="none">
-        <rect x="4.5" y="4.5" width="15" height="15" rx="4" fill="#fff7ed" stroke="#fb923c" strokeWidth="1.2" />
-        <path d="M7 14.5 9.2 8.8l2.8 3.2 2.8-3.2 2.2 5.7H7Z" fill="#f59e0b" />
-        <path d="M8.3 14.5h7.4" stroke="#c2410c" strokeWidth="1.2" strokeLinecap="round" />
-        <path d="M9.3 7.9h5.4" stroke="#fed7aa" strokeWidth="1.2" strokeLinecap="round" />
+        <circle cx="12" cy="12" r="8.5" fill="#fff7ed" stroke="#fb923c" strokeWidth="1.2" />
+        <path d="M7 14.5 8.3 9.8l2.4 2.3L12 8.8l1.3 3.3 2.4-2.3L17 14.5H7Z" fill="#f59e0b" />
+        <path d="M8 15.5h8" stroke="#c2410c" strokeWidth="1.2" strokeLinecap="round" />
       </svg>
     );
   }
@@ -95,22 +94,19 @@ function RoleIcon({ role }: { role: "admin" | "editor" | "viewer" }) {
   if (role === "editor") {
     return (
       <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true" fill="none">
-        <rect x="4.5" y="4.5" width="15" height="15" rx="4" fill="#f5f3ff" stroke="#a78bfa" strokeWidth="1.2" />
-        <path d="M7 15.8 15.9 6.9l2.1 2.1L9.1 18H7v-2.2Z" fill="#7c3aed" />
-        <path d="M15.2 6.9 17 5.1 18.9 7l-1.8 1.8" fill="#8b5cf6" />
-        <path d="M7.8 9.1h4.6" stroke="#ddd6fe" strokeWidth="1.2" strokeLinecap="round" />
-        <path d="M7.8 14.2h3.1" stroke="#ddd6fe" strokeWidth="1.2" strokeLinecap="round" />
+        <circle cx="12" cy="12" r="8.5" fill="#f5f3ff" stroke="#a78bfa" strokeWidth="1.2" />
+        <path d="M8 15.5 15.2 8.3l1.8 1.8L9.8 17.3H8v-1.8Z" fill="#7c3aed" />
+        <path d="M15.1 8.4 16.7 6.8 18 8.1l-1.6 1.6" fill="#8b5cf6" />
+        <path d="M8.5 10h4.2" stroke="#ddd6fe" strokeWidth="1.2" strokeLinecap="round" />
       </svg>
     );
   }
 
   return (
     <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true" fill="none">
-      <rect x="4.5" y="4.5" width="15" height="15" rx="4" fill="#eff6ff" stroke="#60a5fa" strokeWidth="1.2" />
-      <circle cx="12" cy="11.5" r="2.2" fill="#2563eb" />
-      <circle cx="8.4" cy="10.6" r="1.1" fill="#93c5fd" />
-      <circle cx="15.6" cy="10.6" r="1.1" fill="#93c5fd" />
-      <path d="M7.6 15.4c1-1.8 2.4-2.7 4.4-2.7s3.4.9 4.4 2.7" stroke="#2563eb" strokeWidth="1.2" strokeLinecap="round" />
+      <circle cx="12" cy="12" r="8.5" fill="#eff6ff" stroke="#60a5fa" strokeWidth="1.2" />
+      <circle cx="12" cy="11.8" r="2.2" fill="#2563eb" />
+      <path d="M8 15.2c1.1-1.6 2.5-2.4 4-2.4s2.9.8 4 2.4" stroke="#2563eb" strokeWidth="1.2" strokeLinecap="round" />
     </svg>
   );
 }
