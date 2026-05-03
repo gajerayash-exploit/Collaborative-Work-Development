@@ -36,10 +36,14 @@ Unified collaboration platform for students and teams. pnpm workspace monorepo u
 - **SRS Connection Audit**: Detects orphaned nodes, missing critical links, circular dependencies; colored glow rings on affected nodes; badge on SRS tab trigger and canvas label
 - **AI Edge Suggestions**: `POST /api/srs/suggest` — sends graph to GPT-5-mini, returns up to 6 missing-edge recommendations with confidence scores; one-click "Add Edge" per suggestion in the Audit sidebar panel
 - **OpenAI Integration**: Replit AI Integrations proxy (`AI_INTEGRATIONS_OPENAI_BASE_URL` + `AI_INTEGRATIONS_OPENAI_API_KEY`); lib at `lib/integrations-openai-ai-server`
+- **Enhanced RBAC / Branches** (Feature A): Branches tab — named sub-spaces within a workspace with `allowedRoles` array, `isProtected` flag; role hierarchy cards (admin/editor/viewer); admin-only create/delete/protect; route: `GET|POST /api/workspaces/:id/branches`, `PUT|DELETE /api/workspaces/:id/branches/:branchId`
+- **Live-Sync Engine** (Feature B): Sync tab — push file events (created/modified/deleted), live feed with pulse animation, 5s auto-refresh, simulated Sync Agent CLI command; route: `GET /api/workspaces/:id/sync/events`, `POST /api/workspaces/:id/sync/push`
+- **Huddle Widget** (Feature C): Persistent header popover — join/leave workspace voice huddle, mute toggle, participant list with live presence indicator, 5s polling; route: `GET /api/workspaces/:id/huddle`, `POST /api/workspaces/:id/huddle/join|leave`
+- **One-Click Sandbox** (Feature E): Sandbox tab — create cloud environments per framework (React/Next/Express/Vue/Svelte), animated 4-step creation sequence, preview URL display, Pitch Mode toggle (hides source code); route: `GET|POST /api/workspaces/:id/sandboxes`, `GET|DELETE /api/workspaces/:id/sandboxes/:sid`, `PUT /api/workspaces/:id/sandboxes/:sid/pitch-mode`
 
 ## DB Tables
 
-`users`, `workspaces`, `workspace_members`, `workspace_files`, `messages`, `notifications`, `tasks`, `conversations`, `ai_messages`
+`users`, `workspaces`, `workspace_members`, `workspace_files`, `messages`, `notifications`, `tasks`, `conversations`, `ai_messages`, `branches`, `sync_events`, `huddle_sessions`, `sandboxes`
 
 ## Key Commands
 

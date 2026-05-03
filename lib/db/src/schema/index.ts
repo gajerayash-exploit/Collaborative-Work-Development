@@ -12,3 +12,7 @@ export * from "./workspace-secrets";
 export * from "./activity-events";
 export * from "./conversations";
 export * from "./ai-messages";
+export * from "./branches";
+export * from "./sync-events";
+export * from "./huddle-sessions";
+export * from "./sandboxes";

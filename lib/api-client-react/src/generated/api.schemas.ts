@@ -465,6 +465,115 @@ export interface CreateSecretBody {
   value: string;
 }
 
+export interface Branch {
+  id: string;
+  workspaceId: string;
+  name: string;
+  description?: string | null;
+  isProtected: boolean;
+  allowedRoles: string[];
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateBranchBody {
+  name: string;
+  description?: string;
+  isProtected?: boolean;
+  allowedRoles?: string[];
+}
+
+export interface UpdateBranchBody {
+  name?: string;
+  description?: string;
+  isProtected?: boolean;
+  allowedRoles?: string[];
+}
+
+export type SyncEventAction =
+  (typeof SyncEventAction)[keyof typeof SyncEventAction];
+
+export const SyncEventAction = {
+  created: "created",
+  modified: "modified",
+  deleted: "deleted",
+} as const;
+
+export interface SyncEvent {
+  id: string;
+  workspaceId: string;
+  fileName: string;
+  filePath: string;
+  action: SyncEventAction;
+  triggeredBy: string;
+  pushedAt: string;
+  pusherName?: string | null;
+  pusherAvatarUrl?: string | null;
+}
+
+export type PushSyncEventBodyAction =
+  (typeof PushSyncEventBodyAction)[keyof typeof PushSyncEventBodyAction];
+
+export const PushSyncEventBodyAction = {
+  created: "created",
+  modified: "modified",
+  deleted: "deleted",
+} as const;
+
+export interface PushSyncEventBody {
+  fileName: string;
+  filePath: string;
+  action: PushSyncEventBodyAction;
+}
+
+export interface HuddleParticipant {
+  id: string;
+  name?: string | null;
+  avatarUrl?: string | null;
+  email: string;
+}
+
+export interface HuddleState {
+  workspaceId: string;
+  active: boolean;
+  participants: HuddleParticipant[];
+  currentUserId: string;
+}
+
+export type SandboxStatus = (typeof SandboxStatus)[keyof typeof SandboxStatus];
+
+export const SandboxStatus = {
+  creating: "creating",
+  running: "running",
+  stopped: "stopped",
+  error: "error",
+} as const;
+
+export interface Sandbox {
+  id: string;
+  workspaceId: string;
+  name: string;
+  framework: string;
+  frameworkLabel?: string | null;
+  status: SandboxStatus;
+  previewUrl?: string | null;
+  pitchMode: boolean;
+  createdBy: string;
+  creatorName?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateSandboxBody {
+  name: string;
+  framework?: string;
+}
+
+export interface TogglePitchModeBody {
+  enabled: boolean;
+}
+
 export type ListMessagesParams = {
   limit?: number;
   /**

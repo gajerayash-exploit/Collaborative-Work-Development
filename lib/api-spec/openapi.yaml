@@ -24,6 +24,14 @@ tags:
     description: Workspace task management
   - name: search
     description: Workspace search
+  - name: branches
+    description: Workspace branch management
+  - name: sync
+    description: Live-sync engine
+  - name: huddle
+    description: Voice huddle sessions
+  - name: sandboxes
+    description: One-click cloud sandboxes
 
 paths:
   /healthz:
@@ -983,6 +991,353 @@ paths:
               schema:
                 $ref: "#/components/schemas/SearchResults"
 
+  /workspaces/{workspaceId}/branches:
+    get:
+      operationId: listBranches
+      tags: [branches]
+      summary: List workspace branches
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of branches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Branch"
+    post:
+      operationId: createBranch
+      tags: [branches]
+      summary: Create a branch
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBranchBody"
+      responses:
+        "201":
+          description: Created branch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Branch"
+
+  /workspaces/{workspaceId}/branches/{branchId}:
+    put:
+      operationId: updateBranch
+      tags: [branches]
+      summary: Update a branch
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: branchId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBranchBody"
+      responses:
+        "200":
+          description: Updated branch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Branch"
+    delete:
+      operationId: deleteBranch
+      tags: [branches]
+      summary: Delete a branch
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: branchId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /workspaces/{workspaceId}/sync/events:
+    get:
+      operationId: listSyncEvents
+      tags: [sync]
+      summary: List recent sync events
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of sync events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SyncEvent"
+
+  /workspaces/{workspaceId}/sync/push:
+    post:
+      operationId: pushSyncEvent
+      tags: [sync]
+      summary: Push a file sync event
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushSyncEventBody"
+      responses:
+        "201":
+          description: Created sync event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SyncEvent"
+
+  /workspaces/{workspaceId}/huddle:
+    get:
+      operationId: getHuddle
+      tags: [huddle]
+      summary: Get current huddle state
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Huddle state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HuddleState"
+
+  /workspaces/{workspaceId}/huddle/join:
+    post:
+      operationId: joinHuddle
+      tags: [huddle]
+      summary: Join the workspace huddle
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Joined
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /workspaces/{workspaceId}/huddle/leave:
+    post:
+      operationId: leaveHuddle
+      tags: [huddle]
+      summary: Leave the workspace huddle
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Left
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /workspaces/{workspaceId}/sandboxes:
+    get:
+      operationId: listSandboxes
+      tags: [sandboxes]
+      summary: List workspace sandboxes
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of sandboxes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Sandbox"
+    post:
+      operationId: createSandbox
+      tags: [sandboxes]
+      summary: Create a new sandbox
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSandboxBody"
+      responses:
+        "201":
+          description: Created sandbox
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sandbox"
+
+  /workspaces/{workspaceId}/sandboxes/{sandboxId}:
+    get:
+      operationId: getSandbox
+      tags: [sandboxes]
+      summary: Get a sandbox
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sandboxId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Sandbox details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sandbox"
+    delete:
+      operationId: deleteSandbox
+      tags: [sandboxes]
+      summary: Delete a sandbox
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sandboxId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /workspaces/{workspaceId}/sandboxes/{sandboxId}/pitch-mode:
+    put:
+      operationId: toggleSandboxPitchMode
+      tags: [sandboxes]
+      summary: Toggle pitch mode for a sandbox
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sandboxId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TogglePitchModeBody"
+      responses:
+        "200":
+          description: Updated sandbox
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sandbox"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1911,3 +2266,215 @@ components:
         - name
         - email
         - role
+    Branch:
+      type: object
+      properties:
+        id:
+          type: string
+        workspaceId:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        isProtected:
+          type: boolean
+        allowedRoles:
+          type: array
+          items:
+            type: string
+        createdBy:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - workspaceId
+        - name
+        - isProtected
+        - allowedRoles
+        - createdBy
+        - createdAt
+        - updatedAt
+
+    CreateBranchBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        isProtected:
+          type: boolean
+        allowedRoles:
+          type: array
+          items:
+            type: string
+      required:
+        - name
+
+    UpdateBranchBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        isProtected:
+          type: boolean
+        allowedRoles:
+          type: array
+          items:
+            type: string
+
+    SyncEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        workspaceId:
+          type: string
+        fileName:
+          type: string
+        filePath:
+          type: string
+        action:
+          type: string
+          enum: [created, modified, deleted]
+        triggeredBy:
+          type: string
+        pushedAt:
+          type: string
+          format: date-time
+        pusherName:
+          type: string
+          nullable: true
+        pusherAvatarUrl:
+          type: string
+          nullable: true
+      required:
+        - id
+        - workspaceId
+        - fileName
+        - filePath
+        - action
+        - triggeredBy
+        - pushedAt
+
+    PushSyncEventBody:
+      type: object
+      properties:
+        fileName:
+          type: string
+        filePath:
+          type: string
+        action:
+          type: string
+          enum: [created, modified, deleted]
+      required:
+        - fileName
+        - filePath
+        - action
+
+    HuddleParticipant:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+          nullable: true
+        email:
+          type: string
+      required:
+        - id
+        - email
+
+    HuddleState:
+      type: object
+      properties:
+        workspaceId:
+          type: string
+        active:
+          type: boolean
+        participants:
+          type: array
+          items:
+            $ref: "#/components/schemas/HuddleParticipant"
+        currentUserId:
+          type: string
+      required:
+        - workspaceId
+        - active
+        - participants
+        - currentUserId
+
+    Sandbox:
+      type: object
+      properties:
+        id:
+          type: string
+        workspaceId:
+          type: string
+        name:
+          type: string
+        framework:
+          type: string
+        frameworkLabel:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [creating, running, stopped, error]
+        previewUrl:
+          type: string
+          nullable: true
+        pitchMode:
+          type: boolean
+        createdBy:
+          type: string
+        creatorName:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - workspaceId
+        - name
+        - framework
+        - status
+        - pitchMode
+        - createdBy
+        - createdAt
+        - updatedAt
+
+    CreateSandboxBody:
+      type: object
+      properties:
+        name:
+          type: string
+        framework:
+          type: string
+      required:
+        - name
+
+    TogglePitchModeBody:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+      required:
+        - enabled

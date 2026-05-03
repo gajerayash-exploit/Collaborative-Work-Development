@@ -20,6 +20,10 @@ import activityRouter from "./activity";
 import srsSuggestRouter from "./srs-suggest";
 import srsGenerateNodeRouter from "./srs-generate-node";
 import srsStreamRouter from "./srs-stream";
+import branchesRouter from "./branches";
+import syncRouter from "./sync";
+import huddleRouter from "./huddle";
+import sandboxesRouter from "./sandboxes";
 
 const router: IRouter = Router();
 
@@ -44,5 +48,9 @@ router.use(activityRouter);
 router.use(srsSuggestRouter);
 router.use(srsGenerateNodeRouter);
 router.use(srsStreamRouter);
+router.use(branchesRouter);
+router.use(syncRouter);
+router.use(huddleRouter);
+router.use(sandboxesRouter);
 
 export default router;

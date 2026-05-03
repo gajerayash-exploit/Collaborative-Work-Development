@@ -6,7 +6,10 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Activity, MessageSquare, Files, Users, Settings, CheckSquare, Search, KeyRound, BarChart2, Network } from "lucide-react";
+import {
+  Activity, MessageSquare, Files, Users, Settings, CheckSquare,
+  Search, KeyRound, BarChart2, Network, GitBranch, Zap, Box,
+} from "lucide-react";
 import { OverviewTab } from "@/components/workspace/overview-tab";
 import { ChatTab } from "@/components/workspace/chat-tab";
 import { FilesTab } from "@/components/workspace/files-tab";
@@ -17,6 +20,10 @@ import { VaultTab } from "@/components/workspace/vault-tab";
 import { BurndownTab } from "@/components/workspace/burndown-tab";
 import { SRSTab } from "@/components/workspace/srs-tab";
 import { SearchDialog } from "@/components/workspace/search-dialog";
+import { BranchesTab } from "@/components/workspace/branches-tab";
+import { SyncTab } from "@/components/workspace/sync-tab";
+import { HuddleWidget } from "@/components/workspace/huddle-widget";
+import { SandboxTab } from "@/components/workspace/sandbox-tab";
 
 const TAB_CLASS = "data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-2 pb-3 font-medium text-muted-foreground data-[state=active]:text-foreground hover:text-foreground transition-colors flex-shrink-0";
 
@@ -89,6 +96,7 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
               )}
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0">
+              <HuddleWidget workspaceId={id} />
               <Button
                 variant="outline"
                 size="sm"
@@ -134,6 +142,18 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
                 <TabsTrigger value="files" className={TAB_CLASS}>
                   <Files className="h-4 w-4 md:mr-1.5 shrink-0" />
                   <span className="hidden sm:inline text-sm">Files</span>
+                </TabsTrigger>
+                <TabsTrigger value="branches" className={TAB_CLASS}>
+                  <GitBranch className="h-4 w-4 md:mr-1.5 shrink-0" />
+                  <span className="hidden sm:inline text-sm">Branches</span>
+                </TabsTrigger>
+                <TabsTrigger value="sync" className={TAB_CLASS}>
+                  <Zap className="h-4 w-4 md:mr-1.5 shrink-0" />
+                  <span className="hidden sm:inline text-sm">Sync</span>
+                </TabsTrigger>
+                <TabsTrigger value="sandboxes" className={TAB_CLASS}>
+                  <Box className="h-4 w-4 md:mr-1.5 shrink-0" />
+                  <span className="hidden sm:inline text-sm">Sandbox</span>
                 </TabsTrigger>
                 <TabsTrigger value="members" className={TAB_CLASS}>
                   <Users className="h-4 w-4 md:mr-1.5 shrink-0" />
@@ -182,6 +202,9 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
               {activeTab === "tasks" && <TasksTab workspaceId={id} role={workspace.role} />}
               {activeTab === "vault" && <VaultTab workspaceId={id} role={workspace.role} />}
               {activeTab === "analytics" && <BurndownTab workspaceId={id} />}
+              {activeTab === "branches" && <BranchesTab workspaceId={id} role={workspace.role} />}
+              {activeTab === "sync" && <SyncTab workspaceId={id} />}
+              {activeTab === "sandboxes" && <SandboxTab workspaceId={id} role={workspace.role} />}
               {isAdmin && activeTab === "settings" && <SettingsTab workspaceId={id} initialName={workspace.name} initialDescription={workspace.description ?? null} />}
             </div>
           </div>

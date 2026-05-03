@@ -819,3 +819,249 @@ export const SearchWorkspaceResponse = zod.object({
     }),
   ),
 });
+
+/**
+ * @summary List workspace branches
+ */
+export const ListBranchesParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const ListBranchesResponseItem = zod.object({
+  id: zod.string(),
+  workspaceId: zod.string(),
+  name: zod.string(),
+  description: zod.string().nullish(),
+  isProtected: zod.boolean(),
+  allowedRoles: zod.array(zod.string()),
+  createdBy: zod.string(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListBranchesResponse = zod.array(ListBranchesResponseItem);
+
+/**
+ * @summary Create a branch
+ */
+export const CreateBranchParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const CreateBranchBody = zod.object({
+  name: zod.string(),
+  description: zod.string().optional(),
+  isProtected: zod.boolean().optional(),
+  allowedRoles: zod.array(zod.string()).optional(),
+});
+
+/**
+ * @summary Update a branch
+ */
+export const UpdateBranchParams = zod.object({
+  workspaceId: zod.coerce.string(),
+  branchId: zod.coerce.string(),
+});
+
+export const UpdateBranchBody = zod.object({
+  name: zod.string().optional(),
+  description: zod.string().optional(),
+  isProtected: zod.boolean().optional(),
+  allowedRoles: zod.array(zod.string()).optional(),
+});
+
+export const UpdateBranchResponse = zod.object({
+  id: zod.string(),
+  workspaceId: zod.string(),
+  name: zod.string(),
+  description: zod.string().nullish(),
+  isProtected: zod.boolean(),
+  allowedRoles: zod.array(zod.string()),
+  createdBy: zod.string(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a branch
+ */
+export const DeleteBranchParams = zod.object({
+  workspaceId: zod.coerce.string(),
+  branchId: zod.coerce.string(),
+});
+
+export const DeleteBranchResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
+ * @summary List recent sync events
+ */
+export const ListSyncEventsParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const ListSyncEventsResponseItem = zod.object({
+  id: zod.string(),
+  workspaceId: zod.string(),
+  fileName: zod.string(),
+  filePath: zod.string(),
+  action: zod.enum(["created", "modified", "deleted"]),
+  triggeredBy: zod.string(),
+  pushedAt: zod.coerce.date(),
+  pusherName: zod.string().nullish(),
+  pusherAvatarUrl: zod.string().nullish(),
+});
+export const ListSyncEventsResponse = zod.array(ListSyncEventsResponseItem);
+
+/**
+ * @summary Push a file sync event
+ */
+export const PushSyncEventParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const PushSyncEventBody = zod.object({
+  fileName: zod.string(),
+  filePath: zod.string(),
+  action: zod.enum(["created", "modified", "deleted"]),
+});
+
+/**
+ * @summary Get current huddle state
+ */
+export const GetHuddleParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const GetHuddleResponse = zod.object({
+  workspaceId: zod.string(),
+  active: zod.boolean(),
+  participants: zod.array(
+    zod.object({
+      id: zod.string(),
+      name: zod.string().nullish(),
+      avatarUrl: zod.string().nullish(),
+      email: zod.string(),
+    }),
+  ),
+  currentUserId: zod.string(),
+});
+
+/**
+ * @summary Join the workspace huddle
+ */
+export const JoinHuddleParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const JoinHuddleResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
+ * @summary Leave the workspace huddle
+ */
+export const LeaveHuddleParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const LeaveHuddleResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
+ * @summary List workspace sandboxes
+ */
+export const ListSandboxesParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const ListSandboxesResponseItem = zod.object({
+  id: zod.string(),
+  workspaceId: zod.string(),
+  name: zod.string(),
+  framework: zod.string(),
+  frameworkLabel: zod.string().nullish(),
+  status: zod.enum(["creating", "running", "stopped", "error"]),
+  previewUrl: zod.string().nullish(),
+  pitchMode: zod.boolean(),
+  createdBy: zod.string(),
+  creatorName: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListSandboxesResponse = zod.array(ListSandboxesResponseItem);
+
+/**
+ * @summary Create a new sandbox
+ */
+export const CreateSandboxParams = zod.object({
+  workspaceId: zod.coerce.string(),
+});
+
+export const CreateSandboxBody = zod.object({
+  name: zod.string(),
+  framework: zod.string().optional(),
+});
+
+/**
+ * @summary Get a sandbox
+ */
+export const GetSandboxParams = zod.object({
+  workspaceId: zod.coerce.string(),
+  sandboxId: zod.coerce.string(),
+});
+
+export const GetSandboxResponse = zod.object({
+  id: zod.string(),
+  workspaceId: zod.string(),
+  name: zod.string(),
+  framework: zod.string(),
+  frameworkLabel: zod.string().nullish(),
+  status: zod.enum(["creating", "running", "stopped", "error"]),
+  previewUrl: zod.string().nullish(),
+  pitchMode: zod.boolean(),
+  createdBy: zod.string(),
+  creatorName: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a sandbox
+ */
+export const DeleteSandboxParams = zod.object({
+  workspaceId: zod.coerce.string(),
+  sandboxId: zod.coerce.string(),
+});
+
+export const DeleteSandboxResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
+ * @summary Toggle pitch mode for a sandbox
+ */
+export const ToggleSandboxPitchModeParams = zod.object({
+  workspaceId: zod.coerce.string(),
+  sandboxId: zod.coerce.string(),
+});
+
+export const ToggleSandboxPitchModeBody = zod.object({
+  enabled: zod.boolean(),
+});
+
+export const ToggleSandboxPitchModeResponse = zod.object({
+  id: zod.string(),
+  workspaceId: zod.string(),
+  name: zod.string(),
+  framework: zod.string(),
+  frameworkLabel: zod.string().nullish(),
+  status: zod.enum(["creating", "running", "stopped", "error"]),
+  previewUrl: zod.string().nullish(),
+  pitchMode: zod.boolean(),
+  createdBy: zod.string(),
+  creatorName: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});

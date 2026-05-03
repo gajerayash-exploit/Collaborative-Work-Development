@@ -18,7 +18,10 @@ import type {
 
 import type {
   ActivityFeedResponse,
+  Branch,
   BurndownAnalytics,
+  CreateBranchBody,
+  CreateSandboxBody,
   CreateSecretBody,
   CreateTaskBody,
   CreateWorkspaceBody,
@@ -26,24 +29,30 @@ import type {
   GetBurndownAnalyticsParams,
   GetWorkspaceActivityParams,
   HealthStatus,
+  HuddleState,
   InviteMemberBody,
   LeaderboardResponse,
   ListMessagesParams,
   MarkReadBody,
   Message,
   PinnedMessage,
+  PushSyncEventBody,
   Reply,
+  Sandbox,
   SearchResults,
   SearchWorkspaceParams,
   SecretMeta,
   SecretRevealed,
   SendMessageBody,
   SuccessResponse,
+  SyncEvent,
   Task,
+  TogglePitchModeBody,
   ToggleReaction200,
   ToggleReactionBody,
   TypingUser,
   UnpinMessage200,
+  UpdateBranchBody,
   UpdateMemberRoleBody,
   UpdateTaskBody,
   UpdateUserProfileBody,
@@ -3635,3 +3644,1257 @@ export function useSearchWorkspace<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary List workspace branches
+ */
+export const getListBranchesUrl = (workspaceId: string) => {
+  return `/api/workspaces/${workspaceId}/branches`;
+};
+
+export const listBranches = async (
+  workspaceId: string,
+  options?: RequestInit,
+): Promise<Branch[]> => {
+  return customFetch<Branch[]>(getListBranchesUrl(workspaceId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListBranchesQueryKey = (workspaceId: string) => {
+  return [`/api/workspaces/${workspaceId}/branches`] as const;
+};
+
+export const getListBranchesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listBranches>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listBranches>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListBranchesQueryKey(workspaceId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listBranches>>> = ({
+    signal,
+  }) => listBranches(workspaceId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!workspaceId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listBranches>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListBranchesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listBranches>>
+>;
+export type ListBranchesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List workspace branches
+ */
+
+export function useListBranches<
+  TData = Awaited<ReturnType<typeof listBranches>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listBranches>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListBranchesQueryOptions(workspaceId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a branch
+ */
+export const getCreateBranchUrl = (workspaceId: string) => {
+  return `/api/workspaces/${workspaceId}/branches`;
+};
+
+export const createBranch = async (
+  workspaceId: string,
+  createBranchBody: CreateBranchBody,
+  options?: RequestInit,
+): Promise<Branch> => {
+  return customFetch<Branch>(getCreateBranchUrl(workspaceId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createBranchBody),
+  });
+};
+
+export const getCreateBranchMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createBranch>>,
+    TError,
+    { workspaceId: string; data: BodyType<CreateBranchBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createBranch>>,
+  TError,
+  { workspaceId: string; data: BodyType<CreateBranchBody> },
+  TContext
+> => {
+  const mutationKey = ["createBranch"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createBranch>>,
+    { workspaceId: string; data: BodyType<CreateBranchBody> }
+  > = (props) => {
+    const { workspaceId, data } = props ?? {};
+
+    return createBranch(workspaceId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateBranchMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createBranch>>
+>;
+export type CreateBranchMutationBody = BodyType<CreateBranchBody>;
+export type CreateBranchMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a branch
+ */
+export const useCreateBranch = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createBranch>>,
+    TError,
+    { workspaceId: string; data: BodyType<CreateBranchBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createBranch>>,
+  TError,
+  { workspaceId: string; data: BodyType<CreateBranchBody> },
+  TContext
+> => {
+  return useMutation(getCreateBranchMutationOptions(options));
+};
+
+/**
+ * @summary Update a branch
+ */
+export const getUpdateBranchUrl = (workspaceId: string, branchId: string) => {
+  return `/api/workspaces/${workspaceId}/branches/${branchId}`;
+};
+
+export const updateBranch = async (
+  workspaceId: string,
+  branchId: string,
+  updateBranchBody: UpdateBranchBody,
+  options?: RequestInit,
+): Promise<Branch> => {
+  return customFetch<Branch>(getUpdateBranchUrl(workspaceId, branchId), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateBranchBody),
+  });
+};
+
+export const getUpdateBranchMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateBranch>>,
+    TError,
+    { workspaceId: string; branchId: string; data: BodyType<UpdateBranchBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateBranch>>,
+  TError,
+  { workspaceId: string; branchId: string; data: BodyType<UpdateBranchBody> },
+  TContext
+> => {
+  const mutationKey = ["updateBranch"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateBranch>>,
+    { workspaceId: string; branchId: string; data: BodyType<UpdateBranchBody> }
+  > = (props) => {
+    const { workspaceId, branchId, data } = props ?? {};
+
+    return updateBranch(workspaceId, branchId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateBranchMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateBranch>>
+>;
+export type UpdateBranchMutationBody = BodyType<UpdateBranchBody>;
+export type UpdateBranchMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a branch
+ */
+export const useUpdateBranch = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateBranch>>,
+    TError,
+    { workspaceId: string; branchId: string; data: BodyType<UpdateBranchBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateBranch>>,
+  TError,
+  { workspaceId: string; branchId: string; data: BodyType<UpdateBranchBody> },
+  TContext
+> => {
+  return useMutation(getUpdateBranchMutationOptions(options));
+};
+
+/**
+ * @summary Delete a branch
+ */
+export const getDeleteBranchUrl = (workspaceId: string, branchId: string) => {
+  return `/api/workspaces/${workspaceId}/branches/${branchId}`;
+};
+
+export const deleteBranch = async (
+  workspaceId: string,
+  branchId: string,
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(
+    getDeleteBranchUrl(workspaceId, branchId),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getDeleteBranchMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteBranch>>,
+    TError,
+    { workspaceId: string; branchId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteBranch>>,
+  TError,
+  { workspaceId: string; branchId: string },
+  TContext
+> => {
+  const mutationKey = ["deleteBranch"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteBranch>>,
+    { workspaceId: string; branchId: string }
+  > = (props) => {
+    const { workspaceId, branchId } = props ?? {};
+
+    return deleteBranch(workspaceId, branchId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteBranchMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteBranch>>
+>;
+
+export type DeleteBranchMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a branch
+ */
+export const useDeleteBranch = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteBranch>>,
+    TError,
+    { workspaceId: string; branchId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteBranch>>,
+  TError,
+  { workspaceId: string; branchId: string },
+  TContext
+> => {
+  return useMutation(getDeleteBranchMutationOptions(options));
+};
+
+/**
+ * @summary List recent sync events
+ */
+export const getListSyncEventsUrl = (workspaceId: string) => {
+  return `/api/workspaces/${workspaceId}/sync/events`;
+};
+
+export const listSyncEvents = async (
+  workspaceId: string,
+  options?: RequestInit,
+): Promise<SyncEvent[]> => {
+  return customFetch<SyncEvent[]>(getListSyncEventsUrl(workspaceId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListSyncEventsQueryKey = (workspaceId: string) => {
+  return [`/api/workspaces/${workspaceId}/sync/events`] as const;
+};
+
+export const getListSyncEventsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listSyncEvents>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listSyncEvents>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListSyncEventsQueryKey(workspaceId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listSyncEvents>>> = ({
+    signal,
+  }) => listSyncEvents(workspaceId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!workspaceId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listSyncEvents>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListSyncEventsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listSyncEvents>>
+>;
+export type ListSyncEventsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List recent sync events
+ */
+
+export function useListSyncEvents<
+  TData = Awaited<ReturnType<typeof listSyncEvents>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listSyncEvents>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListSyncEventsQueryOptions(workspaceId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Push a file sync event
+ */
+export const getPushSyncEventUrl = (workspaceId: string) => {
+  return `/api/workspaces/${workspaceId}/sync/push`;
+};
+
+export const pushSyncEvent = async (
+  workspaceId: string,
+  pushSyncEventBody: PushSyncEventBody,
+  options?: RequestInit,
+): Promise<SyncEvent> => {
+  return customFetch<SyncEvent>(getPushSyncEventUrl(workspaceId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(pushSyncEventBody),
+  });
+};
+
+export const getPushSyncEventMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof pushSyncEvent>>,
+    TError,
+    { workspaceId: string; data: BodyType<PushSyncEventBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof pushSyncEvent>>,
+  TError,
+  { workspaceId: string; data: BodyType<PushSyncEventBody> },
+  TContext
+> => {
+  const mutationKey = ["pushSyncEvent"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof pushSyncEvent>>,
+    { workspaceId: string; data: BodyType<PushSyncEventBody> }
+  > = (props) => {
+    const { workspaceId, data } = props ?? {};
+
+    return pushSyncEvent(workspaceId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PushSyncEventMutationResult = NonNullable<
+  Awaited<ReturnType<typeof pushSyncEvent>>
+>;
+export type PushSyncEventMutationBody = BodyType<PushSyncEventBody>;
+export type PushSyncEventMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Push a file sync event
+ */
+export const usePushSyncEvent = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof pushSyncEvent>>,
+    TError,
+    { workspaceId: string; data: BodyType<PushSyncEventBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof pushSyncEvent>>,
+  TError,
+  { workspaceId: string; data: BodyType<PushSyncEventBody> },
+  TContext
+> => {
+  return useMutation(getPushSyncEventMutationOptions(options));
+};
+
+/**
+ * @summary Get current huddle state
+ */
+export const getGetHuddleUrl = (workspaceId: string) => {
+  return `/api/workspaces/${workspaceId}/huddle`;
+};
+
+export const getHuddle = async (
+  workspaceId: string,
+  options?: RequestInit,
+): Promise<HuddleState> => {
+  return customFetch<HuddleState>(getGetHuddleUrl(workspaceId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetHuddleQueryKey = (workspaceId: string) => {
+  return [`/api/workspaces/${workspaceId}/huddle`] as const;
+};
+
+export const getGetHuddleQueryOptions = <
+  TData = Awaited<ReturnType<typeof getHuddle>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getHuddle>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetHuddleQueryKey(workspaceId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getHuddle>>> = ({
+    signal,
+  }) => getHuddle(workspaceId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!workspaceId,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getHuddle>>, TError, TData> & {
+    queryKey: QueryKey;
+  };
+};
+
+export type GetHuddleQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getHuddle>>
+>;
+export type GetHuddleQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get current huddle state
+ */
+
+export function useGetHuddle<
+  TData = Awaited<ReturnType<typeof getHuddle>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getHuddle>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetHuddleQueryOptions(workspaceId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Join the workspace huddle
+ */
+export const getJoinHuddleUrl = (workspaceId: string) => {
+  return `/api/workspaces/${workspaceId}/huddle/join`;
+};
+
+export const joinHuddle = async (
+  workspaceId: string,
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(getJoinHuddleUrl(workspaceId), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getJoinHuddleMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof joinHuddle>>,
+    TError,
+    { workspaceId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof joinHuddle>>,
+  TError,
+  { workspaceId: string },
+  TContext
+> => {
+  const mutationKey = ["joinHuddle"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof joinHuddle>>,
+    { workspaceId: string }
+  > = (props) => {
+    const { workspaceId } = props ?? {};
+
+    return joinHuddle(workspaceId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type JoinHuddleMutationResult = NonNullable<
+  Awaited<ReturnType<typeof joinHuddle>>
+>;
+
+export type JoinHuddleMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Join the workspace huddle
+ */
+export const useJoinHuddle = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof joinHuddle>>,
+    TError,
+    { workspaceId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof joinHuddle>>,
+  TError,
+  { workspaceId: string },
+  TContext
+> => {
+  return useMutation(getJoinHuddleMutationOptions(options));
+};
+
+/**
+ * @summary Leave the workspace huddle
+ */
+export const getLeaveHuddleUrl = (workspaceId: string) => {
+  return `/api/workspaces/${workspaceId}/huddle/leave`;
+};
+
+export const leaveHuddle = async (
+  workspaceId: string,
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(getLeaveHuddleUrl(workspaceId), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getLeaveHuddleMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof leaveHuddle>>,
+    TError,
+    { workspaceId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof leaveHuddle>>,
+  TError,
+  { workspaceId: string },
+  TContext
+> => {
+  const mutationKey = ["leaveHuddle"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof leaveHuddle>>,
+    { workspaceId: string }
+  > = (props) => {
+    const { workspaceId } = props ?? {};
+
+    return leaveHuddle(workspaceId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type LeaveHuddleMutationResult = NonNullable<
+  Awaited<ReturnType<typeof leaveHuddle>>
+>;
+
+export type LeaveHuddleMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Leave the workspace huddle
+ */
+export const useLeaveHuddle = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof leaveHuddle>>,
+    TError,
+    { workspaceId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof leaveHuddle>>,
+  TError,
+  { workspaceId: string },
+  TContext
+> => {
+  return useMutation(getLeaveHuddleMutationOptions(options));
+};
+
+/**
+ * @summary List workspace sandboxes
+ */
+export const getListSandboxesUrl = (workspaceId: string) => {
+  return `/api/workspaces/${workspaceId}/sandboxes`;
+};
+
+export const listSandboxes = async (
+  workspaceId: string,
+  options?: RequestInit,
+): Promise<Sandbox[]> => {
+  return customFetch<Sandbox[]>(getListSandboxesUrl(workspaceId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListSandboxesQueryKey = (workspaceId: string) => {
+  return [`/api/workspaces/${workspaceId}/sandboxes`] as const;
+};
+
+export const getListSandboxesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listSandboxes>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listSandboxes>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListSandboxesQueryKey(workspaceId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listSandboxes>>> = ({
+    signal,
+  }) => listSandboxes(workspaceId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!workspaceId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listSandboxes>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListSandboxesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listSandboxes>>
+>;
+export type ListSandboxesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List workspace sandboxes
+ */
+
+export function useListSandboxes<
+  TData = Awaited<ReturnType<typeof listSandboxes>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listSandboxes>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListSandboxesQueryOptions(workspaceId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a new sandbox
+ */
+export const getCreateSandboxUrl = (workspaceId: string) => {
+  return `/api/workspaces/${workspaceId}/sandboxes`;
+};
+
+export const createSandbox = async (
+  workspaceId: string,
+  createSandboxBody: CreateSandboxBody,
+  options?: RequestInit,
+): Promise<Sandbox> => {
+  return customFetch<Sandbox>(getCreateSandboxUrl(workspaceId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createSandboxBody),
+  });
+};
+
+export const getCreateSandboxMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createSandbox>>,
+    TError,
+    { workspaceId: string; data: BodyType<CreateSandboxBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createSandbox>>,
+  TError,
+  { workspaceId: string; data: BodyType<CreateSandboxBody> },
+  TContext
+> => {
+  const mutationKey = ["createSandbox"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createSandbox>>,
+    { workspaceId: string; data: BodyType<CreateSandboxBody> }
+  > = (props) => {
+    const { workspaceId, data } = props ?? {};
+
+    return createSandbox(workspaceId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateSandboxMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createSandbox>>
+>;
+export type CreateSandboxMutationBody = BodyType<CreateSandboxBody>;
+export type CreateSandboxMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a new sandbox
+ */
+export const useCreateSandbox = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createSandbox>>,
+    TError,
+    { workspaceId: string; data: BodyType<CreateSandboxBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createSandbox>>,
+  TError,
+  { workspaceId: string; data: BodyType<CreateSandboxBody> },
+  TContext
+> => {
+  return useMutation(getCreateSandboxMutationOptions(options));
+};
+
+/**
+ * @summary Get a sandbox
+ */
+export const getGetSandboxUrl = (workspaceId: string, sandboxId: string) => {
+  return `/api/workspaces/${workspaceId}/sandboxes/${sandboxId}`;
+};
+
+export const getSandbox = async (
+  workspaceId: string,
+  sandboxId: string,
+  options?: RequestInit,
+): Promise<Sandbox> => {
+  return customFetch<Sandbox>(getGetSandboxUrl(workspaceId, sandboxId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetSandboxQueryKey = (
+  workspaceId: string,
+  sandboxId: string,
+) => {
+  return [`/api/workspaces/${workspaceId}/sandboxes/${sandboxId}`] as const;
+};
+
+export const getGetSandboxQueryOptions = <
+  TData = Awaited<ReturnType<typeof getSandbox>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  sandboxId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getSandbox>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetSandboxQueryKey(workspaceId, sandboxId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getSandbox>>> = ({
+    signal,
+  }) => getSandbox(workspaceId, sandboxId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!(workspaceId && sandboxId),
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getSandbox>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetSandboxQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getSandbox>>
+>;
+export type GetSandboxQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get a sandbox
+ */
+
+export function useGetSandbox<
+  TData = Awaited<ReturnType<typeof getSandbox>>,
+  TError = ErrorType<unknown>,
+>(
+  workspaceId: string,
+  sandboxId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getSandbox>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetSandboxQueryOptions(
+    workspaceId,
+    sandboxId,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Delete a sandbox
+ */
+export const getDeleteSandboxUrl = (workspaceId: string, sandboxId: string) => {
+  return `/api/workspaces/${workspaceId}/sandboxes/${sandboxId}`;
+};
+
+export const deleteSandbox = async (
+  workspaceId: string,
+  sandboxId: string,
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(
+    getDeleteSandboxUrl(workspaceId, sandboxId),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getDeleteSandboxMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteSandbox>>,
+    TError,
+    { workspaceId: string; sandboxId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteSandbox>>,
+  TError,
+  { workspaceId: string; sandboxId: string },
+  TContext
+> => {
+  const mutationKey = ["deleteSandbox"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteSandbox>>,
+    { workspaceId: string; sandboxId: string }
+  > = (props) => {
+    const { workspaceId, sandboxId } = props ?? {};
+
+    return deleteSandbox(workspaceId, sandboxId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteSandboxMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteSandbox>>
+>;
+
+export type DeleteSandboxMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a sandbox
+ */
+export const useDeleteSandbox = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteSandbox>>,
+    TError,
+    { workspaceId: string; sandboxId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteSandbox>>,
+  TError,
+  { workspaceId: string; sandboxId: string },
+  TContext
+> => {
+  return useMutation(getDeleteSandboxMutationOptions(options));
+};
+
+/**
+ * @summary Toggle pitch mode for a sandbox
+ */
+export const getToggleSandboxPitchModeUrl = (
+  workspaceId: string,
+  sandboxId: string,
+) => {
+  return `/api/workspaces/${workspaceId}/sandboxes/${sandboxId}/pitch-mode`;
+};
+
+export const toggleSandboxPitchMode = async (
+  workspaceId: string,
+  sandboxId: string,
+  togglePitchModeBody: TogglePitchModeBody,
+  options?: RequestInit,
+): Promise<Sandbox> => {
+  return customFetch<Sandbox>(
+    getToggleSandboxPitchModeUrl(workspaceId, sandboxId),
+    {
+      ...options,
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(togglePitchModeBody),
+    },
+  );
+};
+
+export const getToggleSandboxPitchModeMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof toggleSandboxPitchMode>>,
+    TError,
+    {
+      workspaceId: string;
+      sandboxId: string;
+      data: BodyType<TogglePitchModeBody>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof toggleSandboxPitchMode>>,
+  TError,
+  {
+    workspaceId: string;
+    sandboxId: string;
+    data: BodyType<TogglePitchModeBody>;
+  },
+  TContext
+> => {
+  const mutationKey = ["toggleSandboxPitchMode"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof toggleSandboxPitchMode>>,
+    {
+      workspaceId: string;
+      sandboxId: string;
+      data: BodyType<TogglePitchModeBody>;
+    }
+  > = (props) => {
+    const { workspaceId, sandboxId, data } = props ?? {};
+
+    return toggleSandboxPitchMode(workspaceId, sandboxId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ToggleSandboxPitchModeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof toggleSandboxPitchMode>>
+>;
+export type ToggleSandboxPitchModeMutationBody = BodyType<TogglePitchModeBody>;
+export type ToggleSandboxPitchModeMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Toggle pitch mode for a sandbox
+ */
+export const useToggleSandboxPitchMode = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof toggleSandboxPitchMode>>,
+    TError,
+    {
+      workspaceId: string;
+      sandboxId: string;
+      data: BodyType<TogglePitchModeBody>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof toggleSandboxPitchMode>>,
+  TError,
+  {
+    workspaceId: string;
+    sandboxId: string;
+    data: BodyType<TogglePitchModeBody>;
+  },
+  TContext
+> => {
+  return useMutation(getToggleSandboxPitchModeMutationOptions(options));
+};
