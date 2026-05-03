@@ -215,7 +215,7 @@ export function AppLayout({ children, activeWorkspaceId }: AppLayoutProps) {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-80 bg-sidebar">
+              <SheetContent side="left" className="p-0 w-80 bg-sidebar [&>button]:top-4 [&>button]:right-4 [&>button]:rounded-full [&>button]:border [&>button]:border-border/60 [&>button]:bg-background/80 [&>button]:shadow-sm">
                 <div className="h-1.5 bg-gradient-to-r from-primary via-primary/60 to-transparent" />
                 <SidebarContent activeWorkspaceId={activeWorkspaceId} onClose={() => setMobileOpen(false)} />
               </SheetContent>
@@ -238,17 +238,18 @@ export function AppLayout({ children, activeWorkspaceId }: AppLayoutProps) {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuLabel className="text-xs font-medium text-muted-foreground truncate">
+              <DropdownMenuContent align="end" className="w-52 rounded-2xl border border-border/70 p-2 shadow-xl">
+                <DropdownMenuLabel className="flex items-center gap-2 px-2 py-2 text-xs font-medium text-muted-foreground truncate">
+                  <UserCircle className="h-4 w-4" />
                   {user?.fullName || "User"}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => setLocation("/profile")} className="gap-2">
+                <DropdownMenuItem onSelect={() => setLocation("/profile")} className="gap-2 rounded-xl px-3 py-2.5">
                   <UserCircle className="h-4 w-4" />
                   My Profile
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => signOut({ redirectUrl: "/" })} className="gap-2 text-destructive focus:text-destructive">
+                <DropdownMenuItem onSelect={() => signOut({ redirectUrl: "/" })} className="gap-2 rounded-xl px-3 py-2.5 text-destructive focus:text-destructive">
                   <LogOut className="h-4 w-4" />
                   Log out
                 </DropdownMenuItem>
