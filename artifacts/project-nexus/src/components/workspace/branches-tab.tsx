@@ -83,35 +83,35 @@ function RoleHierarchy() {
 function RoleIcon({ role }: { role: "admin" | "editor" | "viewer" }) {
   if (role === "admin") {
     return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true" fill="none">
-        <rect x="3.5" y="4.5" width="17" height="15" rx="3" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="1.4" />
-        <rect x="6" y="7" width="12" height="2.2" rx="1.1" fill="#f59e0b" />
-        <rect x="6" y="11" width="7.5" height="1.8" rx="0.9" fill="#f1f5f9" />
-        <rect x="6" y="14" width="9.5" height="1.8" rx="0.9" fill="#e2e8f0" />
-        <rect x="15.2" y="10.5" width="2.2" height="5.8" rx="1.1" fill="#f59e0b" />
+      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true">
+        <path d="M5 8.5 12 4l7 4.5V16H5V8.5Z" fill="#f59e0b" />
+        <path d="M5 8.5 12 13v3H5V8.5Z" fill="#d97706" />
+        <path d="M12 4v9l7-4.5V16h-7V4Z" fill="#b45309" />
+        <path d="M5 16h14v2H5z" fill="#92400e" />
+        <path d="M7.5 9.5 12 7l4.5 2.5" stroke="#fff7ed" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     );
   }
 
   if (role === "editor") {
     return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true" fill="none">
-        <rect x="3.5" y="4.5" width="17" height="15" rx="3" fill="#fff7ed" stroke="#fdba74" strokeWidth="1.4" />
-        <rect x="6" y="7" width="12" height="2.2" rx="1.1" fill="#a855f7" />
-        <rect x="6" y="11" width="9" height="1.8" rx="0.9" fill="#f5f3ff" />
-        <rect x="6" y="14" width="6.5" height="1.8" rx="0.9" fill="#ede9fe" />
-        <rect x="14.8" y="10.6" width="2.4" height="5.7" rx="1.1" fill="#a855f7" />
+      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true">
+        <path d="M5 8.5 12 4l7 4.5V16H5V8.5Z" fill="#c084fc" />
+        <path d="M5 8.5 12 13v3H5V8.5Z" fill="#a855f7" />
+        <path d="M12 4v9l7-4.5V16h-7V4Z" fill="#7c3aed" />
+        <path d="M5 16h14v2H5z" fill="#6d28d9" />
+        <path d="M7.5 9.5 12 7l4.5 2.5" stroke="#f5f3ff" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     );
   }
 
   return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true" fill="none">
-      <rect x="3.5" y="4.5" width="17" height="15" rx="3" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="1.4" />
-      <rect x="6" y="7" width="10" height="2.2" rx="1.1" fill="#38bdf8" />
-      <rect x="6" y="11" width="7" height="1.8" rx="0.9" fill="#e0f2fe" />
-      <rect x="6" y="14" width="8.5" height="1.8" rx="0.9" fill="#f1f5f9" />
-      <rect x="15" y="10.6" width="2.2" height="5.7" rx="1.1" fill="#38bdf8" />
+    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true">
+      <path d="M5 8.5 12 4l7 4.5V16H5V8.5Z" fill="#38bdf8" />
+      <path d="M5 8.5 12 13v3H5V8.5Z" fill="#0ea5e9" />
+      <path d="M12 4v9l7-4.5V16h-7V4Z" fill="#0284c7" />
+      <path d="M5 16h14v2H5z" fill="#0369a1" />
+      <path d="M7.5 9.5 12 7l4.5 2.5" stroke="#e0f2fe" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
