@@ -207,11 +207,12 @@ export function AppLayout({ children, activeWorkspaceId }: AppLayoutProps) {
           <div className="flex items-center gap-2 min-w-0">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 rounded-full border border-border/70 bg-background/80 shadow-sm">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-72">
+              <SheetContent side="left" className="p-0 w-80 bg-sidebar">
+                <div className="h-1.5 bg-gradient-to-r from-primary via-primary/60 to-transparent" />
                 <SidebarContent activeWorkspaceId={activeWorkspaceId} onClose={() => setMobileOpen(false)} />
               </SheetContent>
             </Sheet>
