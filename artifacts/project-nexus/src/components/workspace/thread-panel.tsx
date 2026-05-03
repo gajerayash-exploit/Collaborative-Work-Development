@@ -73,14 +73,14 @@ export function ThreadPanel({ workspaceId, message, currentUserId, members, onCl
   }, [replies]);
 
   return (
-    <div className="flex flex-col w-96 border-l bg-card h-full flex-shrink-0 animate-in slide-in-from-right duration-200">
+    <div className="flex flex-col w-[24rem] border-l bg-card h-full flex-shrink-0 animate-in slide-in-from-right duration-200 shadow-2xl">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0 bg-muted/20">
         <div className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4 text-muted-foreground" />
+          <MessageSquare className="h-4 w-4 text-primary" />
           <span className="font-semibold text-sm">Thread</span>
         </div>
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
+        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={onClose}>
           <X className="h-4 w-4" />
         </Button>
       </div>
@@ -88,9 +88,9 @@ export function ThreadPanel({ workspaceId, message, currentUserId, members, onCl
       {/* Original message */}
       <div className="px-4 py-4 border-b bg-muted/20 flex-shrink-0">
         <div className="flex gap-3">
-          <Avatar className="h-8 w-8 border flex-shrink-0">
+          <Avatar className="h-8 w-8 border flex-shrink-0 ring-2 ring-background">
             <AvatarImage src={message.senderAvatarUrl ?? undefined} />
-            <AvatarFallback className="text-xs">
+            <AvatarFallback className="text-xs bg-primary/10 text-primary">
               {message.senderName.substring(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
@@ -130,15 +130,17 @@ export function ThreadPanel({ workspaceId, message, currentUserId, members, onCl
             {replies.map((reply) => {
               const isMe = reply.senderId === currentUserId;
               return (
-                <div key={reply.id} className="flex gap-3 group">
-                  <Avatar className="h-7 w-7 border flex-shrink-0 mt-0.5">
-                    <AvatarImage src={reply.senderAvatarUrl ?? undefined} />
-                    <AvatarFallback className="text-[10px]">
-                      {reply.senderName.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2 mb-1">
+                <div key={reply.id} className={`flex gap-3 group ${isMe ? "justify-end" : ""}`}>
+                  {!isMe && (
+                    <Avatar className="h-7 w-7 border flex-shrink-0 mt-0.5 ring-2 ring-background">
+                      <AvatarImage src={reply.senderAvatarUrl ?? undefined} />
+                      <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+                        {reply.senderName.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  <div className={`flex-1 min-w-0 max-w-[85%] ${isMe ? "order-1" : ""}`}>
+                    <div className={`flex items-baseline gap-2 mb-1 ${isMe ? "justify-end" : ""}`}>
                       <span className={`text-xs font-semibold ${isMe ? "text-primary" : ""}`}>
                         {isMe ? "You" : reply.senderName}
                       </span>
@@ -146,10 +148,22 @@ export function ThreadPanel({ workspaceId, message, currentUserId, members, onCl
                         {formatDistanceToNow(new Date(reply.createdAt), { addSuffix: true })}
                       </span>
                     </div>
-                    <div className="text-sm leading-relaxed break-words text-foreground">
+                    <div className={`rounded-2xl px-3 py-2 text-sm leading-relaxed break-words shadow-sm ${
+                      isMe
+                        ? "bg-primary text-primary-foreground rounded-tr-sm"
+                        : "bg-muted text-foreground rounded-tl-sm"
+                    }`}>
                       <MentionText content={reply.content} currentUserId={currentUserId} />
                     </div>
                   </div>
+                  {isMe && (
+                    <Avatar className="h-7 w-7 border flex-shrink-0 mt-0.5 ring-2 ring-background">
+                      <AvatarImage src={reply.senderAvatarUrl ?? undefined} />
+                      <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+                        {reply.senderName.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
                 </div>
               );
             })}
@@ -174,7 +188,7 @@ export function ThreadPanel({ workspaceId, message, currentUserId, members, onCl
           <Button
             onClick={handleSend}
             size="icon"
-            className="h-9 w-9 rounded-full flex-shrink-0"
+            className="h-11 w-11 rounded-full flex-shrink-0 shadow-sm"
             disabled={!replyContent.trim() || sendReply.isPending}
           >
             {sendReply.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}

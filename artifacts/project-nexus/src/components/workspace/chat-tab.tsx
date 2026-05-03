@@ -100,7 +100,7 @@ function PinnedBanner({
   const latest = pinned[pinned.length - 1];
 
   return (
-    <div className="border-b bg-amber-50/60 dark:bg-amber-950/20 flex-shrink-0">
+    <div className="border-b bg-amber-50/70 dark:bg-amber-950/20 flex-shrink-0">
       <button
         className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-amber-100/50 dark:hover:bg-amber-900/20 transition-colors"
         onClick={() => setExpanded(e => !e)}
@@ -121,10 +121,10 @@ function PinnedBanner({
       {expanded && (
         <div className="px-4 pb-3 space-y-2 max-h-48 overflow-y-auto">
           {pinned.map((p) => (
-            <div key={p.id} className="flex items-start gap-2 p-2 rounded-lg bg-background/60 border text-sm group">
+            <div key={p.id} className="flex items-start gap-2 p-2 rounded-xl bg-background/60 border text-sm group shadow-sm">
               <Avatar className="h-6 w-6 flex-shrink-0 mt-0.5">
                 <AvatarImage src={p.senderAvatarUrl ?? undefined} />
-                <AvatarFallback className="text-[10px]">{p.senderName.substring(0, 2).toUpperCase()}</AvatarFallback>
+                <AvatarFallback className="text-[10px] bg-primary/10 text-primary">{p.senderName.substring(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <span className="font-medium text-xs text-muted-foreground">{p.senderName}</span>
@@ -275,7 +275,7 @@ export function ChatTab({
   }, [messages?.length, currentUserId, workspaceId]);
 
   return (
-    <div className="flex h-[calc(100vh-14rem)] bg-card border rounded-xl overflow-hidden shadow-sm">
+    <div className="flex h-[calc(100vh-14rem)] bg-card border rounded-2xl overflow-hidden shadow-lg ring-1 ring-border/60">
       {/* Main chat area */}
       <div className="flex flex-col flex-1 min-w-0">
         <PinnedBanner workspaceId={workspaceId} canPin={canPin} onUnpin={handleUnpin} />
@@ -291,22 +291,23 @@ export function ChatTab({
           <CatchUpPanel workspaceId={workspaceId} onClose={() => setShowCatchUp(false)} />
         )}
 
-        <ScrollArea ref={scrollRef} className="flex-1 p-4">
+        <ScrollArea ref={scrollRef} className="flex-1 p-4 md:p-5">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : !messages || messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-              <MessageSquare className="h-10 w-10 mb-4 opacity-20" />
-              <p>No messages yet.</p>
-              <p className="text-sm mt-1">
-                Be the first to say hello! Type{" "}
-                <kbd className="text-xs border rounded px-1">@</kbd> to mention someone.
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted/70 mb-4">
+                <MessageSquare className="h-6 w-6 opacity-30" />
+              </div>
+              <p className="font-medium text-foreground/80">No messages yet</p>
+              <p className="text-sm mt-1 max-w-sm">
+                Be the first to say hello. Type <kbd className="text-xs border rounded px-1">@</kbd> to mention someone.
               </p>
             </div>
           ) : (
-            <div className="space-y-1 pb-2">
+            <div className="space-y-2 pb-2">
               {messages.map((msg, i) => {
                 const isMe = msg.senderId === currentUserId;
                 const prevMsg = messages[i - 1];
@@ -320,28 +321,28 @@ export function ChatTab({
 
                 return (
                   <div
-                    key={msg.id}
-                    className={`group flex gap-3 ${isMe ? "flex-row-reverse" : ""} ${isGrouped ? "mt-0.5" : "mt-4"} ${
-                      mentionsMe ? "px-2 -mx-2 rounded-lg bg-amber-50/50 dark:bg-amber-950/10" : ""
-                    } ${isThreadOpen ? "px-2 -mx-2 rounded-lg ring-1 ring-primary/20 bg-primary/5" : ""}`}
+                    key={`${msg.id}-${msg.createdAt}`}
+                    className={`group flex gap-3 ${isMe ? "flex-row-reverse" : ""} ${isGrouped ? "mt-0" : "mt-3"} ${
+                      mentionsMe ? "px-2 -mx-2 rounded-xl bg-amber-50/60 dark:bg-amber-950/10 ring-1 ring-amber-300/20" : ""
+                    } ${isThreadOpen ? "px-2 -mx-2 rounded-xl ring-1 ring-primary/20 bg-primary/5" : ""}`}
                     onMouseEnter={() => setHoveredMsgId(msg.id)}
                     onMouseLeave={() => setHoveredMsgId(null)}
                   >
                     <div className="w-8 flex-shrink-0 flex items-end">
                       {!isGrouped && (
-                        <Avatar className="h-8 w-8 border">
+                        <Avatar className="h-8 w-8 border ring-2 ring-background">
                           <AvatarImage src={msg.senderAvatarUrl ?? undefined} />
-                          <AvatarFallback className="text-xs">
+                          <AvatarFallback className="text-xs bg-primary/10 text-primary">
                             {msg.senderName.substring(0, 2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                       )}
                     </div>
 
-                    <div className={`flex flex-col ${isMe ? "items-end" : "items-start"} max-w-[75%] relative`}>
+                    <div className={`flex flex-col ${isMe ? "items-end" : "items-start"} max-w-[78%] relative`}>
                       {!isGrouped && (
                         <div className={`flex items-baseline gap-2 mb-1 ${isMe ? "flex-row-reverse" : ""}`}>
-                          <span className="text-xs font-medium">{msg.senderName}</span>
+                          <span className="text-xs font-semibold">{msg.senderName}</span>
                           <span className="text-[10px] text-muted-foreground">
                             {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
                           </span>
@@ -393,7 +394,7 @@ export function ChatTab({
                         )}
 
                         <div
-                          className={`px-4 py-2 rounded-2xl text-sm leading-relaxed cursor-pointer ${
+                          className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed cursor-pointer shadow-sm transition-transform duration-150 hover:-translate-y-[1px] ${
                             msg.isPinned
                               ? isMe
                                 ? "bg-primary text-primary-foreground rounded-tr-sm ring-1 ring-amber-400/50"
@@ -479,7 +480,7 @@ export function ChatTab({
               </span>
             </div>
           )}
-          <div className="p-3 flex gap-2 items-center">
+          <div className="p-3 flex gap-2 items-end">
             <MentionInput
               value={content}
               onChange={handleContentChange}
@@ -491,7 +492,7 @@ export function ChatTab({
             <Button
               onClick={handleSend}
               size="icon"
-              className="h-9 w-9 rounded-full flex-shrink-0"
+              className="h-11 w-11 rounded-full flex-shrink-0 shadow-sm"
               disabled={!content.trim() || sendMessage.isPending}
             >
               {sendMessage.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}

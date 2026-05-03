@@ -132,12 +132,12 @@ export function MentionInput({
         placeholder={placeholder}
         disabled={disabled}
         autoComplete="off"
-        className="w-full h-10 px-4 pr-2 rounded-full border border-muted-foreground/20 bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:opacity-50"
+        className="w-full h-11 px-4 pr-2 rounded-full border border-muted-foreground/20 bg-background text-sm shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 disabled:opacity-50"
       />
 
       {mentionSearch !== null && filteredMembers.length > 0 && (
-        <div className="absolute bottom-full left-0 mb-2 w-64 bg-card border rounded-xl shadow-lg overflow-hidden z-30">
-          <div className="px-3 py-1.5 border-b bg-muted/30">
+        <div className="absolute bottom-full left-0 mb-2 w-72 bg-card border rounded-2xl shadow-xl overflow-hidden z-30 backdrop-blur-sm">
+          <div className="px-3 py-2 border-b bg-muted/30">
             <span className="text-xs text-muted-foreground font-medium">
               Mention a member
             </span>
@@ -145,8 +145,8 @@ export function MentionInput({
           {filteredMembers.map((m, i) => (
             <button
               key={m.userId}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-muted transition-colors ${
-                i === selectedIdx ? "bg-muted" : ""
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors ${
+                i === selectedIdx ? "bg-primary/10" : "hover:bg-muted/70"
               }`}
               onMouseDown={(e) => {
                 e.preventDefault();
@@ -155,7 +155,7 @@ export function MentionInput({
             >
               <Avatar className="h-6 w-6 flex-shrink-0">
                 <AvatarImage src={m.user?.avatarUrl ?? undefined} />
-                <AvatarFallback className="text-[10px]">
+                <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
                   {(m.user?.name ?? "?").substring(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
