@@ -331,9 +331,9 @@ export function ChatTab({
   }, [messages?.length, currentUserId, workspaceId]);
 
   return (
-    <div className="flex h-[calc(100vh-14rem)] bg-[#efeae2] dark:bg-[#111b21] border rounded-2xl overflow-hidden shadow-lg ring-1 ring-border/60">
+    <div className="flex h-full bg-[#efeae2] dark:bg-[#111b21] border rounded-2xl overflow-hidden shadow-lg ring-1 ring-border/60">
       {/* Main chat area */}
-      <div className="flex flex-col flex-1 min-w-0">
+      <div className={`flex flex-col flex-1 min-w-0 ${threadMessage ? "hidden sm:flex" : ""}`}>
         <div className="flex items-center justify-between px-4 py-3 border-b bg-card/80 backdrop-blur-md flex-shrink-0">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -382,9 +382,9 @@ export function ChatTab({
             </div>
           ) : (
             <div className="space-y-1.5 pb-2">
-              {messages.map((msg, i) => {
+              {Array.from(new Map(messages.map(m => [m.id, m])).values()).map((msg, i, arr) => {
                 const isMe = msg.senderId === currentUserId;
-                const prevMsg = messages[i - 1];
+                const prevMsg = arr[i - 1];
                 const isGrouped =
                   prevMsg &&
                   prevMsg.senderId === msg.senderId &&

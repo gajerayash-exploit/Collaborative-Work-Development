@@ -43,12 +43,19 @@ export function broadcastToWorkspace(
 
 export function broadcastPresence(workspaceId: string): void {
   const room = rooms.get(workspaceId);
+  const seen = new Set<string>();
   const users = room
-    ? Array.from(room).map((c) => ({
-        id: c.dbUserId,
-        name: c.name,
-        avatarUrl: c.avatarUrl,
-      }))
+    ? Array.from(room)
+        .filter((c) => {
+          if (seen.has(c.dbUserId)) return false;
+          seen.add(c.dbUserId);
+          return true;
+        })
+        .map((c) => ({
+          id: c.dbUserId,
+          name: c.name,
+          avatarUrl: c.avatarUrl,
+        }))
     : [];
   broadcastToWorkspace(workspaceId, { type: "presence", workspaceId, users });
 }
@@ -75,11 +82,18 @@ export function sendToUser(
 export function getPresence(workspaceId: string) {
   const room = rooms.get(workspaceId);
   if (!room) return [];
-  return Array.from(room).map((c) => ({
-    id: c.dbUserId,
-    name: c.name,
-    avatarUrl: c.avatarUrl,
-  }));
+  const seen = new Set<string>();
+  return Array.from(room)
+    .filter((c) => {
+      if (seen.has(c.dbUserId)) return false;
+      seen.add(c.dbUserId);
+      return true;
+    })
+    .map((c) => ({
+      id: c.dbUserId,
+      name: c.name,
+      avatarUrl: c.avatarUrl,
+    }));
 }
 
 export function getPresenceUserIds(workspaceId: string): string[] {

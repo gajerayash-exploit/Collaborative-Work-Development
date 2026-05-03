@@ -174,10 +174,10 @@ export function FilesTab({ workspaceId, role }: { workspaceId: string, role: Wor
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/30">
-              <TableHead className="w-[40%] font-semibold">Name</TableHead>
-              <TableHead className="font-semibold">Size</TableHead>
-              <TableHead className="font-semibold">Uploaded by</TableHead>
-              <TableHead className="font-semibold">Date</TableHead>
+              <TableHead className="font-semibold">Name</TableHead>
+              <TableHead className="font-semibold hidden sm:table-cell">Size</TableHead>
+              <TableHead className="font-semibold hidden md:table-cell">Uploaded by</TableHead>
+              <TableHead className="font-semibold hidden sm:table-cell">Date</TableHead>
               <TableHead className="text-right font-semibold">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -186,9 +186,9 @@ export function FilesTab({ workspaceId, role }: { workspaceId: string, role: Wor
               [1, 2, 3].map(i => (
                 <TableRow key={i}>
                   <TableCell><Skeleton className="h-4 w-48" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                  <TableCell className="hidden sm:table-cell"><Skeleton className="h-4 w-16" /></TableCell>
+                  <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
+                  <TableCell className="hidden sm:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
                   <TableCell className="text-right"><Skeleton className="h-8 w-16 ml-auto" /></TableCell>
                 </TableRow>
               ))
@@ -216,9 +216,9 @@ export function FilesTab({ workspaceId, role }: { workspaceId: string, role: Wor
                       <span className="truncate max-w-[180px] text-sm" title={file.name}>{file.name}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{formatBytes(file.size)}</TableCell>
-                  <TableCell className="text-sm">{file.uploaderName}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
+                  <TableCell className="text-muted-foreground text-sm hidden sm:table-cell">{formatBytes(file.size)}</TableCell>
+                  <TableCell className="text-sm hidden md:table-cell">{file.uploaderName}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm hidden sm:table-cell">
                     {formatDistanceToNow(new Date(file.createdAt), { addSuffix: true })}
                   </TableCell>
                   <TableCell className="text-right">

@@ -217,11 +217,14 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
           <div className="flex-1 overflow-hidden">
             <SRSTab workspaceId={id} role={workspace.role} onAuditCount={setSrsIssueCount} />
           </div>
+        ) : activeTab === "chat" ? (
+          <div className="flex-1 overflow-hidden p-3 md:p-5">
+            <ChatTab workspaceId={id} role={workspace.role} wsTypingUsers={typingUsers} onTyping={sendTyping} />
+          </div>
         ) : (
           <div className="flex-1 overflow-auto bg-muted/10">
-            <div className="p-3 md:p-6 h-full max-w-6xl mx-auto">
+            <div className="p-3 md:p-6 min-h-full max-w-6xl mx-auto">
               {activeTab === "overview" && <OverviewTab workspaceId={id} />}
-              {activeTab === "chat" && <ChatTab workspaceId={id} role={workspace.role} wsTypingUsers={typingUsers} onTyping={sendTyping} />}
               {activeTab === "files" && <FilesTab workspaceId={id} role={workspace.role} />}
               {activeTab === "members" && <MembersTab workspaceId={id} role={workspace.role} />}
               {activeTab === "tasks" && <TasksTab workspaceId={id} role={workspace.role} />}

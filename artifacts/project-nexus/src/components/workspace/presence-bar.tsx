@@ -20,10 +20,11 @@ function getInitials(name: string | null | undefined) {
 const MAX_VISIBLE = 5;
 
 export function PresenceBar({ users }: { users: PresenceUser[] }) {
-  if (users.length === 0) return null;
+  const unique = Array.from(new Map(users.map(u => [u.id, u])).values());
+  if (unique.length === 0) return null;
 
-  const visible = users.slice(0, MAX_VISIBLE);
-  const overflow = users.length - MAX_VISIBLE;
+  const visible = unique.slice(0, MAX_VISIBLE);
+  const overflow = unique.length - MAX_VISIBLE;
 
   return (
     <TooltipProvider delayDuration={200}>

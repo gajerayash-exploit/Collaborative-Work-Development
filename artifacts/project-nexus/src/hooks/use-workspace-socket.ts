@@ -67,8 +67,8 @@ interface UseWorkspaceSocketResult {
 const BASE_DELAY = 1000;
 const MAX_DELAY = 30000;
 const TYPING_TTL = 4000;
-const HEARTBEAT_INTERVAL = 15000;
-const HEARTBEAT_TIMEOUT = 10000;
+const HEARTBEAT_INTERVAL = 4000;
+const HEARTBEAT_TIMEOUT = 8000;
 
 function getWsUrl(token: string, workspaceId: string): string {
   const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -179,6 +179,13 @@ export function useWorkspaceSocket({
 
             case "huddle_update":
               qc.invalidateQueries({ queryKey: getGetHuddleQueryKey(workspaceId) });
+              break;
+
+            case "pong":
+              if (heartbeatDeadlineRef.current) {
+                clearTimeout(heartbeatDeadlineRef.current);
+                heartbeatDeadlineRef.current = null;
+              }
               break;
 
             case "message_read":

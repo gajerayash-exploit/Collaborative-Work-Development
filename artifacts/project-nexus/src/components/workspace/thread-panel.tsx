@@ -77,7 +77,7 @@ export function ThreadPanel({ workspaceId, message, currentUserId, members, onCl
   }, [replies]);
 
   return (
-    <div className="flex flex-col w-[24rem] border-l bg-card h-full flex-shrink-0 animate-in slide-in-from-right duration-200 shadow-2xl">
+    <div className="flex flex-col w-full sm:w-[24rem] border-l bg-card h-full flex-shrink-0 animate-in slide-in-from-right duration-200 shadow-2xl">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0 bg-muted/20">
         <div className="flex items-center gap-2">
