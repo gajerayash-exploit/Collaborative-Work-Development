@@ -273,6 +273,13 @@ export function ChatTab({
     deleteMessage.mutate({ workspaceId, messageId }, { onSuccess: invalidateMessages });
   };
 
+  const handleClearChat = () => {
+    if (!confirm("Clear all chat messages? This cannot be undone.")) return;
+    if (!messages?.length) return;
+    Promise.all(messages.map((msg) => deleteMessage.mutateAsync({ workspaceId, messageId: msg.id })))
+      .then(() => invalidateMessages());
+  };
+
   const startReply = (message: { id: string; senderName: string; content: string }) => {
     setReplyingTo(message);
     setThreadMessage(message as never);
@@ -337,7 +344,13 @@ export function ChatTab({
               <p className="text-xs text-muted-foreground">Workspace conversation</p>
             </div>
           </div>
-          <div className="flex items-center gap-2" />
+          <div className="flex items-center gap-2">
+            {role === "admin" && (
+              <Button variant="ghost" size="sm" onClick={handleClearChat}>
+                Clear chat
+              </Button>
+            )}
+          </div>
         </div>
         <PinnedBanner workspaceId={workspaceId} canPin={canPin} onUnpin={handleUnpin} />
 
