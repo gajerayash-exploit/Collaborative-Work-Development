@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearch } from "wouter";
 import { AppLayout } from "@/components/layout/app-layout";
 import { useGetWorkspace, getGetWorkspaceQueryKey } from "@workspace/api-client-react";
@@ -26,6 +26,7 @@ import { HuddleWidget } from "@/components/workspace/huddle-widget";
 import { SandboxTab } from "@/components/workspace/sandbox-tab";
 import { PresenceBar } from "@/components/workspace/presence-bar";
 import { useWorkspaceSocket, type PresenceUser } from "@/hooks/use-workspace-socket";
+import type { RtcSignal } from "@/hooks/use-huddle-rtc";
 
 const TAB_CLASS = "data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-2 pb-3 font-medium text-muted-foreground data-[state=active]:text-foreground hover:text-foreground transition-colors flex-shrink-0";
 
@@ -41,9 +42,18 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
   const [srsIssueCount, setSrsIssueCount] = useState(0);
   const [presenceUsers, setPresenceUsers] = useState<PresenceUser[]>([]);
 
-  const { typingUsers, sendTyping } = useWorkspaceSocket({
+  // Stable ref so HuddleWidget can register its RTC signal handler without
+  // forcing a re-render cycle here when it does so
+  const rtcHandlerRef = useRef<((msg: RtcSignal) => void) | null>(null);
+  const registerRtcHandler = useCallback(
+    (fn: (msg: RtcSignal) => void) => { rtcHandlerRef.current = fn; },
+    [],
+  );
+
+  const { typingUsers, sendTyping, sendMessage, myDbUserId } = useWorkspaceSocket({
     workspaceId: id,
     onPresence: setPresenceUsers,
+    onRtcSignal: (msg) => rtcHandlerRef.current?.(msg),
     enabled: !!workspace,
   });
 
@@ -106,7 +116,12 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <PresenceBar users={presenceUsers} />
-              <HuddleWidget workspaceId={id} />
+              <HuddleWidget
+                workspaceId={id}
+                sendMessage={sendMessage}
+                myDbUserId={myDbUserId}
+                registerRtcHandler={registerRtcHandler}
+              />
               <Button
                 variant="outline"
                 size="sm"

@@ -53,6 +53,25 @@ export function broadcastPresence(workspaceId: string): void {
   broadcastToWorkspace(workspaceId, { type: "presence", workspaceId, users });
 }
 
+export function sendToUser(
+  workspaceId: string,
+  targetDbUserId: string,
+  message: object,
+): void {
+  const room = rooms.get(workspaceId);
+  if (!room) return;
+  const data = JSON.stringify(message);
+  for (const client of room) {
+    if (
+      client.dbUserId === targetDbUserId &&
+      client.ws.readyState === WebSocket.OPEN
+    ) {
+      client.ws.send(data);
+      break;
+    }
+  }
+}
+
 export function getPresence(workspaceId: string) {
   const room = rooms.get(workspaceId);
   if (!room) return [];

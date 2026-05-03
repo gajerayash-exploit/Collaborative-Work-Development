@@ -6,6 +6,7 @@ import {
   getListSyncEventsQueryKey,
   getGetHuddleQueryKey,
 } from "@workspace/api-client-react";
+import type { RtcSignal } from "./use-huddle-rtc";
 
 export interface PresenceUser {
   id: string;
@@ -28,7 +29,12 @@ interface SocketMessage {
     | "huddle_update"
     | "typing"
     | "message_read"
-    | "pong";
+    | "pong"
+    | "rtc_join"
+    | "rtc_offer"
+    | "rtc_answer"
+    | "rtc_ice"
+    | "rtc_leave";
   workspaceId?: string;
   users?: PresenceUser[];
   message?: unknown;
@@ -37,17 +43,25 @@ interface SocketMessage {
   userId?: string;
   name?: string | null;
   avatarUrl?: string | null;
+  // RTC fields
+  from?: string;
+  to?: string;
+  sdp?: RTCSessionDescriptionInit;
+  candidate?: RTCIceCandidateInit;
 }
 
 interface UseWorkspaceSocketOptions {
   workspaceId: string;
   onPresence?: (users: PresenceUser[]) => void;
+  onRtcSignal?: (msg: RtcSignal) => void;
   enabled?: boolean;
 }
 
 interface UseWorkspaceSocketResult {
   typingUsers: TypingUser[];
   sendTyping: () => void;
+  sendMessage: (msg: object) => void;
+  myDbUserId: string | null;
 }
 
 const BASE_DELAY = 1000;
@@ -63,6 +77,7 @@ function getWsUrl(token: string, workspaceId: string): string {
 export function useWorkspaceSocket({
   workspaceId,
   onPresence,
+  onRtcSignal,
   enabled = true,
 }: UseWorkspaceSocketOptions): UseWorkspaceSocketResult {
   const { getToken } = useAuth();
@@ -73,8 +88,11 @@ export function useWorkspaceSocket({
   const unmountedRef = useRef(false);
   const onPresenceRef = useRef(onPresence);
   onPresenceRef.current = onPresence;
+  const onRtcSignalRef = useRef(onRtcSignal);
+  onRtcSignalRef.current = onRtcSignal;
 
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
+  const [myDbUserId, setMyDbUserId] = useState<string | null>(null);
   // Map of userId → expiry timer
   const typingTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
@@ -119,41 +137,48 @@ export function useWorkspaceSocket({
           const msg: SocketMessage = JSON.parse(event.data as string);
 
           switch (msg.type) {
+            case "connected":
+              if (msg.userId) setMyDbUserId(msg.userId);
+              break;
+
             case "presence":
               if (msg.users) onPresenceRef.current?.(msg.users);
               break;
 
             case "new_message":
-              qc.invalidateQueries({
-                queryKey: getListMessagesQueryKey(workspaceId),
-              });
+              qc.invalidateQueries({ queryKey: getListMessagesQueryKey(workspaceId) });
               break;
 
             case "sync_event":
-              qc.invalidateQueries({
-                queryKey: getListSyncEventsQueryKey(workspaceId),
-              });
+              qc.invalidateQueries({ queryKey: getListSyncEventsQueryKey(workspaceId) });
               break;
 
             case "huddle_update":
-              qc.invalidateQueries({
-                queryKey: getGetHuddleQueryKey(workspaceId),
-              });
+              qc.invalidateQueries({ queryKey: getGetHuddleQueryKey(workspaceId) });
               break;
 
             case "message_read":
-              qc.invalidateQueries({
-                queryKey: getListMessagesQueryKey(workspaceId),
-              });
+              qc.invalidateQueries({ queryKey: getListMessagesQueryKey(workspaceId) });
               break;
 
             case "typing":
               if (msg.userId) {
-                handleTypingEvent(
-                  msg.userId,
-                  msg.name ?? null,
-                  msg.avatarUrl ?? null,
-                );
+                handleTypingEvent(msg.userId, msg.name ?? null, msg.avatarUrl ?? null);
+              }
+              break;
+
+            case "rtc_join":
+            case "rtc_offer":
+            case "rtc_answer":
+            case "rtc_ice":
+            case "rtc_leave":
+              if (msg.from) {
+                onRtcSignalRef.current?.({
+                  type: msg.type as RtcSignal["type"],
+                  from: msg.from,
+                  sdp: msg.sdp,
+                  candidate: msg.candidate,
+                });
               }
               break;
           }
@@ -165,10 +190,7 @@ export function useWorkspaceSocket({
         if (unmountedRef.current) return;
         if (ev.code === 4001 || ev.code === 4003 || ev.code === 4004) return;
 
-        const delay = Math.min(
-          BASE_DELAY * Math.pow(2, retryRef.current),
-          MAX_DELAY,
-        );
+        const delay = Math.min(BASE_DELAY * Math.pow(2, retryRef.current), MAX_DELAY);
         retryRef.current += 1;
         timerRef.current = setTimeout(connect, delay);
       };
@@ -202,5 +224,12 @@ export function useWorkspaceSocket({
     }
   }, [workspaceId]);
 
-  return { typingUsers, sendTyping };
+  const sendMessage = useCallback((msg: object) => {
+    const ws = wsRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(msg));
+    }
+  }, []);
+
+  return { typingUsers, sendTyping, sendMessage, myDbUserId };
 }

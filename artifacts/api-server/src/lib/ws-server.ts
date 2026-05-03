@@ -4,7 +4,7 @@ import { IncomingMessage } from "node:http";
 import { db, usersTable, workspaceMembersTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { logger } from "./logger";
-import { joinRoom, leaveRoom, broadcastToWorkspace, WsClient } from "./ws-manager";
+import { joinRoom, leaveRoom, broadcastToWorkspace, sendToUser, WsClient } from "./ws-manager";
 import { URL } from "node:url";
 
 export function setupWsServer(wss: WebSocketServer): void {
@@ -92,6 +92,37 @@ export function setupWsServer(wss: WebSocketServer): void {
                 name: client.name,
                 avatarUrl: client.avatarUrl,
               },
+              client.dbUserId,
+            );
+          } else if (msg.type === "rtc_join" && client) {
+            // Broadcast to everyone else — they should each send an offer to the newcomer
+            broadcastToWorkspace(
+              client.workspaceId,
+              { type: "rtc_join", from: client.dbUserId },
+              client.dbUserId,
+            );
+          } else if (msg.type === "rtc_offer" && client && msg.to) {
+            sendToUser(client.workspaceId, msg.to, {
+              type: "rtc_offer",
+              from: client.dbUserId,
+              sdp: msg.sdp,
+            });
+          } else if (msg.type === "rtc_answer" && client && msg.to) {
+            sendToUser(client.workspaceId, msg.to, {
+              type: "rtc_answer",
+              from: client.dbUserId,
+              sdp: msg.sdp,
+            });
+          } else if (msg.type === "rtc_ice" && client && msg.to) {
+            sendToUser(client.workspaceId, msg.to, {
+              type: "rtc_ice",
+              from: client.dbUserId,
+              candidate: msg.candidate,
+            });
+          } else if (msg.type === "rtc_leave" && client) {
+            broadcastToWorkspace(
+              client.workspaceId,
+              { type: "rtc_leave", from: client.dbUserId },
               client.dbUserId,
             );
           }
