@@ -40,6 +40,7 @@ Unified collaboration platform for students and teams. pnpm workspace monorepo u
 - **Live-Sync Engine** (Feature B): Sync tab — push file events (created/modified/deleted), live feed with pulse animation, 5s auto-refresh, simulated Sync Agent CLI command; route: `GET /api/workspaces/:id/sync/events`, `POST /api/workspaces/:id/sync/push`
 - **Huddle Widget** (Feature C): Persistent header popover — join/leave workspace voice huddle, mute toggle, participant list with live presence indicator, 5s polling; route: `GET /api/workspaces/:id/huddle`, `POST /api/workspaces/:id/huddle/join|leave`
 - **One-Click Sandbox** (Feature E): Sandbox tab — create cloud environments per framework (React/Next/Express/Vue/Svelte), animated 4-step creation sequence, preview URL display, Pitch Mode toggle (hides source code); route: `GET|POST /api/workspaces/:id/sandboxes`, `GET|DELETE /api/workspaces/:id/sandboxes/:sid`, `PUT /api/workspaces/:id/sandboxes/:sid/pitch-mode`
+- **WebSocket Real-time + Presence**: `ws` server attached to the same HTTP server at path `/api/ws`; Clerk JWT verified on upgrade; workspace rooms (Map → Set<WsClient>); broadcasts `new_message`, `sync_event`, `huddle_update`, `presence` events to all room members; client `useWorkspaceSocket` hook connects with exponential backoff reconnection; `PresenceBar` component in workspace header shows online member avatars with green dot indicators and tooltips
 
 ## DB Tables
 

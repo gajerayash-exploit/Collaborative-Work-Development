@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, huddleSessionsTable, workspaceMembersTable, usersTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
+import { broadcastToWorkspace } from "../lib/ws-manager";
 
 const router: IRouter = Router();
 
@@ -79,6 +80,7 @@ router.post("/workspaces/:workspaceId/huddle/join", requireAuth, async (req: any
       .where(eq(huddleSessionsTable.workspaceId, workspaceId));
 
     res.json({ success: true, participantCount: participants.length });
+    broadcastToWorkspace(workspaceId, { type: "huddle_update", workspaceId });
   } catch (err) {
     req.log.error({ err }, "Failed to join huddle");
     res.status(500).json({ error: "Internal server error" });
@@ -104,6 +106,7 @@ router.post("/workspaces/:workspaceId/huddle/leave", requireAuth, async (req: an
       .where(eq(huddleSessionsTable.workspaceId, workspaceId));
 
     res.json({ success: true, participantCount: updated.length });
+    broadcastToWorkspace(workspaceId, { type: "huddle_update", workspaceId });
   } catch (err) {
     req.log.error({ err }, "Failed to leave huddle");
     res.status(500).json({ error: "Internal server error" });

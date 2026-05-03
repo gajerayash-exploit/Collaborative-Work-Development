@@ -3,6 +3,7 @@ import { db, messagesTable, usersTable, workspaceMembersTable, messageReactionsT
 import { eq, and, desc, inArray, isNull, sql } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
 import { notifyWorkspaceMembers, notifySpecificUsers, extractMentionedUserIds } from "../lib/notify";
+import { broadcastToWorkspace } from "../lib/ws-manager";
 
 const router: IRouter = Router();
 
@@ -118,7 +119,7 @@ router.post("/workspaces/:workspaceId/messages", requireAuth, async (req: any, r
       senderId: user[0].id,
     }).returning();
 
-    res.status(201).json({
+    const outMsg = {
       ...msg,
       senderName: user[0].name,
       senderAvatarUrl: user[0].avatarUrl,
@@ -126,7 +127,9 @@ router.post("/workspaces/:workspaceId/messages", requireAuth, async (req: any, r
       isPinned: false,
       replyCount: 0,
       readByCount: 0,
-    });
+    };
+    res.status(201).json(outMsg);
+    broadcastToWorkspace(workspaceId, { type: "new_message", workspaceId, message: outMsg }, user[0].id);
 
     const trimmed = content.trim();
     const mentionedIds = extractMentionedUserIds(trimmed).filter(id => id !== user[0].id);

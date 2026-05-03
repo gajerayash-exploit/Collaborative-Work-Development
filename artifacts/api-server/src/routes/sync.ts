@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, syncEventsTable, workspaceMembersTable, usersTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
+import { broadcastToWorkspace } from "../lib/ws-manager";
 
 const router: IRouter = Router();
 
@@ -59,7 +60,9 @@ router.post("/workspaces/:workspaceId/sync/push", requireAuth, async (req: any, 
       action,
       triggeredBy: user[0].id,
     }).returning();
-    res.status(201).json({ ...event, pusherName: user[0].name, pusherAvatarUrl: user[0].avatarUrl });
+    const payload = { ...event, pusherName: user[0].name, pusherAvatarUrl: user[0].avatarUrl };
+    res.status(201).json(payload);
+    broadcastToWorkspace(workspaceId, { type: "sync_event", workspaceId, event: payload });
   } catch (err) {
     req.log.error({ err }, "Failed to push sync event");
     res.status(500).json({ error: "Internal server error" });

@@ -24,6 +24,8 @@ import { BranchesTab } from "@/components/workspace/branches-tab";
 import { SyncTab } from "@/components/workspace/sync-tab";
 import { HuddleWidget } from "@/components/workspace/huddle-widget";
 import { SandboxTab } from "@/components/workspace/sandbox-tab";
+import { PresenceBar } from "@/components/workspace/presence-bar";
+import { useWorkspaceSocket, type PresenceUser } from "@/hooks/use-workspace-socket";
 
 const TAB_CLASS = "data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-2 pb-3 font-medium text-muted-foreground data-[state=active]:text-foreground hover:text-foreground transition-colors flex-shrink-0";
 
@@ -37,6 +39,13 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [searchOpen, setSearchOpen] = useState(false);
   const [srsIssueCount, setSrsIssueCount] = useState(0);
+  const [presenceUsers, setPresenceUsers] = useState<PresenceUser[]>([]);
+
+  useWorkspaceSocket({
+    workspaceId: id,
+    onPresence: setPresenceUsers,
+    enabled: !!workspace,
+  });
 
   useEffect(() => {
     const tab = new URLSearchParams(search).get("tab");
@@ -96,6 +105,7 @@ export default function WorkspaceHubPage({ id }: { id: string }) {
               )}
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0">
+              <PresenceBar users={presenceUsers} />
               <HuddleWidget workspaceId={id} />
               <Button
                 variant="outline"
