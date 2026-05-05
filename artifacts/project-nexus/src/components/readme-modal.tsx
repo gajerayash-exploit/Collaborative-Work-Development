@@ -210,9 +210,8 @@ SESSION_SECRET=your-secret-here`}</CodeBlock>
 
               <H3>Run Locally</H3>
               <CodeBlock>{`pnpm install
-pnpm --filter @workspace/db run migrate
-pnpm --filter @workspace/api-server run dev
-pnpm --filter @workspace/project-nexus run dev`}</CodeBlock>
+pnpm setup
+pnpm dev`}</CodeBlock>
 
               <H2>Key Concepts</H2>
               <ul className="space-y-1 mb-6">
