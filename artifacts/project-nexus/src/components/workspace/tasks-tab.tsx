@@ -9,6 +9,7 @@ import {
   getListTasksQueryKey,
 } from "@workspace/api-client-react";
 import { KanbanBoard } from "./kanban-board";
+import { resolveApiUrl } from "@/lib/runtime-config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -57,20 +58,50 @@ import { type LucideIcon } from "lucide-react";
 
 const CHARCOAL = "text-[#2b2b2b] dark:text-[#d4d4d4]";
 
-const STATUS_CONFIG: Record<string, { label: string; icon: LucideIcon; color: string; bg: string }> = {
-  todo:        { label: "To Do",       icon: Circle,       color: "text-slate-500", bg: "bg-slate-100 dark:bg-slate-800" },
-  in_progress: { label: "In Progress", icon: Clock,        color: "text-blue-500",  bg: "bg-blue-100 dark:bg-blue-900/30" },
-  done:        { label: "Done",        icon: CheckCircle2, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30" },
+const STATUS_CONFIG: Record<
+  string,
+  { label: string; icon: LucideIcon; color: string; bg: string }
+> = {
+  todo: {
+    label: "To Do",
+    icon: Circle,
+    color: "text-slate-500",
+    bg: "bg-slate-100 dark:bg-slate-800",
+  },
+  in_progress: {
+    label: "In Progress",
+    icon: Clock,
+    color: "text-blue-500",
+    bg: "bg-blue-100 dark:bg-blue-900/30",
+  },
+  done: {
+    label: "Done",
+    icon: CheckCircle2,
+    color: "text-green-500",
+    bg: "bg-green-100 dark:bg-green-900/30",
+  },
 };
 
-const PRIORITY_CONFIG: Record<string, { label: string; icon: LucideIcon; badge: "destructive" | "secondary" | "outline" }> = {
-  high:   { label: "High",   icon: ArrowUp,   badge: "destructive" },
-  medium: { label: "Medium", icon: Minus,     badge: "secondary" },
-  low:    { label: "Low",    icon: ArrowDown, badge: "outline" },
+const PRIORITY_CONFIG: Record<
+  string,
+  {
+    label: string;
+    icon: LucideIcon;
+    badge: "destructive" | "secondary" | "outline";
+  }
+> = {
+  high: { label: "High", icon: ArrowUp, badge: "destructive" },
+  medium: { label: "Medium", icon: Minus, badge: "secondary" },
+  low: { label: "Low", icon: ArrowDown, badge: "outline" },
 };
 
 function initials(name: string) {
-  return name.split(" ").map(p => p[0]).join("").toUpperCase().slice(0, 2);
+  return name
+    .split(" ")
+    .map((p) => p[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 }
 
 function TaskCard({
@@ -97,7 +128,12 @@ function TaskCard({
         className={`mt-0.5 flex-shrink-0 hover:scale-110 transition-transform ${status.color}`}
         onClick={() => {
           if (!canEdit) return;
-          const next = task.status === "todo" ? "in_progress" : task.status === "in_progress" ? "done" : "todo";
+          const next =
+            task.status === "todo"
+              ? "in_progress"
+              : task.status === "in_progress"
+                ? "done"
+                : "todo";
           onStatusChange(task.id, next);
         }}
         disabled={!canEdit}
@@ -108,7 +144,9 @@ function TaskCard({
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
-          <span className={`text-sm font-semibold ${task.status === "done" ? "line-through text-muted-foreground" : ""}`}>
+          <span
+            className={`text-sm font-semibold ${task.status === "done" ? "line-through text-muted-foreground" : ""}`}
+          >
             {task.title}
           </span>
           <div className="flex items-center gap-1">
@@ -119,31 +157,45 @@ function TaskCard({
           </div>
         </div>
         {task.description && (
-          <p className="text-xs text-muted-foreground mb-2 leading-relaxed">{task.description}</p>
+          <p className="text-xs text-muted-foreground mb-2 leading-relaxed">
+            {task.description}
+          </p>
         )}
         <div className="flex items-center gap-3 flex-wrap">
           {task.assignee && (
             <div className="flex items-center gap-1.5">
               <Avatar className="h-5 w-5">
                 <AvatarImage src={task.assignee.avatarUrl ?? ""} />
-                <AvatarFallback className="text-[10px]">{initials(task.assignee.name)}</AvatarFallback>
+                <AvatarFallback className="text-[10px]">
+                  {initials(task.assignee.name)}
+                </AvatarFallback>
               </Avatar>
-              <span className="text-xs text-muted-foreground">{task.assignee.name}</span>
+              <span className="text-xs text-muted-foreground">
+                {task.assignee.name}
+              </span>
             </div>
           )}
-          {task.dueDate && (() => {
-            const overdue = task.status !== "done" && new Date(task.dueDate) < new Date();
-            return (
-              <span className={`text-xs flex items-center gap-1 ${overdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
-                {overdue
-                  ? <AlertCircle className="h-3 w-3" />
-                  : <Calendar className={`h-3 w-3 ${CHARCOAL}`} />
-                }
-                {overdue ? "Overdue · " : ""}
-                {new Date(task.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-              </span>
-            );
-          })()}
+          {task.dueDate &&
+            (() => {
+              const overdue =
+                task.status !== "done" && new Date(task.dueDate) < new Date();
+              return (
+                <span
+                  className={`text-xs flex items-center gap-1 ${overdue ? "text-destructive font-medium" : "text-muted-foreground"}`}
+                >
+                  {overdue ? (
+                    <AlertCircle className="h-3 w-3" />
+                  ) : (
+                    <Calendar className={`h-3 w-3 ${CHARCOAL}`} />
+                  )}
+                  {overdue ? "Overdue · " : ""}
+                  {new Date(task.dueDate).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </span>
+              );
+            })()}
           <span className="text-xs text-muted-foreground">
             by {task.creator?.name ?? "Unknown"}
           </span>
@@ -153,7 +205,11 @@ function TaskCard({
       {canEdit && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+            >
               <MoreVertical className="h-3.5 w-3.5" />
             </Button>
           </DropdownMenuTrigger>
@@ -161,7 +217,10 @@ function TaskCard({
             <DropdownMenuItem onClick={() => onEdit(task)} className="gap-2">
               <Pencil className="h-3.5 w-3.5" /> Edit
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-destructive focus:text-destructive gap-2">
+            <DropdownMenuItem
+              onClick={() => onDelete(task.id)}
+              className="text-destructive focus:text-destructive gap-2"
+            >
               <Trash2 className="h-3.5 w-3.5" /> Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -189,9 +248,17 @@ function TaskFormDialog({
   const [title, setTitle] = useState(editTask?.title ?? "");
   const [description, setDescription] = useState(editTask?.description ?? "");
   const [status, setStatus] = useState<string>(editTask?.status ?? "todo");
-  const [priority, setPriority] = useState<string>(editTask?.priority ?? "medium");
-  const [assigneeId, setAssigneeId] = useState<string>(editTask?.assigneeId ?? "none");
-  const [dueDate, setDueDate] = useState(editTask?.dueDate ? new Date(editTask.dueDate).toISOString().split("T")[0] : "");
+  const [priority, setPriority] = useState<string>(
+    editTask?.priority ?? "medium",
+  );
+  const [assigneeId, setAssigneeId] = useState<string>(
+    editTask?.assigneeId ?? "none",
+  );
+  const [dueDate, setDueDate] = useState(
+    editTask?.dueDate
+      ? new Date(editTask.dueDate).toISOString().split("T")[0]
+      : "",
+  );
 
   const handleSubmit = () => {
     if (!title.trim()) return;
@@ -211,26 +278,45 @@ function TaskFormDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {editTask?.id
-              ? <><Pencil className={`h-4 w-4 ${CHARCOAL}`} /> Edit Task</>
-              : <><Plus className={`h-4 w-4 ${CHARCOAL}`} /> Create Task</>
-            }
+            {editTask?.id ? (
+              <>
+                <Pencil className={`h-4 w-4 ${CHARCOAL}`} /> Edit Task
+              </>
+            ) : (
+              <>
+                <Plus className={`h-4 w-4 ${CHARCOAL}`} /> Create Task
+              </>
+            )}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div>
             <label className="text-sm font-medium mb-1.5 block">Title *</label>
-            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="What needs to be done?" />
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="What needs to be done?"
+            />
           </div>
           <div>
-            <label className="text-sm font-medium mb-1.5 block">Description</label>
-            <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional details..." rows={3} className="resize-none" />
+            <label className="text-sm font-medium mb-1.5 block">
+              Description
+            </label>
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Optional details..."
+              rows={3}
+              className="resize-none"
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium mb-1.5 block">Status</label>
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todo">To Do</SelectItem>
                   <SelectItem value="in_progress">In Progress</SelectItem>
@@ -239,9 +325,13 @@ function TaskFormDialog({
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium mb-1.5 block">Priority</label>
+              <label className="text-sm font-medium mb-1.5 block">
+                Priority
+              </label>
               <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="high">High</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
@@ -251,13 +341,19 @@ function TaskFormDialog({
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium mb-1.5 block">Assign To</label>
+            <label className="text-sm font-medium mb-1.5 block">
+              Assign To
+            </label>
             <Select value={assigneeId} onValueChange={setAssigneeId}>
-              <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Unassigned" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Unassigned</SelectItem>
                 {members.map((m: any) => (
-                  <SelectItem key={m.userId} value={m.userId}>{m.user?.name ?? m.userId}</SelectItem>
+                  <SelectItem key={m.userId} value={m.userId}>
+                    {m.user?.name ?? m.userId}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -266,16 +362,31 @@ function TaskFormDialog({
             <label className="text-sm font-medium mb-1.5 block flex items-center gap-1.5">
               <Calendar className={`h-3.5 w-3.5 ${CHARCOAL}`} /> Due Date
             </label>
-            <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
+            <Input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+            />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={!title.trim()} className="gap-1.5">
-            {editTask?.id
-              ? <><Save className="h-3.5 w-3.5" /> Save Changes</>
-              : <><Plus className="h-3.5 w-3.5" /> Create Task</>
-            }
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={!title.trim()}
+            className="gap-1.5"
+          >
+            {editTask?.id ? (
+              <>
+                <Save className="h-3.5 w-3.5" /> Save Changes
+              </>
+            ) : (
+              <>
+                <Plus className="h-3.5 w-3.5" /> Create Task
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -283,7 +394,13 @@ function TaskFormDialog({
   );
 }
 
-export function TasksTab({ workspaceId, role }: { workspaceId: string; role: string }) {
+export function TasksTab({
+  workspaceId,
+  role,
+}: {
+  workspaceId: string;
+  role: string;
+}) {
   const queryClient = useQueryClient();
   const { getToken } = useAuth();
 
@@ -291,10 +408,13 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
     (async () => {
       try {
         const token = await getToken();
-        await fetch(`/api/workspaces/${workspaceId}/tasks/check-overdue`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await fetch(
+          resolveApiUrl(`/api/workspaces/${workspaceId}/tasks/check-overdue`),
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
         queryClient.invalidateQueries({ queryKey: ["notifications"] });
       } catch {}
     })();
@@ -311,14 +431,22 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
   const [createOpen, setCreateOpen] = useState(false);
   const [createStatus, setCreateStatus] = useState<string>("todo");
   const [editTask, setEditTask] = useState<any>(null);
-  const [filter, setFilter] = useState<"all" | "todo" | "in_progress" | "done">("all");
+  const [filter, setFilter] = useState<"all" | "todo" | "in_progress" | "done">(
+    "all",
+  );
   const [view, setView] = useState<"list" | "board">("list");
 
   const canEdit = role !== "viewer";
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: getListTasksQueryKey(workspaceId) });
+  const invalidate = () =>
+    queryClient.invalidateQueries({
+      queryKey: getListTasksQueryKey(workspaceId),
+    });
 
   const handleCreate = (data: any) => {
-    createTask.mutate({ workspaceId, data: { ...data, status: data.status ?? createStatus } }, { onSuccess: invalidate });
+    createTask.mutate(
+      { workspaceId, data: { ...data, status: data.status ?? createStatus } },
+      { onSuccess: invalidate },
+    );
   };
 
   const handleAddTaskInColumn = (status: string) => {
@@ -328,19 +456,26 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
 
   const handleUpdate = (data: any) => {
     if (!editTask) return;
-    updateTask.mutate({ workspaceId, taskId: editTask.id, data }, { onSuccess: invalidate });
+    updateTask.mutate(
+      { workspaceId, taskId: editTask.id, data },
+      { onSuccess: invalidate },
+    );
     setEditTask(null);
   };
 
   const handleStatusChange = (taskId: string, status: string) => {
-    updateTask.mutate({ workspaceId, taskId, data: { status: status as any } }, { onSuccess: invalidate });
+    updateTask.mutate(
+      { workspaceId, taskId, data: { status: status as any } },
+      { onSuccess: invalidate },
+    );
   };
 
   const handleDelete = (taskId: string) => {
     deleteTask.mutate({ workspaceId, taskId }, { onSuccess: invalidate });
   };
 
-  const filtered = filter === "all" ? tasks : tasks.filter((t: any) => t.status === filter);
+  const filtered =
+    filter === "all" ? tasks : tasks.filter((t: any) => t.status === filter);
   const counts = {
     all: tasks.length,
     todo: tasks.filter((t: any) => t.status === "todo").length,
@@ -351,16 +486,22 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
   if (isLoading) {
     return (
       <div className="space-y-3">
-        {[1, 2, 3].map(i => <div key={i} className="h-20 rounded-xl bg-muted animate-pulse" />)}
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-20 rounded-xl bg-muted animate-pulse" />
+        ))}
       </div>
     );
   }
 
-  const FILTER_TABS: { key: "all" | "todo" | "in_progress" | "done"; label: string; icon: LucideIcon }[] = [
-    { key: "all",         label: "All",         icon: ClipboardList },
-    { key: "todo",        label: "To Do",       icon: Circle },
+  const FILTER_TABS: {
+    key: "all" | "todo" | "in_progress" | "done";
+    label: string;
+    icon: LucideIcon;
+  }[] = [
+    { key: "all", label: "All", icon: ClipboardList },
+    { key: "todo", label: "To Do", icon: Circle },
     { key: "in_progress", label: "In Progress", icon: Clock },
-    { key: "done",        label: "Done",        icon: CheckCircle2 },
+    { key: "done", label: "Done", icon: CheckCircle2 },
   ];
 
   return (
@@ -401,7 +542,14 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
           </div>
 
           {canEdit && (
-            <Button onClick={() => { setCreateStatus("todo"); setCreateOpen(true); }} size="sm" className="gap-2">
+            <Button
+              onClick={() => {
+                setCreateStatus("todo");
+                setCreateOpen(true);
+              }}
+              size="sm"
+              className="gap-2"
+            >
               <Plus className="h-4 w-4" /> New Task
             </Button>
           )}
@@ -414,9 +562,14 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="text-5xl mb-4">🗂️</div>
             <h3 className="font-semibold text-lg mb-1">No tasks yet</h3>
-            <p className="text-muted-foreground text-sm max-w-xs">Create your first task to populate the board.</p>
+            <p className="text-muted-foreground text-sm max-w-xs">
+              Create your first task to populate the board.
+            </p>
             {canEdit && (
-              <Button className="mt-4 gap-2" onClick={() => setCreateOpen(true)}>
+              <Button
+                className="mt-4 gap-2"
+                onClick={() => setCreateOpen(true)}
+              >
                 <Plus className="h-4 w-4" /> Create Task
               </Button>
             )}
@@ -435,7 +588,7 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
         <>
           {/* Filter Tabs */}
           <div className="flex gap-2 flex-wrap">
-            {FILTER_TABS.map(f => {
+            {FILTER_TABS.map((f) => {
               const Icon = f.icon;
               return (
                 <Button
@@ -447,7 +600,10 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
                 >
                   <Icon className="h-3.5 w-3.5" />
                   {f.label}
-                  <Badge variant="secondary" className="text-xs px-1.5 py-0 min-w-[1.25rem] text-center">
+                  <Badge
+                    variant="secondary"
+                    className="text-xs px-1.5 py-0 min-w-[1.25rem] text-center"
+                  >
                     {counts[f.key]}
                   </Badge>
                 </Button>
@@ -461,13 +617,20 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
                 {filter === "all" ? "🗂️" : "🗂️"}
               </div>
               <h3 className="font-semibold text-lg mb-1">
-                {filter === "all" ? "No tasks yet" : `No ${STATUS_CONFIG[filter]?.label} tasks`}
+                {filter === "all"
+                  ? "No tasks yet"
+                  : `No ${STATUS_CONFIG[filter]?.label} tasks`}
               </h3>
               <p className="text-muted-foreground text-sm max-w-xs">
-                {filter === "all" && canEdit ? "Create your first task to get started." : "Nothing here yet."}
+                {filter === "all" && canEdit
+                  ? "Create your first task to get started."
+                  : "Nothing here yet."}
               </p>
               {filter === "all" && canEdit && (
-                <Button className="mt-4 gap-2" onClick={() => setCreateOpen(true)}>
+                <Button
+                  className="mt-4 gap-2"
+                  onClick={() => setCreateOpen(true)}
+                >
                   <Plus className="h-4 w-4" /> Create Task
                 </Button>
               )}
@@ -494,7 +657,9 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
         members={membersData}
         open={createOpen}
         onOpenChange={setCreateOpen}
-        editTask={createOpen && !editTask ? { status: createStatus } : undefined}
+        editTask={
+          createOpen && !editTask ? { status: createStatus } : undefined
+        }
         onSave={handleCreate}
       />
 
@@ -503,7 +668,9 @@ export function TasksTab({ workspaceId, role }: { workspaceId: string; role: str
           workspaceId={workspaceId}
           members={membersData}
           open={!!editTask}
-          onOpenChange={open => { if (!open) setEditTask(null); }}
+          onOpenChange={(open) => {
+            if (!open) setEditTask(null);
+          }}
           editTask={editTask}
           onSave={handleUpdate}
         />

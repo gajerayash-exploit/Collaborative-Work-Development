@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { useLocation } from "wouter";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAuthenticatedFetch } from "@/hooks/use-authenticated-fetch";
 
 interface Notification {
   id: string;
@@ -36,6 +37,7 @@ function NotificationIcon({ type }: { type: string }) {
 type FeedTab = "all" | "mentions";
 
 export function NotificationBell() {
+  const authenticatedFetch = useAuthenticatedFetch();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -47,13 +49,13 @@ export function NotificationBell() {
 
   const fetchNotifications = useCallback(async () => {
     try {
-      const res = await fetch("/api/notifications", { credentials: "include" });
+      const res = await authenticatedFetch("/api/notifications");
       if (!res.ok) return;
       const data = await res.json();
       setNotifications(data);
     } catch {
     }
-  }, []);
+  }, [authenticatedFetch]);
 
   useEffect(() => {
     fetchNotifications();
@@ -62,13 +64,13 @@ export function NotificationBell() {
   }, [fetchNotifications]);
 
   const markRead = async (id: string) => {
-    await fetch(`/api/notifications/${id}/read`, { method: "PUT", credentials: "include" });
+    await authenticatedFetch(`/api/notifications/${id}/read`, { method: "PUT" });
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
   };
 
   const markAllRead = async () => {
     setIsLoading(true);
-    await fetch("/api/notifications/read-all", { method: "PUT", credentials: "include" });
+    await authenticatedFetch("/api/notifications/read-all", { method: "PUT" });
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     setIsLoading(false);
   };

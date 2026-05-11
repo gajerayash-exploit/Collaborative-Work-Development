@@ -1,6 +1,6 @@
-import express, { type Express } from "express";
+import { randomUUID } from "node:crypto";
+import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import cors from "cors";
-import pinoHttp from "pino-http";
 import { clerkMiddleware } from "@clerk/express";
 import { publishableKeyFromHost } from "@clerk/shared/keys";
 import {
@@ -14,23 +14,31 @@ import { logger } from "./lib/logger";
 const app: Express = express();
 
 app.use(
-  pinoHttp({
-    logger,
-    serializers: {
-      req(req) {
-        return {
-          id: req.id,
-          method: req.method,
-          url: req.url?.split("?")[0],
-        };
-      },
-      res(res) {
-        return {
+  (req: Request, res: Response, next: NextFunction) => {
+    const startedAt = Date.now();
+    const requestIdHeader = req.headers["x-request-id"];
+    const requestId = Array.isArray(requestIdHeader)
+      ? requestIdHeader[0]
+      : requestIdHeader || randomUUID();
+
+    req.log = logger.child({
+      requestId,
+      method: req.method,
+      url: req.originalUrl.split("?")[0],
+    });
+
+    res.on("finish", () => {
+      req.log.info(
+        {
           statusCode: res.statusCode,
-        };
-      },
-    },
-  }),
+          durationMs: Date.now() - startedAt,
+        },
+        "request completed",
+      );
+    });
+
+    next();
+  },
 );
 
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());

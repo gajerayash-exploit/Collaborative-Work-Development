@@ -7,6 +7,10 @@ import {
   getGetHuddleQueryKey,
 } from "@workspace/api-client-react";
 import type { RtcSignal } from "./use-huddle-rtc";
+import {
+  isWebsocketTransportEnabled,
+  resolveApiUrl,
+} from "@/lib/runtime-config";
 
 export interface PresenceUser {
   id: string;
@@ -69,6 +73,7 @@ const MAX_DELAY = 30000;
 const TYPING_TTL = 4000;
 const HEARTBEAT_INTERVAL = 4000;
 const HEARTBEAT_TIMEOUT = 8000;
+const PRESENCE_POLL_INTERVAL = 10000;
 
 function getWsUrl(token: string, workspaceId: string): string {
   const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -84,11 +89,14 @@ export function useWorkspaceSocket({
 }: UseWorkspaceSocketOptions): UseWorkspaceSocketResult {
   const { getToken } = useAuth();
   const qc = useQueryClient();
+  const websocketEnabled = isWebsocketTransportEnabled();
   const wsRef = useRef<WebSocket | null>(null);
   const retryRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heartbeatTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const heartbeatDeadlineRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heartbeatDeadlineRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const unmountedRef = useRef(false);
   const onPresenceRef = useRef(onPresence);
   onPresenceRef.current = onPresence;
@@ -98,7 +106,9 @@ export function useWorkspaceSocket({
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const [myDbUserId, setMyDbUserId] = useState<string | null>(null);
   // Map of userId → expiry timer
-  const typingTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const typingTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(
+    new Map(),
+  );
 
   const removeTypist = useCallback((userId: string) => {
     setTypingUsers((prev) => prev.filter((u) => u.userId !== userId));
@@ -121,12 +131,59 @@ export function useWorkspaceSocket({
     [removeTypist],
   );
 
+  useEffect(() => {
+    if (websocketEnabled || !enabled) return;
+    let cancelled = false;
+
+    const pollPresence = async () => {
+      try {
+        const token = await getToken();
+        if (!token || cancelled) return;
+
+        await fetch(
+          resolveApiUrl(`/api/workspaces/${workspaceId}/presence/heartbeat`),
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+
+        const res = await fetch(
+          resolveApiUrl(`/api/workspaces/${workspaceId}/presence`),
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        if (!res.ok || cancelled) return;
+
+        const data = (await res.json()) as {
+          currentUserId?: string | null;
+          users?: PresenceUser[];
+        };
+
+        if (data.currentUserId !== undefined) {
+          setMyDbUserId(data.currentUserId ?? null);
+        }
+        onPresenceRef.current?.(data.users ?? []);
+      } catch {}
+    };
+
+    pollPresence();
+    const interval = setInterval(pollPresence, PRESENCE_POLL_INTERVAL);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [workspaceId, enabled, getToken, websocketEnabled]);
+
   const connect = useCallback(async () => {
-    if (unmountedRef.current || !enabled) return;
+    if (unmountedRef.current || !enabled || !websocketEnabled) return;
 
     const clearHeartbeat = () => {
       if (heartbeatTimerRef.current) clearTimeout(heartbeatTimerRef.current);
-      if (heartbeatDeadlineRef.current) clearTimeout(heartbeatDeadlineRef.current);
+      if (heartbeatDeadlineRef.current)
+        clearTimeout(heartbeatDeadlineRef.current);
       heartbeatTimerRef.current = null;
       heartbeatDeadlineRef.current = null;
     };
@@ -145,13 +202,17 @@ export function useWorkspaceSocket({
         const sendHeartbeat = () => {
           if (ws.readyState !== WebSocket.OPEN) return;
           ws.send(JSON.stringify({ type: "ping" }));
-          if (heartbeatDeadlineRef.current) clearTimeout(heartbeatDeadlineRef.current);
+          if (heartbeatDeadlineRef.current)
+            clearTimeout(heartbeatDeadlineRef.current);
           heartbeatDeadlineRef.current = setTimeout(() => {
             try {
               ws.close();
             } catch {}
           }, HEARTBEAT_TIMEOUT);
-          heartbeatTimerRef.current = setTimeout(sendHeartbeat, HEARTBEAT_INTERVAL);
+          heartbeatTimerRef.current = setTimeout(
+            sendHeartbeat,
+            HEARTBEAT_INTERVAL,
+          );
         };
         sendHeartbeat();
       };
@@ -170,15 +231,21 @@ export function useWorkspaceSocket({
               break;
 
             case "new_message":
-              qc.invalidateQueries({ queryKey: getListMessagesQueryKey(workspaceId) });
+              qc.invalidateQueries({
+                queryKey: getListMessagesQueryKey(workspaceId),
+              });
               break;
 
             case "sync_event":
-              qc.invalidateQueries({ queryKey: getListSyncEventsQueryKey(workspaceId) });
+              qc.invalidateQueries({
+                queryKey: getListSyncEventsQueryKey(workspaceId),
+              });
               break;
 
             case "huddle_update":
-              qc.invalidateQueries({ queryKey: getGetHuddleQueryKey(workspaceId) });
+              qc.invalidateQueries({
+                queryKey: getGetHuddleQueryKey(workspaceId),
+              });
               break;
 
             case "pong":
@@ -189,12 +256,18 @@ export function useWorkspaceSocket({
               break;
 
             case "message_read":
-              qc.invalidateQueries({ queryKey: getListMessagesQueryKey(workspaceId) });
+              qc.invalidateQueries({
+                queryKey: getListMessagesQueryKey(workspaceId),
+              });
               break;
 
             case "typing":
               if (msg.userId) {
-                handleTypingEvent(msg.userId, msg.name ?? null, msg.avatarUrl ?? null);
+                handleTypingEvent(
+                  msg.userId,
+                  msg.name ?? null,
+                  msg.avatarUrl ?? null,
+                );
               }
               break;
 
@@ -222,24 +295,28 @@ export function useWorkspaceSocket({
         if (unmountedRef.current) return;
         if (ev.code === 4001 || ev.code === 4003 || ev.code === 4004) return;
 
-        const delay = Math.min(BASE_DELAY * Math.pow(2, retryRef.current), MAX_DELAY);
+        const delay = Math.min(
+          BASE_DELAY * Math.pow(2, retryRef.current),
+          MAX_DELAY,
+        );
         retryRef.current += 1;
         timerRef.current = setTimeout(connect, delay);
       };
 
       ws.onerror = () => {};
     } catch {}
-  }, [workspaceId, enabled, getToken, qc, handleTypingEvent]);
+  }, [workspaceId, enabled, getToken, qc, handleTypingEvent, websocketEnabled]);
 
   useEffect(() => {
     unmountedRef.current = false;
-    if (enabled) connect();
+    if (enabled && websocketEnabled) connect();
 
     return () => {
       unmountedRef.current = true;
       if (timerRef.current) clearTimeout(timerRef.current);
       if (heartbeatTimerRef.current) clearTimeout(heartbeatTimerRef.current);
-      if (heartbeatDeadlineRef.current) clearTimeout(heartbeatDeadlineRef.current);
+      if (heartbeatDeadlineRef.current)
+        clearTimeout(heartbeatDeadlineRef.current);
       if (wsRef.current) {
         wsRef.current.onclose = null;
         wsRef.current.close();
@@ -249,7 +326,7 @@ export function useWorkspaceSocket({
       for (const t of typingTimersRef.current.values()) clearTimeout(t);
       typingTimersRef.current.clear();
     };
-  }, [connect, enabled]);
+  }, [connect, enabled, websocketEnabled]);
 
   const sendTyping = useCallback(() => {
     const ws = wsRef.current;

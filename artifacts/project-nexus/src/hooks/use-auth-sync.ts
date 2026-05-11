@@ -1,18 +1,18 @@
 import { useEffect } from "react";
 import { useUser } from "@clerk/react";
+import { useAuthenticatedFetch } from "./use-authenticated-fetch";
 
 export function useAuthSync() {
   const { user, isLoaded } = useUser();
+  const authenticatedFetch = useAuthenticatedFetch();
 
   useEffect(() => {
     if (!isLoaded || !user) return;
 
     const syncUser = async () => {
       try {
-        await fetch("/api/user/sync", {
+        await authenticatedFetch("/api/user/sync", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
           body: JSON.stringify({
             email: user.primaryEmailAddress?.emailAddress || "",
             name: user.fullName || user.firstName || "User",
@@ -25,5 +25,5 @@ export function useAuthSync() {
     };
 
     syncUser();
-  }, [user, isLoaded]);
+  }, [user, isLoaded, authenticatedFetch]);
 }

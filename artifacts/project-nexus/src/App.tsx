@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { ClerkProvider, Show, useClerk, useAuth } from "@clerk/react";
-import { setAuthTokenGetter } from "@workspace/api-client-react";
+import { setAuthTokenGetter, setBaseUrl } from "@workspace/api-client-react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
@@ -16,6 +16,9 @@ import WorkspacesPage from "@/pages/workspaces";
 import WorkspaceHubPage from "@/pages/workspace-hub";
 import JoinPage from "@/pages/join";
 import ProfilePage from "@/pages/profile";
+import { apiBaseUrl } from "@/lib/runtime-config";
+
+setBaseUrl(apiBaseUrl);
 
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
