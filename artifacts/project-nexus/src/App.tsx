@@ -222,7 +222,7 @@ export default function App() {
     <ThemeProvider>
       <TooltipProvider>
         <WouterRouter base={basePath}>
-          <ClerkProviderWithRoutes />
+          <LandingPage />
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

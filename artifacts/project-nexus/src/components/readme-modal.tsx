@@ -126,11 +126,6 @@ export function ReadmeButton() {
               <FileText className="h-4 w-4" />
               <span>README.md</span>
             </div>
-            <div className="ml-auto flex items-center gap-1.5">
-              <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
-              <div className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
-              <div className="h-2.5 w-2.5 rounded-full bg-green-400" />
-            </div>
           </div>
 
           <ScrollArea className="flex-1 min-h-0">
